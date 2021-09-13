@@ -92,7 +92,7 @@ def getimage(data, poss, masses, hsml, num, cmap, vmin, vmax):
     R.set_logscale()
     img = R.get_image()
 
-    print("Image limits:", np.min(img), no.max(img))
+    print("Image limits:", np.min(img), np.max(img))
 
     img = ndimage.gaussian_filter(img, sigma=(3, 3), order=0)
 
