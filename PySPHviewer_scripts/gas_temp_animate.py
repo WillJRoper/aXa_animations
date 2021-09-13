@@ -71,23 +71,30 @@ def get_normalised_image(img, vmin=None, vmax=None):
     return img
 
 
-def getimage(data, poss, masses, hsml, num, cmap, vmin, vmax):
+def getimage(data, poss, masses, temps, hsml, num, cmap, vmin, vmax):
     print('There are', poss.shape[0], 'gas particles in the region')
 
     # Set up particle objects
-    P = sph.Particles(poss, mass=masses, hsml=hsml)
+    P = sph.Particles(poss, mass=(temps * masses), hsml=hsml)
+    Pt = sph.Particles(poss, mass=temps, hsml=hsml)
 
     # Initialise the scene
     S = sph.Scene(P)
+    St = sph.Scene(t)
 
     i = data[num]
     i['xsize'] = 3840
     i['ysize'] = 2160
     i['roll'] = 0
     S.update_camera(**i)
+    St.update_camera(**i)
     R = sph.Render(S)
+    Rt = sph.Render(S)
     R.set_logscale()
-    img = R.get_image()
+    Rt.set_logscale()
+    imgden = R.get_image()
+    imgt = R.get_image()
+    img = imgt - imgden
 
     print("Image limits:", np.min(img), np.max(img))
 
@@ -151,31 +158,36 @@ def single_frame(num, nframes):
     poss[np.where(poss < - boxsize.value / 2)] += boxsize.value
 
     hsmls = data.gas.smoothing_lengths.value
+    temps = data.gas.temperatures.value
 
-    mean_den = np.sum(masses) / boxsize ** 3
+    mean_den = np.sum(temps) / boxsize ** 3
 
     vmax = np.log10(4000 * mean_den)
-    vmin = 1
-    # print("Cmap Limits")
-    # print("------------------------------------------")
-    #
-    # print(np.log10(200 * mean_den),
-    #       np.log10(1000 * mean_den),
-    #       np.log10(1600 * mean_den),
-    #       np.log10(2000 * mean_den),
-    #       np.log10(3000 * mean_den),
-    #       np.log10(4000 * mean_den))
-    #
-    # print(np.log10(200 * mean_den) / vmax,
-    #       np.log10(1000 * mean_den) / vmax,
-    #       np.log10(1600 * mean_den) / vmax,
-    #       np.log10(2000 * mean_den) / vmax,
-    #       np.log10(3000 * mean_den) / vmax,
-    #       np.log10(4000 * mean_den) / vmax)
-    #
-    # print("------------------------------------------")
+    vmin = 3
 
-    # hex_list = ["#000000", "#03045e", "#0077b6",
+    print("Cmap Limits")
+    print("------------------------------------------")
+
+    print(np.log10(200 * mean_den),
+          np.log10(1000 * mean_den),
+          np.log10(1600 * mean_den),
+          np.log10(2000 * mean_den),
+          np.log10(3000 * mean_den),
+          np.log10(4000 * mean_den))
+
+    print(np.log10(200 * mean_den) / vmax,
+          np.log10(1000 * mean_den) / vmax,
+          np.log10(1600 * mean_den) / vmax,
+          np.log10(2000 * mean_den) / vmax,
+          np.log10(3000 * mean_den) / vmax,
+          np.log10(4000 * mean_den) / vmax)
+
+    print("------------------------------------------")
+    #
+    # hex_list = ["#001219", "#005f73", "#0a9396",
+    #             "#0a9396", "#94d2bd", "#e9d8a6",
+    #             "#ee9b00", "#ca6702", "#ae2012",
+    #             "#48cae4", "#caf0f8", "#ffffff"
     #             "#48cae4", "#caf0f8", "#ffffff"]
     # float_list = [0,
     #               np.log10(mean_den) / vmax,
@@ -185,10 +197,10 @@ def single_frame(num, nframes):
     #               1.0]
     #
     # cmap = get_continuous_cmap(hex_list, float_list=float_list)
-    cmap = ml.cm.get_cmap('plasma')
+    cmap = ml.cm.get_cmap('magma')
 
     # Get images
-    rgb_output, ang_extent = getimage(cam_data, poss, masses, hsmls,
+    rgb_output, ang_extent = getimage(cam_data, poss, masses, temps, hsmls,
                                       num, cmap, vmin, vmax)
 
     i = cam_data[num]
@@ -229,7 +241,7 @@ def single_frame(num, nframes):
 
     plt.margins(0, 0)
 
-    fig.savefig('../plots/Ani/Gas_Density/GasDensity_Cube_' + snap + '.png',
+    fig.savefig('../plots/Ani/Gas_Temp/GasTemp_Cube_' + snap + '.png',
                 bbox_inches='tight',
                 pad_inches=0)
 
