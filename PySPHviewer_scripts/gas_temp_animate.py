@@ -89,7 +89,7 @@ def getimage(data, poss, masses, temps, hsml, num, cmap, vmin, vmax):
     S.update_camera(**i)
     St.update_camera(**i)
     R = sph.Render(S)
-    Rt = sph.Render(S)
+    Rt = sph.Render(St)
     R.set_logscale()
     Rt.set_logscale()
     imgden = R.get_image()
