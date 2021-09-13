@@ -150,7 +150,7 @@ def single_frame(num, nframes):
     poss[np.where(poss > boxsize.value / 2)] -= boxsize.value
     poss[np.where(poss < - boxsize.value / 2)] += boxsize.value
 
-    hsmls = data.gas.smoothinglengths.value
+    hsmls = data.gas.smoothing_lengths.value
 
     mean_den = np.sum(masses) / boxsize ** 3
 
