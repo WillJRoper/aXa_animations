@@ -154,6 +154,9 @@ def single_frame(num, nframes):
 
     mean_den = np.sum(masses) / boxsize ** 3
 
+    vmax = 12.7
+    vmin = 1
+
     print(np.log10(200 * mean_den),
           np.log10(1000 * mean_den),
           np.log10(8 * 200 * mean_den),
@@ -163,9 +166,6 @@ def single_frame(num, nframes):
           np.log10(1000 * mean_den) / 7,
           np.log10(8 * 200 * mean_den) / 7,
           np.log10(5000 * mean_den) / 7)
-
-    vmax = 7
-    vmin = 1
 
     hex_list = ["#000000", "#6c1c55", "#7e2e84", "#ba4051",
                 "#f6511d", "#ffb400", "#f7ec59", "#fbf6ac"]
@@ -218,7 +218,7 @@ def single_frame(num, nframes):
 
     plt.margins(0, 0)
 
-    fig.savefig('plots/Ani/GasStars_flythrough_' + snap + '.png',
+    fig.savefig('../plots/Ani/GasStars_flythrough_' + snap + '.png',
                 bbox_inches='tight',
                 pad_inches=0)
 
