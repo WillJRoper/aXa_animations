@@ -10,7 +10,7 @@
 #SBATCH -t 72:00:00
 
 # Run the job from the following directory - change this to point to your own personal space on /lustre
-cd /cosma/home/dp004/dc-rope1/cosma7/SWIFT/flares-swift-vis
+cd /cosma/home/dp004/dc-rope1/cosma7/Animations/codes/aXa_animations/PySPHviewer_scripts
 
 module purge
 #load the modules used to build your program.
