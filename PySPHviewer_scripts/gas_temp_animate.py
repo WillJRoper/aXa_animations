@@ -80,7 +80,7 @@ def getimage(data, poss, masses, temps, hsml, num, cmap, vmin, vmax):
 
     # Initialise the scene
     S = sph.Scene(P)
-    St = sph.Scene(t)
+    St = sph.Scene(Pt)
 
     i = data[num]
     i['xsize'] = 3840
