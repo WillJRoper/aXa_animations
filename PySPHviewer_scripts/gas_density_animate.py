@@ -229,7 +229,7 @@ def single_frame(num, nframes):
 
     plt.margins(0, 0)
 
-    fig.savefig('../plots/Ani/DM/DM_Cube_' + snap + '.png',
+    fig.savefig('../plots/Ani/Gas_Density/GasDensity_Cube_' + snap + '.png',
                 bbox_inches='tight',
                 pad_inches=0)
 
