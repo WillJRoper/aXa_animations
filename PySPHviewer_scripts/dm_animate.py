@@ -154,24 +154,28 @@ def single_frame(num, nframes):
 
     mean_den = np.sum(masses) / boxsize ** 3
 
-    vmax = np.log10(3000 * mean_den)
+    vmax = np.log10(4000 * mean_den)
     vmin = 1
 
     print(np.log10(200 * mean_den),
           np.log10(1000 * mean_den),
           np.log10(1600 * mean_den),
           np.log10(2000 * mean_den),
-          np.log10(3000 * mean_den))
+          np.log10(3000 * mean_den),
+          np.log10(4000 * mean_den))
 
     print(np.log10(200 * mean_den) / vmax,
           np.log10(1000 * mean_den) / vmax,
           np.log10(1600 * mean_den) / vmax,
           np.log10(2000 * mean_den) / vmax,
-          np.log10(3000 * mean_den) / vmax)
+          np.log10(3000 * mean_den) / vmax,
+          np.log10(4000 * mean_den) / vmax)
 
-    hex_list = ["#000000", "#6c1c55", "#7e2e84", "#ba4051",
-                "#f6511d", "#ffb400", "#f7ec59", "#fbf6ac"]
-    float_list = [0, 0.2, 0.3, 0.5, 0.7, 0.8, 0.9, 1]
+    mean_den_frac = mean_den / vmax
+
+    hex_list = ["#000000", "#03045e", "#0077b6", "#48cae4", "#caf0f8"]
+    float_list = [0, 0.1 * mean_den_frac,
+                  mean_den_frac, 200 * mean_den_frac, 1.0]
 
     cmap = get_continuous_cmap(hex_list, float_list=float_list)
 
