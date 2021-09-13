@@ -154,18 +154,20 @@ def single_frame(num, nframes):
 
     mean_den = np.sum(masses) / boxsize ** 3
 
-    vmax = 12.7
+    vmax = np.log10(3000 * mean_den)
     vmin = 1
 
     print(np.log10(200 * mean_den),
           np.log10(1000 * mean_den),
-          np.log10(8 * 200 * mean_den),
-          np.log10(5000 * mean_den))
+          np.log10(1600 * mean_den),
+          np.log10(2000 * mean_den),
+          np.log10(3000 * mean_den))
 
-    print(np.log10(200 * mean_den) / 7,
-          np.log10(1000 * mean_den) / 7,
-          np.log10(8 * 200 * mean_den) / 7,
-          np.log10(5000 * mean_den) / 7)
+    print(np.log10(200 * mean_den) / vmax,
+          np.log10(1000 * mean_den) / vmax,
+          np.log10(1600 * mean_den) / vmax,
+          np.log10(2000 * mean_den) / vmax,
+          np.log10(3000 * mean_den) / vmax)
 
     hex_list = ["#000000", "#6c1c55", "#7e2e84", "#ba4051",
                 "#f6511d", "#ffb400", "#f7ec59", "#fbf6ac"]
