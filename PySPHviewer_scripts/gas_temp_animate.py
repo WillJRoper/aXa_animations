@@ -162,42 +162,30 @@ def single_frame(num, nframes):
 
     mean_den = np.sum(temps) / boxsize ** 3
 
-    vmax = 6.5
-    vmin = 2
+    vmax = 6.6
+    vmin = 3
+
+    float_list = [0,
+                  2 / vmax,
+                  3 / vmax,
+                  4 / vmax,
+                  5 / vmax,
+                  6 / vmax,
+                  1.0]
 
     print("Cmap Limits")
     print("------------------------------------------")
 
-    print(np.log10(200 * mean_den),
-          np.log10(1000 * mean_den),
-          np.log10(1600 * mean_den),
-          np.log10(2000 * mean_den),
-          np.log10(3000 * mean_den),
-          np.log10(4000 * mean_den))
-
-    print(np.log10(200 * mean_den) / vmax,
-          np.log10(1000 * mean_den) / vmax,
-          np.log10(1600 * mean_den) / vmax,
-          np.log10(2000 * mean_den) / vmax,
-          np.log10(3000 * mean_den) / vmax,
-          np.log10(4000 * mean_den) / vmax)
+    print(float_list)
 
     print("------------------------------------------")
-    #
-    # hex_list = ["#001219", "#005f73", "#0a9396",
-    #             "#0a9396", "#94d2bd", "#e9d8a6",
-    #             "#ee9b00", "#ca6702", "#ae2012",
-    #             "#48cae4", "#caf0f8", "#ffffff"
-    #             "#48cae4", "#caf0f8", "#ffffff"]
-    # float_list = [0,
-    #               np.log10(mean_den) / vmax,
-    #               np.log10(200 * mean_den) / vmax,
-    #               np.log10(1600 * mean_den) / vmax,
-    #               np.log10(2000 * mean_den) / vmax,
-    #               1.0]
-    #
-    # cmap = get_continuous_cmap(hex_list, float_list=float_list)
-    cmap = ml.cm.get_cmap('magma')
+
+    hex_list = ["#000000", "#184e77", "#9e0059",
+                "#ba181b", "#f3722c", "#ffca3a",
+                "#ffffff"]
+
+    cmap = get_continuous_cmap(hex_list, float_list=float_list)
+    # cmap = ml.cm.get_cmap('magma')
 
     # Get images
     rgb_output, ang_extent = getimage(cam_data, poss, masses, temps, hsmls,
