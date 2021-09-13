@@ -117,8 +117,6 @@ def single_frame(num, nframes):
 
     print("Boxsize:", boxsize)
 
-    print(data.metadata.gas_properties.field_names)
-
     # Define centre
     cent = np.array([11.76119931, 3.95795609, 1.26561173])
 
@@ -155,7 +153,7 @@ def single_frame(num, nframes):
     mean_den = np.sum(masses) / boxsize ** 3
 
     vmax = np.log10(4000 * mean_den)
-    vmin = np.log10(0.1 * mean_den)
+    vmin = np.log10(0.05 * mean_den)
     # print("Cmap Limits")
     # print("------------------------------------------")
     #
