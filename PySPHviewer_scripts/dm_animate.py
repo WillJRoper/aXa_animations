@@ -106,8 +106,8 @@ def single_frame(num, nframes):
     snap = "%04d" % num
 
     # Define path
-    path = '/cosma/home/dp004/dc-rope1/SWIFT/hires_ani/data/' \
-           'snap_L20N1000_DMO_' + snap + ".hdf5"
+    path = "/cosma/home/dp004/dc-rope1/cosma7/SWIFT/" \
+           "hydro_1380_ani/data/ani_hydro_" + snap + ".hdf5"
 
     snap = "%05d" % num
 
