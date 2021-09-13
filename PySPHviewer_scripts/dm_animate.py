@@ -178,11 +178,10 @@ def single_frame(num, nframes):
                   np.log10(mean_den) / vmax,
                   np.log10(200 * mean_den) / vmax,
                   np.log10(1600 * mean_den) / vmax,
-                  np.log10(1600 * mean_den) / vmax,
+                  np.log10(2000 * mean_den) / vmax,
                   1.0]
 
-    # cmap = get_continuous_cmap(hex_list, float_list=float_list)
-    cmap = cmr.neutral
+    cmap = get_continuous_cmap(hex_list, float_list=float_list)
 
     # Get images
     rgb_output, ang_extent = getimage(cam_data, poss, masses, hsmls,
