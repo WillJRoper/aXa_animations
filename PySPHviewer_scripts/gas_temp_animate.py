@@ -93,7 +93,7 @@ def getimage(data, poss, masses, temps, hsml, num, cmap, vmin, vmax):
     R.set_logscale()
     Rt.set_logscale()
     imgden = R.get_image()
-    imgt = R.get_image()
+    imgt = Rt.get_image()
     img = imgt - imgden
 
     print("Image limits:", np.min(img), np.max(img))
