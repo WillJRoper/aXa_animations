@@ -171,12 +171,11 @@ def single_frame(num, nframes):
           np.log10(3000 * mean_den) / vmax,
           np.log10(4000 * mean_den) / vmax)
 
-    hex_list = ["#000000", "#03045e", "#0077b6", "#48cae4", "#caf0f8", "#fffffc"]
-    float_list = [0,
-                  np.log10(0.5 * mean_den) / vmax,
-                  np.log10(mean_den) / vmax,
+    hex_list = ["#000000", "#03045e", "#0077b6", "#48cae4", "#caf0f8"]
+    float_list = [0, np.log10(mean_den) / vmax,
                   np.log10(200 * mean_den) / vmax,
-                  np.log10(1600 * mean_den) / vmax, 1.0]
+                  np.log10(1600 * mean_den) / vmax,
+                  1.0]
 
     cmap = get_continuous_cmap(hex_list, float_list=float_list)
 
