@@ -95,7 +95,7 @@ def getimage(data, poss, masses, hsml, num, cmap, vmin, vmax):
 
     print("Image limits:", np.min(img), np.max(img))
 
-    img = ndimage.gaussian_filter(img, sigma=(3, 3), order=0)
+    img = ndimage.gaussian_filter(img, sigma=(2, 2), order=0)
 
     # Convert images to rgb arrays
     rgb = cmap(get_normalised_image(img, vmin=vmin, vmax=vmax))
