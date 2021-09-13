@@ -155,7 +155,7 @@ def single_frame(num, nframes):
     mean_den = np.sum(masses) / boxsize ** 3
 
     vmax = np.log10(4000 * mean_den)
-    vmin = np.log10(0.1 * mean_den)
+    vmin = 1
     # print("Cmap Limits")
     # print("------------------------------------------")
     #
