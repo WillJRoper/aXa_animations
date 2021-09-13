@@ -72,7 +72,7 @@ def get_normalised_image(img, vmin=None, vmax=None):
 
 
 def getimage(data, poss, masses, hsml, num, cmap, vmin, vmax):
-    print('There are', poss.shape[0], 'dark matter particles in the region')
+    print('There are', poss.shape[0], 'gas particles in the region')
 
     # Set up particle objects
     P = sph.Particles(poss, mass=masses, hsml=hsml)
@@ -117,6 +117,8 @@ def single_frame(num, nframes):
 
     print("Boxsize:", boxsize)
 
+    print(data.metadata.gas_properties.field_names)
+
     # Define centre
     cent = np.array([11.76119931, 3.95795609, 1.26561173])
 
@@ -142,47 +144,48 @@ def single_frame(num, nframes):
     # Define the camera trajectory
     cam_data = camera_tools.get_camera_trajectory(targets, anchors)
 
-    poss = data.dark_matter.coordinates.value
-    masses = data.dark_matter.masses.value * 10 ** 10
+    poss = data.gas.coordinates.value
+    masses = data.gas.masses.value * 10 ** 10
     poss -= cent
     poss[np.where(poss > boxsize.value / 2)] -= boxsize.value
     poss[np.where(poss < - boxsize.value / 2)] += boxsize.value
 
-    hsmls = data.dark_matter.softenings.value
+    hsmls = data.gas.smoothinglengths.value
 
     mean_den = np.sum(masses) / boxsize ** 3
 
     vmax = np.log10(4000 * mean_den)
     vmin = 1
-    print("Cmap Limits")
-    print("------------------------------------------")
+    # print("Cmap Limits")
+    # print("------------------------------------------")
+    #
+    # print(np.log10(200 * mean_den),
+    #       np.log10(1000 * mean_den),
+    #       np.log10(1600 * mean_den),
+    #       np.log10(2000 * mean_den),
+    #       np.log10(3000 * mean_den),
+    #       np.log10(4000 * mean_den))
+    #
+    # print(np.log10(200 * mean_den) / vmax,
+    #       np.log10(1000 * mean_den) / vmax,
+    #       np.log10(1600 * mean_den) / vmax,
+    #       np.log10(2000 * mean_den) / vmax,
+    #       np.log10(3000 * mean_den) / vmax,
+    #       np.log10(4000 * mean_den) / vmax)
+    #
+    # print("------------------------------------------")
 
-    print(np.log10(200 * mean_den),
-          np.log10(1000 * mean_den),
-          np.log10(1600 * mean_den),
-          np.log10(2000 * mean_den),
-          np.log10(3000 * mean_den),
-          np.log10(4000 * mean_den))
-
-    print(np.log10(200 * mean_den) / vmax,
-          np.log10(1000 * mean_den) / vmax,
-          np.log10(1600 * mean_den) / vmax,
-          np.log10(2000 * mean_den) / vmax,
-          np.log10(3000 * mean_den) / vmax,
-          np.log10(4000 * mean_den) / vmax)
-
-    print("------------------------------------------")
-
-    hex_list = ["#000000", "#03045e", "#0077b6",
-                "#48cae4", "#caf0f8", "#ffffff"]
-    float_list = [0,
-                  np.log10(mean_den) / vmax,
-                  np.log10(200 * mean_den) / vmax,
-                  np.log10(1600 * mean_den) / vmax,
-                  np.log10(2000 * mean_den) / vmax,
-                  1.0]
-
-    cmap = get_continuous_cmap(hex_list, float_list=float_list)
+    # hex_list = ["#000000", "#03045e", "#0077b6",
+    #             "#48cae4", "#caf0f8", "#ffffff"]
+    # float_list = [0,
+    #               np.log10(mean_den) / vmax,
+    #               np.log10(200 * mean_den) / vmax,
+    #               np.log10(1600 * mean_den) / vmax,
+    #               np.log10(2000 * mean_den) / vmax,
+    #               1.0]
+    #
+    # cmap = get_continuous_cmap(hex_list, float_list=float_list)
+    cmap = ml.cm.get_cmap('plasma')
 
     # Get images
     rgb_output, ang_extent = getimage(cam_data, poss, masses, hsmls,
