@@ -1,6 +1,6 @@
 #!/bin/bash -l
 #SBATCH --ntasks 1 # The number of cores you need...
-#SBATCH --array=1-1000%50
+#SBATCH --array=1-1000
 #SBATCH --cpus-per-task=16
 #SBATCH -J 12p5DMO-ani #Give it something meaningful.
 #SBATCH -o logs/output_flythrough.%J.out
@@ -22,6 +22,10 @@ i=$(($SLURM_ARRAY_TASK_ID - 1))
 
 # Run the program
 python grid_cubes.py $i
+python dm_animate.py $i
+python gas_density_animate.py $i
+python gas_temp_animate.py $i
+python stars_animate.py $i
 
 source deactivate
 
