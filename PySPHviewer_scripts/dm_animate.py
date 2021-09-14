@@ -8,10 +8,11 @@ from astropy.cosmology import Planck13 as cosmo
 import sys
 from swiftsimio import load
 from utilities import get_continuous_cmap
-from images import getimage_weighted as getimage
+from images import getimage
 
 
 def single_frame(num, nframes, res):
+
     snap = "%04d" % num
 
     # Define path

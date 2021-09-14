@@ -172,7 +172,7 @@ def single_frame(num, nframes, res):
                                        (int(res[0] / 2), int(res[1] / 2)))
 
     if DM_output.max() == np.nan or gas_output.max() == np.nan \
-            or gast_output.max() == np.nan or star_output == np.nan:
+            or gast_output.max() == np.nan or star_output.max() == np.nan:
         return
 
     rgb_output = np.zeros((res[0], res[1], 4))
