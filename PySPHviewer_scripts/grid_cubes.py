@@ -81,10 +81,10 @@ def single_frame(num, nframes, res):
 
     mean_den = np.sum(dm_masses) / boxsize ** 3
 
-    dm_vmax, dm_vmin = np.log10(4000 * mean_den), 1
-    gas_vmax, gas_vmin = np.log10(4000 * mean_den), 4
-    gas_temp_vmax, gas_temp_vmin = np.log10(4000 * mean_den), 4
-    star_vmax, star_vmin = 9, 2
+    dm_vmax, dm_vmin = np.log10(4000 * mean_den), 3
+    gas_vmax, gas_vmin = np.log10(4000 * mean_den), 5
+    gas_temp_vmax, gas_temp_vmin = 6.6, 3
+    star_vmax, star_vmin = 13, 4
 
     dm_hex_list = ["#000000", "#03045e", "#0077b6",
                    "#48cae4", "#caf0f8", "#ffffff"]
@@ -162,6 +162,14 @@ def single_frame(num, nframes, res):
     rgb_output[star_output.shape[0]:, star_output.shape[1]:, :] = star_output
     rgb_output[: gas_output.shape[0], : gas_output.shape[1], :] = gas_output
     rgb_output[: gast_output.shape[0], gast_output.shape[1]:, :] = gast_output
+
+    rgb_output[0, :] = np.nan
+    rgb_output[DM_output.shape[0], :] = np.nan
+    rgb_output[-1, :] = np.nan
+    rgb_output[:, 0] = np.nan
+    rgb_output[:, DM_output.shape[1]] = np.nan
+    rgb_output[:, -1] = np.nan
+
 
     i = cam_data[num]
     extent = [0, 2 * np.tan(ang_extent[1]) * i['r'],
