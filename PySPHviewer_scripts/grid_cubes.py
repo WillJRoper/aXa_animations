@@ -137,23 +137,24 @@ def single_frame(num, nframes, res):
     # Get images
     DM_output, ang_extent = getimage(cam_data, dm_poss, dm_masses, dm_hsmls,
                                      num, dm_cmap, dm_vmin, dm_vmax,
-                                     (res[0] / 2, res[1] / 2))
+                                     (int(res[0] / 2), int(res[1] / 2)))
 
     gas_output, ang_extent = getimage(cam_data, gas_poss, gas_masses,
                                       gas_hsmls, num, gas_cmap,
                                       gas_vmin, gas_vmax,
-                                      (res[0] / 2, res[1] / 2))
+                                      (int(res[0] / 2), int(res[1] / 2)))
 
     gast_output, ang_extent = getimage_weighted(cam_data, gas_poss, gas_masses,
                                                 gas_temps, gas_hsmls, num,
                                                 gast_cmap,
                                                 gas_temp_vmin, gas_temp_vmax,
-                                                (res[0] / 2, res[1] / 2))
+                                                (int(res[0] / 2),
+                                                 int(res[1] / 2)))
 
     star_output, ang_extent = getimage(cam_data, star_poss, star_masses,
                                        star_hsmls, num, star_cmap,
                                        star_vmin, star_vmax,
-                                       (res[0] / 2, res[1] / 2))
+                                       (int(res[0] / 2), int(res[1] / 2)))
 
     rgb_output = np.zeros((res[0], res[1], 3))
     rgb_output[: DM_output.shape[0], : DM_output.shape[1], :] = DM_output
