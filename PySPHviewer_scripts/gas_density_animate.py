@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from astropy.cosmology import Planck13 as cosmo
 import sys
 from swiftsimio import load
-from images import getimage_weighted as getimage
+from images import getimage
 
 
 def single_frame(num, nframes, res):
