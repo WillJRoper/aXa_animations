@@ -8,6 +8,7 @@ from images import getimage, getimage_weighted
 from sphviewer.tools import camera_tools
 from swiftsimio import load
 from utilities import get_continuous_cmap
+import cmasher as cmr
 
 ml.use('Agg')
 
@@ -42,7 +43,7 @@ def single_frame(num, nframes, res):
     anchors['id_frames'] = np.linspace(0, nframes, 8, dtype=int)
     anchors['id_targets'] = [0, 'same', 'same', 'same', 'same', 'same', 'same',
                              'same']
-    anchors['r'] = [boxsize.value + 4, 'same', 'same', 'same', 'same', 'same',
+    anchors['r'] = [boxsize.value + 6, 'same', 'same', 'same', 'same', 'same',
                     'same', 'same']
     anchors['t'] = [5, 'same', 'same', 'same', 'same', 'same', 'same', 'same']
     anchors['p'] = [0, 'pass', 'pass', 'pass', 'pass', 'pass', 'pass', -360]
@@ -130,7 +131,7 @@ def single_frame(num, nframes, res):
     print("------------------------------------------")
 
     dm_cmap = get_continuous_cmap(dm_hex_list, float_list=dm_float_list)
-    gas_cmap = ml.cm.get_cmap('plasma')
+    gas_cmap = cmr.chroma
     gast_cmap = get_continuous_cmap(gast_hex_list, float_list=gast_float_list)
     star_cmap = ml.cm.get_cmap('Greys_r')
 
@@ -157,10 +158,10 @@ def single_frame(num, nframes, res):
                                        (int(res[0] / 2), int(res[1] / 2)))
 
     rgb_output = np.zeros((res[0], res[1], 4))
-    rgb_output[: DM_output.shape[0], : DM_output.shape[1], :] = DM_output
-    rgb_output[: star_output.shape[0], star_output.shape[1]:, :] = star_output
-    rgb_output[gas_output.shape[0]:, : gas_output.shape[1], :] = gas_output
-    rgb_output[gast_output.shape[0]:, gast_output.shape[1]:, :] = gast_output
+    rgb_output[DM_output.shape[0]:, : DM_output.shape[1], :] = DM_output
+    rgb_output[star_output.shape[0]:, star_output.shape[1]:, :] = star_output
+    rgb_output[: gas_output.shape[0], : gas_output.shape[1], :] = gas_output
+    rgb_output[: gast_output.shape[0], gast_output.shape[1]:, :] = gast_output
 
     i = cam_data[num]
     extent = [0, 2 * np.tan(ang_extent[1]) * i['r'],
