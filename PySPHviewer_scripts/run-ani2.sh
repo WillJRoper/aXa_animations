@@ -21,7 +21,7 @@ source activate flares-env
 i=$(($SLURM_ARRAY_TASK_ID - 1 + 1000))
 
 # Run the program
-python grid_animate.py $i
+python grid_cubes.py $i
 
 source deactivate
 
