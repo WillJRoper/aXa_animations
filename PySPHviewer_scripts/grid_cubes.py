@@ -69,6 +69,20 @@ def single_frame(num, nframes, res):
 
     gas_temps = data.gas.temperatures.value
 
+    if gas_temps.max() == 0:
+
+        new_snap = "%04d" % (num + 1)
+
+        # Define path
+        path = "/cosma/home/dp004/dc-rope1/cosma7/SWIFT/" \
+               "hydro_1380_ani/data/ani_hydro_" + new_snap + ".hdf5"
+
+        data = load(path)
+        gas_temps = data.gas.temperatures.value
+
+        if gas_temps.size != gas_masses.size:
+            gas_temps = gas_temps[:gas_masses.size]
+
     dm_poss -= cent
     dm_poss[np.where(dm_poss > boxsize.value / 2)] -= boxsize.value
     dm_poss[np.where(dm_poss < - boxsize.value / 2)] += boxsize.value
@@ -81,8 +95,8 @@ def single_frame(num, nframes, res):
 
     mean_den = np.sum(dm_masses) / boxsize ** 3
 
-    dm_vmax, dm_vmin = np.log10(3000 * mean_den), 3
-    gas_vmax, gas_vmin = np.log10(3000 * mean_den), 5
+    dm_vmax, dm_vmin = np.log10(3000 * mean_den), 6
+    gas_vmax, gas_vmin = np.log10(3000 * mean_den), 6
     gas_temp_vmax, gas_temp_vmin = 6.6, 3
     star_vmax, star_vmin = 13, 4
 
@@ -156,6 +170,10 @@ def single_frame(num, nframes, res):
                                        star_hsmls, num, star_cmap,
                                        star_vmin, star_vmax,
                                        (int(res[0] / 2), int(res[1] / 2)))
+
+    if DM_output.max() == np.nan or gas_output.max() == np.nan \
+            or gast_output.max() == np.nan or star_output == np.nan:
+        return
 
     rgb_output = np.zeros((res[0], res[1], 4))
     rgb_output[DM_output.shape[0]:, : DM_output.shape[1], :] = DM_output
