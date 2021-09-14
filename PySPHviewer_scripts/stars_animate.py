@@ -7,7 +7,8 @@ import matplotlib.pyplot as plt
 from astropy.cosmology import Planck13 as cosmo
 import sys
 from swiftsimio import load
-from images import getimage_weighted as getimage
+from utilities import get_normalised_image
+from images import getimage
 
 
 def single_frame(num, nframes, res):
@@ -52,50 +53,58 @@ def single_frame(num, nframes, res):
     # Define the camera trajectory
     cam_data = camera_tools.get_camera_trajectory(targets, anchors)
 
-    poss = data.gas.coordinates.value
-    masses = data.gas.masses.value * 10 ** 10
-    poss -= cent
-    poss[np.where(poss > boxsize.value / 2)] -= boxsize.value
-    poss[np.where(poss < - boxsize.value / 2)] += boxsize.value
+    vmax = 9
+    vmin = 2
 
-    hsmls = data.gas.smoothing_lengths.value
+    try:
+        poss = data.stars.coordinates.value
+        masses = data.stars.masses.value * 10 ** 10
+        poss -= cent
+        poss[np.where(poss > boxsize.value / 2)] -= boxsize.value
+        poss[np.where(poss < - boxsize.value / 2)] += boxsize.value
 
-    vmax = 13
-    vmin = 4
-    # print("Cmap Limits")
-    # print("------------------------------------------")
-    #
-    # print(np.log10(200 * mean_den),
-    #       np.log10(1000 * mean_den),
-    #       np.log10(1600 * mean_den),
-    #       np.log10(2000 * mean_den),
-    #       np.log10(3000 * mean_den),
-    #       np.log10(4000 * mean_den))
-    #
-    # print(np.log10(200 * mean_den) / vmax,
-    #       np.log10(1000 * mean_den) / vmax,
-    #       np.log10(1600 * mean_den) / vmax,
-    #       np.log10(2000 * mean_den) / vmax,
-    #       np.log10(3000 * mean_den) / vmax,
-    #       np.log10(4000 * mean_den) / vmax)
-    #
-    # print("------------------------------------------")
+        hsmls = data.stars.smoothing_lengths.value
 
-    # hex_list = ["#000000", "#03045e", "#0077b6",
-    #             "#48cae4", "#caf0f8", "#ffffff"]
-    # float_list = [0,
-    #               np.log10(mean_den) / vmax,
-    #               np.log10(200 * mean_den) / vmax,
-    #               np.log10(1600 * mean_den) / vmax,
-    #               np.log10(2000 * mean_den) / vmax,
-    #               1.0]
-    #
-    # cmap = get_continuous_cmap(hex_list, float_list=float_list)
-    cmap = ml.cm.get_cmap('plasma')
+        # print("Cmap Limits")
+        # print("------------------------------------------")
+        #
+        # print(np.log10(200 * mean_den),
+        #       np.log10(1000 * mean_den),
+        #       np.log10(1600 * mean_den),
+        #       np.log10(2000 * mean_den),
+        #       np.log10(3000 * mean_den),
+        #       np.log10(4000 * mean_den))
+        #
+        # print(np.log10(200 * mean_den) / vmax,
+        #       np.log10(1000 * mean_den) / vmax,
+        #       np.log10(1600 * mean_den) / vmax,
+        #       np.log10(2000 * mean_den) / vmax,
+        #       np.log10(3000 * mean_den) / vmax,
+        #       np.log10(4000 * mean_den) / vmax)
+        #
+        # print("------------------------------------------")
 
-    # Get images
-    rgb_output, ang_extent = getimage(cam_data, poss, masses, hsmls,
-                                      num, cmap, vmin, vmax, res)
+        # hex_list = ["#000000", "#03045e", "#0077b6",
+        #             "#48cae4", "#caf0f8", "#ffffff"]
+        # float_list = [0,
+        #               np.log10(mean_den) / vmax,
+        #               np.log10(200 * mean_den) / vmax,
+        #               np.log10(1600 * mean_den) / vmax,
+        #               np.log10(2000 * mean_den) / vmax,
+        #               1.0]
+        #
+        # cmap = get_continuous_cmap(hex_list, float_list=float_list)
+        cmap = ml.cm.get_cmap('Greys_r')
+
+        # Get images
+        rgb_output, ang_extent = getimage(cam_data, poss, masses, hsmls,
+                                          num, cmap, vmin, vmax, res)
+
+    except IndexError as e:
+        print(e)
+        cmap = ml.cm.get_cmap('Greys_r')
+        rgb_output = cmap(get_normalised_image(np.zeros(res)))
+        ang_extent = [-45, 45, -45, 45]
 
     i = cam_data[num]
     extent = [0, 2 * np.tan(ang_extent[1]) * i['r'],

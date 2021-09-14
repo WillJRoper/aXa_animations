@@ -2,112 +2,16 @@ import matplotlib as ml
 
 ml.use('Agg')
 import numpy as np
-import sphviewer as sph
-from sphviewer.tools import QuickView, cmaps, camera_tools, Blend
+from sphviewer.tools import camera_tools
 import matplotlib.pyplot as plt
 from astropy.cosmology import Planck13 as cosmo
-import matplotlib.colors as mcolors
-import scipy.ndimage as ndimage
 import sys
 from swiftsimio import load
-import gc
+from utilities import get_continuous_cmap
+from images import getimage_weighted as getimage
 
 
-def hex_to_rgb(value):
-    '''
-    Converts hex to rgb colours
-    value: string of 6 characters representing a hex colour.
-    Returns: list length 3 of RGB values'''
-    value = value.strip("#")  # removes hash symbol if present
-    lv = len(value)
-    return tuple(int(value[i:i + lv // 3], 16) for i in range(0, lv, lv // 3))
-
-
-def rgb_to_dec(value):
-    '''
-    Converts rgb to decimal colours (i.e. divides each value by 256)
-    value: list (length 3) of RGB values
-    Returns: list (length 3) of decimal values'''
-    return [v / 256 for v in value]
-
-
-def get_continuous_cmap(hex_list, float_list=None):
-    ''' creates and returns a color map that can be used in heat map figures.
-        If float_list is not provided, colour map graduates linearly between each color in hex_list.
-        If float_list is provided, each color in hex_list is mapped to the respective location in float_list.
-
-        Parameters
-        ----------
-        hex_list: list of hex code strings
-        float_list: list of floats between 0 and 1, same length as hex_list. Must start with 0 and end with 1.
-
-        Returns
-        ----------
-        colour map'''
-    rgb_list = [rgb_to_dec(hex_to_rgb(i)) for i in hex_list]
-    if float_list:
-        pass
-    else:
-        float_list = list(np.linspace(0, 1, len(rgb_list)))
-
-    cdict = dict()
-    for num, col in enumerate(['red', 'green', 'blue']):
-        col_list = [[float_list[i], rgb_list[i][num], rgb_list[i][num]] for i
-                    in range(len(float_list))]
-        cdict[col] = col_list
-    cmp = mcolors.LinearSegmentedColormap('my_cmp', segmentdata=cdict, N=256)
-    return cmp
-
-
-def get_normalised_image(img, vmin=None, vmax=None):
-    if vmin == None:
-        vmin = np.min(img)
-    if vmax == None:
-        vmax = np.max(img)
-
-    img = np.clip(img, vmin, vmax)
-    img = (img - vmin) / (vmax - vmin)
-
-    return img
-
-
-def getimage(data, poss, masses, temps, hsml, num, cmap, vmin, vmax):
-    print('There are', poss.shape[0], 'gas particles in the region')
-
-    # Set up particle objects
-    P = sph.Particles(poss, mass=masses, hsml=hsml)
-    Pt = sph.Particles(poss, mass=(temps * masses), hsml=hsml)
-
-    # Initialise the scene
-    S = sph.Scene(P)
-    St = sph.Scene(Pt)
-
-    i = data[num]
-    i['xsize'] = 3840
-    i['ysize'] = 2160
-    i['roll'] = 0
-    S.update_camera(**i)
-    St.update_camera(**i)
-    R = sph.Render(S)
-    Rt = sph.Render(St)
-    R.set_logscale()
-    Rt.set_logscale()
-    imgden = R.get_image()
-    imgt = Rt.get_image()
-    img = imgt - imgden
-
-    print("Image limits:", np.min(img), np.max(img))
-
-    img = ndimage.gaussian_filter(img, sigma=(2, 2), order=0)
-
-    # Convert images to rgb arrays
-    rgb = cmap(get_normalised_image(img, vmin=vmin, vmax=vmax))
-
-    return rgb, R.get_extent()
-
-
-def single_frame(num, nframes):
-
+def single_frame(num, nframes, res):
     snap = "%04d" % num
 
     # Define path
@@ -160,8 +64,6 @@ def single_frame(num, nframes):
     hsmls = data.gas.smoothing_lengths.value
     temps = data.gas.temperatures.value
 
-    mean_den = np.sum(temps) / boxsize ** 3
-
     vmax = 6.6
     vmin = 3
 
@@ -189,7 +91,7 @@ def single_frame(num, nframes):
 
     # Get images
     rgb_output, ang_extent = getimage(cam_data, poss, masses, temps, hsmls,
-                                      num, cmap, vmin, vmax)
+                                      num, cmap, vmin, vmax, res)
 
     i = cam_data[num]
     extent = [0, 2 * np.tan(ang_extent[1]) * i['r'],
@@ -236,10 +138,5 @@ def single_frame(num, nframes):
     plt.close(fig)
 
 
-if len(sys.argv) > 1:
-    single_frame(int(sys.argv[1]), nframes=1380)
-else:
-
-    for num in range(0, 1001):
-        single_frame(num, max_pixel=6, nframes=1380)
-        gc.collect()
+res = (2160, 3840)
+single_frame(int(sys.argv[1]), nframes=1380, res=res)
