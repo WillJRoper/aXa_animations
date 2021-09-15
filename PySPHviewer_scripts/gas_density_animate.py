@@ -8,7 +8,7 @@ from astropy.cosmology import Planck13 as cosmo
 import sys
 from swiftsimio import load
 from images import getimage
-
+import cmasher as cmr
 
 def single_frame(num, nframes, res):
     snap = "%04d" % num
@@ -54,44 +54,18 @@ def single_frame(num, nframes, res):
 
     poss = data.gas.coordinates.value
     masses = data.gas.masses.value * 10 ** 10
+    dm_masses = data.dark_matter.masses.value * 10 ** 10
     poss -= cent
     poss[np.where(poss > boxsize.value / 2)] -= boxsize.value
     poss[np.where(poss < - boxsize.value / 2)] += boxsize.value
 
     hsmls = data.gas.smoothing_lengths.value
 
-    vmax = 13
-    vmin = 4
-    # print("Cmap Limits")
-    # print("------------------------------------------")
-    #
-    # print(np.log10(200 * mean_den),
-    #       np.log10(1000 * mean_den),
-    #       np.log10(1600 * mean_den),
-    #       np.log10(2000 * mean_den),
-    #       np.log10(3000 * mean_den),
-    #       np.log10(4000 * mean_den))
-    #
-    # print(np.log10(200 * mean_den) / vmax,
-    #       np.log10(1000 * mean_den) / vmax,
-    #       np.log10(1600 * mean_den) / vmax,
-    #       np.log10(2000 * mean_den) / vmax,
-    #       np.log10(3000 * mean_den) / vmax,
-    #       np.log10(4000 * mean_den) / vmax)
-    #
-    # print("------------------------------------------")
+    mean_den = np.sum(dm_masses) / boxsize ** 3
 
-    # hex_list = ["#000000", "#03045e", "#0077b6",
-    #             "#48cae4", "#caf0f8", "#ffffff"]
-    # float_list = [0,
-    #               np.log10(mean_den) / vmax,
-    #               np.log10(200 * mean_den) / vmax,
-    #               np.log10(1600 * mean_den) / vmax,
-    #               np.log10(2000 * mean_den) / vmax,
-    #               1.0]
-    #
-    # cmap = get_continuous_cmap(hex_list, float_list=float_list)
-    cmap = ml.cm.get_cmap('plasma')
+    vmax, vmin = np.log10(3000 * mean_den), 6
+
+    cmap = cmr.chroma
 
     # Get images
     rgb_output, ang_extent = getimage(cam_data, poss, masses, hsmls,

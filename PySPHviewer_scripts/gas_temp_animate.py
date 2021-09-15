@@ -64,8 +64,7 @@ def single_frame(num, nframes, res):
     hsmls = data.gas.smoothing_lengths.value
     temps = data.gas.temperatures.value
 
-    vmax = 6.6
-    vmin = 3
+    vmax, vmin = 6.6, 3
 
     float_list = [0,
                   2 / vmax,

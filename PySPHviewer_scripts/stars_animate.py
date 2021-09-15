@@ -53,8 +53,7 @@ def single_frame(num, nframes, res):
     # Define the camera trajectory
     cam_data = camera_tools.get_camera_trajectory(targets, anchors)
 
-    vmax = 9
-    vmin = 2
+    vmax, vmin = 13, 4
 
     try:
         poss = data.stars.coordinates.value
