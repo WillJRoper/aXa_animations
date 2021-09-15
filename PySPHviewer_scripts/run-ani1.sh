@@ -23,9 +23,9 @@ i=$(($SLURM_ARRAY_TASK_ID - 1))
 
 # Run the program
 python grid_cubes.py $i
-# python dm_animate.py $i
-# python gas_density_animate.py $i
-# python gas_temp_animate.py $i
+python dm_animate.py $i
+python gas_density_animate.py $i
+python gas_temp_animate.py $i
 python stars_animate.py $i
 
 source deactivate
