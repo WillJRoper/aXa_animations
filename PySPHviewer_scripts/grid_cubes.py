@@ -110,13 +110,13 @@ def single_frame(num, nframes, res):
 
     dm_vmax, dm_vmin = np.log10(3000 * mean_den), 6
     gas_vmax, gas_vmin = np.log10(3000 * mean_den), 6
-    gas_temp_vmax, gas_temp_vmin = 6.6, 3
+    gas_temp_vmax, gas_temp_vmin = 7, 2.5
     star_vmax, star_vmin = 13, 4
 
     dm_hex_list = ["#000000", "#03045e", "#0077b6",
                    "#48cae4", "#caf0f8", "#ffffff"]
-    gast_hex_list = ["#000000", "#184e77", "#9e0059",
-                     "#ba181b", "#f3722c", "#ffca3a",
+    gast_hex_list = ["#000000", "#184e77", "#0d108f",
+                     "#a81979", "#c78c16", "#eef743",
                      "#ffffff"]
 
     dm_float_list = [0,
@@ -126,12 +126,12 @@ def single_frame(num, nframes, res):
                      np.log10(2000 * mean_den) / dm_vmax,
                      1.0]
     gast_float_list = [0,
-                       2 / gas_temp_vmax,
                        3 / gas_temp_vmax,
                        4 / gas_temp_vmax,
+                       4.5 / gas_temp_vmax,
                        5 / gas_temp_vmax,
-                       6 / gas_temp_vmax,
-                       1.0]
+                       6.5 / gas_temp_vmax,
+                       7 / gas_temp_vmax]
 
     print("Mean density cmap Values")
     print("------------------------------------------")

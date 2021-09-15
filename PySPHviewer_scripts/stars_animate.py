@@ -102,7 +102,7 @@ def single_frame(num, nframes, res):
     except AttributeError as e:
         print(e)
         cmap = ml.cm.get_cmap('Greys_r')
-        rgb_output = cmap(get_normalised_image(np.zeros(res)))
+        rgb_output = cmap(np.zeros(res))
         ang_extent = [-45.00001, 45.00001, -25.312506, 25.312506]
 
     i = cam_data[num]
@@ -143,7 +143,7 @@ def single_frame(num, nframes, res):
 
     plt.margins(0, 0)
 
-    fig.savefig('../plots/Ani/Gas_Density/GasDensity_Cube_' + snap + '.png',
+    fig.savefig('../plots/Ani/Stars/Stars_Cube_' + snap + '.png',
                 bbox_inches='tight',
                 pad_inches=0)
 
