@@ -188,7 +188,7 @@ def single_frame(num, nframes, res):
     else:
         print(res)
         print("No Stars")
-        star_output = star_cmap(np.zeros((res[0], res[1])))
+        star_output = star_cmap(np.zeros((int(res[0] / 2), int(res[1] / 2))))
         print(star_output.shape)
 
     if DM_output.max() == np.nan or gas_output.max() == np.nan \
@@ -197,7 +197,7 @@ def single_frame(num, nframes, res):
         return
 
     rgb_output = np.zeros((res[0], res[1], 4))
-    rgb_output[DM_output.shape[0]:, : DM_output.shape[1], :] = DM_output
+    rgb_output[DM_output.shape[0], : DM_output.shape[1], :] = DM_output
     rgb_output[star_output.shape[0]:, star_output.shape[1]:, :] = star_output
     rgb_output[: gas_output.shape[0], : gas_output.shape[1], :] = gas_output
     rgb_output[: gast_output.shape[0], gast_output.shape[1]:, :] = gast_output
