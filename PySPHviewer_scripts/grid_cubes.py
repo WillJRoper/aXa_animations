@@ -57,15 +57,27 @@ def single_frame(num, nframes, res):
 
     dm_poss = data.dark_matter.coordinates.value
     gas_poss = data.gas.coordinates.value
-    star_poss = data.stars.coordinates.value
+    try:
+        star_poss = data.stars.coordinates.value
+    except AttributeError as e:
+        print(e)
+        star_poss = np.array([[]])
 
     dm_masses = data.dark_matter.masses.value * 10 ** 10
     gas_masses = data.gas.masses.value * 10 ** 10
-    star_masses = data.stars.masses.value * 10 ** 10
+    try:
+        star_masses = data.stars.masses.value * 10 ** 10
+    except AttributeError as e:
+        print(e)
+        star_masses = np.array([])
 
     dm_hsmls = data.dark_matter.softenings.value
     gas_hsmls = data.gas.smoothing_lengths.value
-    star_hsmls = data.stars.smoothing_lengths.value
+    try:
+        star_hsmls = data.stars.smoothing_lengths.value
+    except AttributeError as e:
+        print(e)
+        star_hsmls = np.array([])
 
     gas_temps = data.gas.temperatures.value
 
@@ -89,9 +101,10 @@ def single_frame(num, nframes, res):
     gas_poss -= cent
     gas_poss[np.where(gas_poss > boxsize.value / 2)] -= boxsize.value
     gas_poss[np.where(gas_poss < - boxsize.value / 2)] += boxsize.value
-    star_poss -= cent
-    star_poss[np.where(star_poss > boxsize.value / 2)] -= boxsize.value
-    star_poss[np.where(star_poss < - boxsize.value / 2)] += boxsize.value
+    if star_poss.shape[0] > 0:
+        star_poss -= cent
+        star_poss[np.where(star_poss > boxsize.value / 2)] -= boxsize.value
+        star_poss[np.where(star_poss < - boxsize.value / 2)] += boxsize.value
 
     mean_den = np.sum(dm_masses) / boxsize ** 3
 
@@ -166,13 +179,12 @@ def single_frame(num, nframes, res):
                                                 (int(res[0] / 2),
                                                  int(res[1] / 2)))
 
-    try:
+    if star_poss.shape[0] > 0:
         star_output, ang_extent = getimage(cam_data, star_poss, star_masses,
                                            star_hsmls, num, star_cmap,
                                            star_vmin, star_vmax,
                                            (int(res[0] / 2), int(res[1] / 2)))
-    except IndexError as e:
-        print(e)
+    else:
         star_output = star_cmap(get_normalised_image(np.zeros(res)))
 
     if DM_output.max() == np.nan or gas_output.max() == np.nan \
