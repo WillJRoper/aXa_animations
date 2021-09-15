@@ -40,7 +40,7 @@ def single_frame(num, nframes, res):
     anchors['id_frames'] = np.linspace(0, nframes, 8, dtype=int)
     anchors['id_targets'] = [0, 'same', 'same', 'same', 'same', 'same', 'same',
                              'same']
-    anchors['r'] = [boxsize.value + 4, 'same', 'same', 'same', 'same', 'same',
+    anchors['r'] = [boxsize.value + 8, 'same', 'same', 'same', 'same', 'same',
                     'same', 'same']
     anchors['t'] = [5, 'same', 'same', 'same', 'same', 'same', 'same', 'same']
     anchors['p'] = [0, 'pass', 'pass', 'pass', 'pass', 'pass', 'pass', -360]
