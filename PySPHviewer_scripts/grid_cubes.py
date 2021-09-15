@@ -112,7 +112,7 @@ def single_frame(num, nframes, res):
 
     dm_vmax, dm_vmin = np.log10(10000 * mean_den), 4
     gas_vmax, gas_vmin = np.log10(100 * mean_den), 7
-    gas_temp_vmax, gas_temp_vmin = 7, 2.5
+    gas_temp_vmax, gas_temp_vmin = 7, 1
     star_vmax, star_vmin = 14, 8
 
     dm_hex_list = ["#000000", "#03045e", "#0077b6",
