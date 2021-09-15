@@ -1,3 +1,4 @@
+#!/cosma/home/dp004/dc-rope1/.conda/envs/flares-env/bin/python
 import matplotlib as ml
 
 ml.use('Agg')
