@@ -53,7 +53,7 @@ def single_frame(num, nframes, res):
     # Define the camera trajectory
     cam_data = camera_tools.get_camera_trajectory(targets, anchors)
 
-    vmax, vmin = 14, 5
+    vmax, vmin = 14.5, 6
 
     print("Norm:", vmin, vmax)
 
