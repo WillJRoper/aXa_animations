@@ -69,7 +69,7 @@ def single_frame(num, nframes, res):
 
     print(vmax)
 
-    cmap = cmr.cosmic
+    cmap = cmr.eclipse
 
     # Get images
     rgb_output, ang_extent = getimage(cam_data, poss, masses, hsmls,
