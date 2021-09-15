@@ -96,7 +96,7 @@ def single_frame(num, nframes, res):
         dm_masses = data.dark_matter.masses.value * 10 ** 10
         i += 1
 
-    if hsmls.max() == 0:
+    if star_hsmls.max() == 0:
         return
 
     i = 0
