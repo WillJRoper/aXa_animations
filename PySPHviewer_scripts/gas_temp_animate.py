@@ -64,6 +64,22 @@ def single_frame(num, nframes, res):
     hsmls = data.gas.smoothing_lengths.value
     temps = data.gas.temperatures.value
 
+    i = 0
+    while temps.max() == 0:
+
+        new_snap = "%04d" % (num + i)
+
+        # Define path
+        path = "/cosma/home/dp004/dc-rope1/cosma7/SWIFT/" \
+               "hydro_1380_ani/data/ani_hydro_" + new_snap + ".hdf5"
+
+        data = load(path)
+        temps = data.gas.temperatures.value
+
+        if temps.size != masses.size:
+            temps = temps[:masses.size]
+        i += 1
+
     vmax, vmin = 6.6, 3
 
     print("Norm:", vmin, vmax)
