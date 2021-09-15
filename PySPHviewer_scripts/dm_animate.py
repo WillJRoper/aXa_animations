@@ -43,7 +43,7 @@ def single_frame(num, nframes, res):
     anchors['id_frames'] = np.linspace(0, nframes, 8, dtype=int)
     anchors['id_targets'] = [0, 'same', 'same', 'same', 'same', 'same', 'same',
                              'same']
-    anchors['r'] = [boxsize.value + 4, 'same', 'same', 'same', 'same', 'same',
+    anchors['r'] = [boxsize.value + 8, 'same', 'same', 'same', 'same', 'same',
                     'same', 'same']
     anchors['t'] = [5, 'same', 'same', 'same', 'same', 'same', 'same', 'same']
     anchors['p'] = [0, 'pass', 'pass', 'pass', 'pass', 'pass', 'pass', -360]
@@ -65,7 +65,7 @@ def single_frame(num, nframes, res):
 
     mean_den = np.sum(masses) / boxsize ** 3
 
-    vmax, vmin = np.log10(2000 * mean_den), 1
+    vmax, vmin = np.log10(1600 * mean_den), 3
 
     print("Cmap Limits")
     print("------------------------------------------")
