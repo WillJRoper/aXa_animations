@@ -80,7 +80,7 @@ def single_frame(num, nframes, res):
             temps = temps[:masses.size]
         i += 1
 
-    vmax, vmin = 6.6, 3
+    vmax, vmin = 7, 1
 
     print("Norm:", vmin, vmax)
 
