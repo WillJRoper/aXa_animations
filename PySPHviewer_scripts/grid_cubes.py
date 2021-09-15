@@ -1,5 +1,7 @@
+import os
 import sys
 
+import cmasher as cmr
 import matplotlib as ml
 import matplotlib.pyplot as plt
 import numpy as np
@@ -7,8 +9,7 @@ from astropy.cosmology import Planck13 as cosmo
 from images import getimage, getimage_weighted
 from sphviewer.tools import camera_tools
 from swiftsimio import load
-from utilities import get_continuous_cmap, get_normalised_image
-import cmasher as cmr
+from utilities import get_continuous_cmap
 
 ml.use('Agg')
 
@@ -63,7 +64,6 @@ def single_frame(num, nframes, res):
         print(e)
         star_poss = np.array([[]])
 
-
     dm_masses = data.dark_matter.masses.value * 10 ** 10
     gas_masses = data.gas.masses.value * 10 ** 10
     try:
@@ -85,7 +85,6 @@ def single_frame(num, nframes, res):
     # Fix broken properties
     i = 0
     while dm_masses.max() == 0:
-
         new_snap = "%04d" % (num + i)
 
         # Define path
@@ -273,5 +272,13 @@ def single_frame(num, nframes, res):
     plt.close(fig)
 
 
-res = (2160 * 2, 3840 * 2)
-single_frame(int(sys.argv[1]), nframes=1380, res=res)
+if int(sys.argv[2]) > 0:
+    snap = "%05d" % int(sys.argv[1])
+    if os.path.isfile('../plots/Ani/Grid/Grid_Cubes_' + snap + '.png'):
+        print("File exists")
+    else:
+        res = (2160, 3840)
+        single_frame(int(sys.argv[1]), nframes=1380, res=res)
+else:
+    res = (2160, 3840)
+    single_frame(int(sys.argv[1]), nframes=1380, res=res)

@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 from astropy.cosmology import Planck13 as cosmo
 import sys
 from swiftsimio import load
-from utilities import get_normalised_image
 from images import getimage
+import os
 
 
 def single_frame(num, nframes, res):
@@ -155,5 +155,13 @@ def single_frame(num, nframes, res):
     plt.close(fig)
 
 
-res = (2160, 3840)
-single_frame(int(sys.argv[1]), nframes=1380, res=res)
+if int(sys.argv[2]) > 0:
+    snap = "%05d" % int(sys.argv[1])
+    if os.path.isfile('../plots/Ani/Stars/Stars_Cube_' + snap + '.png'):
+        print("File exists")
+    else:
+        res = (2160, 3840)
+        single_frame(int(sys.argv[1]), nframes=1380, res=res)
+else:
+    res = (2160, 3840)
+    single_frame(int(sys.argv[1]), nframes=1380, res=res)

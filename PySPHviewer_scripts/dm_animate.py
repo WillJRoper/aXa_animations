@@ -8,12 +8,12 @@ import matplotlib.pyplot as plt
 from astropy.cosmology import Planck13 as cosmo
 import sys
 from swiftsimio import load
-from utilities import get_continuous_cmap
 from images import getimage
 import cmasher as cmr
+import os
+
 
 def single_frame(num, nframes, res):
-
     snap = "%04d" % num
 
     # Define path
@@ -64,7 +64,6 @@ def single_frame(num, nframes, res):
     # Fix broken properties
     i = 0
     while masses.max() == 0:
-
         new_snap = "%04d" % (num + i)
 
         # Define path
@@ -134,5 +133,13 @@ def single_frame(num, nframes, res):
     plt.close(fig)
 
 
-res = (2160, 3840)
-single_frame(int(sys.argv[1]), nframes=1380, res=res)
+if int(sys.argv[2]) > 0:
+    snap = "%05d" % int(sys.argv[1])
+    if os.path.isfile('../plots/Ani/DM/DM_Cube_' + snap + '.png'):
+        print("File exists")
+    else:
+        res = (2160, 3840)
+        single_frame(int(sys.argv[1]), nframes=1380, res=res)
+else:
+    res = (2160, 3840)
+    single_frame(int(sys.argv[1]), nframes=1380, res=res)

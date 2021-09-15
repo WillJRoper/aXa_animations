@@ -9,6 +9,8 @@ import sys
 from swiftsimio import load
 from images import getimage
 import cmasher as cmr
+import os
+
 
 def single_frame(num, nframes, res):
     snap = "%04d" % num
@@ -65,7 +67,6 @@ def single_frame(num, nframes, res):
     # Fix broken properties
     i = 0
     while dm_masses.max() == 0:
-
         new_snap = "%04d" % (num + i)
 
         # Define path
@@ -133,5 +134,14 @@ def single_frame(num, nframes, res):
     plt.close(fig)
 
 
-res = (2160, 3840)
-single_frame(int(sys.argv[1]), nframes=1380, res=res)
+if int(sys.argv[2]) > 0:
+    snap = "%05d" % int(sys.argv[1])
+    if os.path.isfile(
+            '../plots/Ani/Gas_Density/GasDensity_Cube_' + snap + '.png'):
+        print("File exists")
+    else:
+        res = (2160, 3840)
+        single_frame(int(sys.argv[1]), nframes=1380, res=res)
+else:
+    res = (2160, 3840)
+    single_frame(int(sys.argv[1]), nframes=1380, res=res)
