@@ -109,11 +109,12 @@ def single_frame(num, nframes, res):
         star_poss[np.where(star_poss < - boxsize.value / 2)] += boxsize.value
 
     mean_den = np.sum(dm_masses) / boxsize ** 3
+    print(boxsize, np.sum(dm_masses), mean_den)
 
     dm_vmax, dm_vmin = np.log10(10000 * mean_den), 4
     gas_vmax, gas_vmin = np.log10(100 * mean_den), 7
     gas_temp_vmax, gas_temp_vmin = 7, 1
-    star_vmax, star_vmin = 14, 8
+    star_vmax, star_vmin = 14, 6
 
     dm_hex_list = ["#000000", "#03045e", "#0077b6",
                    "#48cae4", "#caf0f8", "#ffffff"]
@@ -191,8 +192,8 @@ def single_frame(num, nframes, res):
         print("No Stars")
         star_output = star_cmap(np.zeros((int(res[0] / 2), int(res[1] / 2))))
 
-    if DM_output.max() == np.nan or gas_output.max() == np.nan \
-            or gast_output.max() == np.nan or star_output.max() == np.nan:
+    if DM_output.sum() == np.nan or gas_output.sum() == np.nan \
+            or gast_output.sum() == np.nan or star_output.sum() == np.nan:
         print("Found NaNs in one of the images")
         return
 

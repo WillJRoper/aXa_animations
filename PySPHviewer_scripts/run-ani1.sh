@@ -1,9 +1,10 @@
 #!/bin/bash -l
 #SBATCH --ntasks 1 # The number of cores you need...
 #SBATCH --array=1-1000
-#SBATCH --cpus-per-task=16
+#SBATCH --cpus-per-task=8
 #SBATCH -J 12p5DMO-ani #Give it something meaningful.
-#SBATCH -o logs/output_flythrough.%J.out
+#SBATCH -o logs/output_flythrough.%J.%A.%a.out
+#SBATCH -e logs/output_flythrough.%J.%A.%a.err
 #SBATCH -p cosma6 #or some other partition, e.g. cosma, cosma6, etc.
 #SBATCH -A dp004
 #SBATCH --exclusive
