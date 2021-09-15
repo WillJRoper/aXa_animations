@@ -101,7 +101,7 @@ def single_frame(num, nframes, res):
     gas_poss -= cent
     gas_poss[np.where(gas_poss > boxsize.value / 2)] -= boxsize.value
     gas_poss[np.where(gas_poss < - boxsize.value / 2)] += boxsize.value
-    if star_poss.shape[0] > 0:
+    if star_masses.size > 0:
         star_poss -= cent
         star_poss[np.where(star_poss > boxsize.value / 2)] -= boxsize.value
         star_poss[np.where(star_poss < - boxsize.value / 2)] += boxsize.value
@@ -179,7 +179,7 @@ def single_frame(num, nframes, res):
                                                 (int(res[0] / 2),
                                                  int(res[1] / 2)))
 
-    if star_poss.shape[0] > 0:
+    if star_masses.size > 0:
         star_output, ang_extent = getimage(cam_data, star_poss, star_masses,
                                            star_hsmls, num, star_cmap,
                                            star_vmin, star_vmax,
