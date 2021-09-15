@@ -252,5 +252,5 @@ def single_frame(num, nframes, res):
     plt.close(fig)
 
 
-res = (2160, 3840)
+res = (2160 * 2, 3840 * 2)
 single_frame(int(sys.argv[1]), nframes=1380, res=res)
