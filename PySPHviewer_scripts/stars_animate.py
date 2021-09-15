@@ -99,7 +99,7 @@ def single_frame(num, nframes, res):
         rgb_output, ang_extent = getimage(cam_data, poss, masses, hsmls,
                                           num, cmap, vmin, vmax, res)
 
-    except IndexError as e:
+    except AttributeError as e:
         print(e)
         cmap = ml.cm.get_cmap('Greys_r')
         rgb_output = cmap(get_normalised_image(np.zeros(res)))
