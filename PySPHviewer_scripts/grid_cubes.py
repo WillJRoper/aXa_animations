@@ -109,9 +109,9 @@ def single_frame(num, nframes, res):
     mean_den = np.sum(dm_masses) / boxsize ** 3
 
     dm_vmax, dm_vmin = np.log10(10000 * mean_den), 4
-    gas_vmax, gas_vmin = np.log10(5000 * mean_den), 6
+    gas_vmax, gas_vmin = np.log10(100 * mean_den), 7
     gas_temp_vmax, gas_temp_vmin = 7, 2.5
-    star_vmax, star_vmin = 13, 4
+    star_vmax, star_vmin = 13, 6
 
     dm_hex_list = ["#000000", "#03045e", "#0077b6",
                    "#48cae4", "#caf0f8", "#ffffff"]
