@@ -159,7 +159,7 @@ def single_frame(num, nframes, res):
 
     print("------------------------------------------")
 
-    dm_cmap = get_continuous_cmap(dm_hex_list, float_list=dm_float_list)
+    dm_cmap = cmr.eclipse
     gas_cmap = cmr.chroma
     gast_cmap = get_continuous_cmap(gast_hex_list, float_list=gast_float_list)
     star_cmap = ml.cm.get_cmap('Greys_r')
