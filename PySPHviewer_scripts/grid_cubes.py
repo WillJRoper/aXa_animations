@@ -7,7 +7,7 @@ from astropy.cosmology import Planck13 as cosmo
 from images import getimage, getimage_weighted
 from sphviewer.tools import camera_tools
 from swiftsimio import load
-from utilities import get_continuous_cmap
+from utilities import get_continuous_cmap, get_normalised_image
 import cmasher as cmr
 
 ml.use('Agg')
@@ -166,10 +166,14 @@ def single_frame(num, nframes, res):
                                                 (int(res[0] / 2),
                                                  int(res[1] / 2)))
 
-    star_output, ang_extent = getimage(cam_data, star_poss, star_masses,
-                                       star_hsmls, num, star_cmap,
-                                       star_vmin, star_vmax,
-                                       (int(res[0] / 2), int(res[1] / 2)))
+    try:
+        star_output, ang_extent = getimage(cam_data, star_poss, star_masses,
+                                           star_hsmls, num, star_cmap,
+                                           star_vmin, star_vmax,
+                                           (int(res[0] / 2), int(res[1] / 2)))
+    except IndexError as e:
+        print(e)
+        star_output = star_cmap(get_normalised_image(np.zeros(res)))
 
     if DM_output.max() == np.nan or gas_output.max() == np.nan \
             or gast_output.max() == np.nan or star_output.max() == np.nan:

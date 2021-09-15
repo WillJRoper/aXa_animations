@@ -103,7 +103,7 @@ def single_frame(num, nframes, res):
         print(e)
         cmap = ml.cm.get_cmap('Greys_r')
         rgb_output = cmap(get_normalised_image(np.zeros(res)))
-        ang_extent = [-45, 45, -45, 45]
+        ang_extent = [-45.00001, 45.00001, -25.312506, 25.312506]
 
     i = cam_data[num]
     extent = [0, 2 * np.tan(ang_extent[1]) * i['r'],
