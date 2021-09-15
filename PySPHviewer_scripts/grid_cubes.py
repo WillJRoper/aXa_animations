@@ -81,9 +81,10 @@ def single_frame(num, nframes, res):
 
     gas_temps = data.gas.temperatures.value
 
-    if gas_temps.max() == 0:
+    i = 0
+    while gas_temps.max() == 0:
 
-        new_snap = "%04d" % (num + 1)
+        new_snap = "%04d" % (num + i)
 
         # Define path
         path = "/cosma/home/dp004/dc-rope1/cosma7/SWIFT/" \
@@ -94,6 +95,7 @@ def single_frame(num, nframes, res):
 
         if gas_temps.size != gas_masses.size:
             gas_temps = gas_temps[:gas_masses.size]
+        i += 1
 
     dm_poss -= cent
     dm_poss[np.where(dm_poss > boxsize.value / 2)] -= boxsize.value
