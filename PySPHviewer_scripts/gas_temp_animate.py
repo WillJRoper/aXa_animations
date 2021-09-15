@@ -67,12 +67,12 @@ def single_frame(num, nframes, res):
     vmax, vmin = 6.6, 3
 
     float_list = [0,
-                  2 / vmax,
                   3 / vmax,
                   4 / vmax,
+                  4.5 / vmax,
                   5 / vmax,
-                  6 / vmax,
-                  1.0]
+                  6.5 / vmax,
+                  7 / vmax]
 
     print("Cmap Limits")
     print("------------------------------------------")
@@ -81,8 +81,8 @@ def single_frame(num, nframes, res):
 
     print("------------------------------------------")
 
-    hex_list = ["#000000", "#184e77", "#9e0059",
-                "#ba181b", "#f3722c", "#ffca3a",
+    hex_list = ["#000000", "#184e77", "#0d108f",
+                "#a81979", "#c78c16", "#eef743",
                 "#ffffff"]
 
     cmap = get_continuous_cmap(hex_list, float_list=float_list)
