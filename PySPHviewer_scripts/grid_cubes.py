@@ -180,12 +180,16 @@ def single_frame(num, nframes, res):
                                                  int(res[1] / 2)))
 
     if star_masses.size > 0:
+        print(star_masses.size)
         star_output, ang_extent = getimage(cam_data, star_poss, star_masses,
                                            star_hsmls, num, star_cmap,
                                            star_vmin, star_vmax,
                                            (int(res[0] / 2), int(res[1] / 2)))
     else:
+        print(res)
+        print("No Stars")
         star_output = star_cmap(np.zeros((res[0], res[1])))
+        print(star_output.shape)
 
     if DM_output.max() == np.nan or gas_output.max() == np.nan \
             or gast_output.max() == np.nan or star_output.max() == np.nan:
