@@ -65,7 +65,7 @@ def single_frame(num, nframes, res):
 
     mean_den = np.sum(masses) / boxsize ** 3
 
-    vmax, vmin = np.log10(4000 * mean_den), 3
+    vmax, vmin = np.log10(5000 * mean_den), 3
 
     print(vmax)
 
