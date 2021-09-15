@@ -96,21 +96,8 @@ def single_frame(num, nframes, res):
         dm_masses = data.dark_matter.masses.value * 10 ** 10
         i += 1
 
-    i = 0
-    while star_hsmls.max() == 0:
-
-        new_snap = "%04d" % (num + i)
-
-        # Define path
-        path = "/cosma/home/dp004/dc-rope1/cosma7/SWIFT/" \
-               "hydro_1380_ani/data/ani_hydro_" + new_snap + ".hdf5"
-
-        data = load(path)
-        star_hsmls = data.stars.smoothing_lengths.value
-
-        if star_hsmls.size != star_masses.size:
-            star_hsmls = star_hsmls[:star_masses.size]
-        i += 1
+    if hsmls.max() == 0:
+        return
 
     i = 0
     while gas_temps.max() == 0:

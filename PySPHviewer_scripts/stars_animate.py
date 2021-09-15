@@ -66,21 +66,8 @@ def single_frame(num, nframes, res):
 
         hsmls = data.stars.smoothing_lengths.value
 
-        i = 0
-        while hsmls.max() == 0:
-
-            new_snap = "%04d" % (num + i)
-
-            # Define path
-            path = "/cosma/home/dp004/dc-rope1/cosma7/SWIFT/" \
-                   "hydro_1380_ani/data/ani_hydro_" + new_snap + ".hdf5"
-
-            data = load(path)
-            hsmls = data.stars.smoothing_lengths.value
-
-            if hsmls.size != masses.size:
-                hsmls = hsmls[:masses.size]
-            i += 1
+        if hsmls.max() == 0:
+            return
 
         # print("Cmap Limits")
         # print("------------------------------------------")
