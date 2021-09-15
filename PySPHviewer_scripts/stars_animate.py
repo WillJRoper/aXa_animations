@@ -55,6 +55,8 @@ def single_frame(num, nframes, res):
 
     vmax, vmin = 13, 4
 
+    print("Norm:", vmin, vmax)
+
     try:
         poss = data.stars.coordinates.value
         masses = data.stars.masses.value * 10 ** 10

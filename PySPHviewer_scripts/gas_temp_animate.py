@@ -66,6 +66,8 @@ def single_frame(num, nframes, res):
 
     vmax, vmin = 6.6, 3
 
+    print("Norm:", vmin, vmax)
+
     float_list = [0,
                   3 / vmax,
                   4 / vmax,

@@ -63,7 +63,9 @@ def single_frame(num, nframes, res):
 
     mean_den = np.sum(dm_masses) / boxsize ** 3
 
-    vmax, vmin = np.log10(2000 * mean_den), 6
+    vmax, vmin = np.log10(2000 * mean_den), 7
+
+    print("Norm:", vmin, vmax)
 
     cmap = cmr.chroma
 

@@ -67,7 +67,7 @@ def single_frame(num, nframes, res):
 
     vmax, vmin = np.log10(10000 * mean_den), 4
 
-    print(vmax)
+    print("Norm:", vmin, vmax)
 
     cmap = cmr.eclipse
 
