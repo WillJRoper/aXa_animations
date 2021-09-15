@@ -185,10 +185,11 @@ def single_frame(num, nframes, res):
                                            star_vmin, star_vmax,
                                            (int(res[0] / 2), int(res[1] / 2)))
     else:
-        star_output = star_cmap(get_normalised_image(np.zeros(res)))
+        star_output = star_cmap(np.zeros((res[0], res[1])))
 
     if DM_output.max() == np.nan or gas_output.max() == np.nan \
             or gast_output.max() == np.nan or star_output.max() == np.nan:
+        print("Found NaNs in one of the images")
         return
 
     rgb_output = np.zeros((res[0], res[1], 4))
