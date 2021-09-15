@@ -61,7 +61,7 @@ def single_frame(num, nframes, res):
     poss[np.where(poss < - boxsize.value / 2)] += boxsize.value
 
     hsmls = data.gas.smoothing_lengths.value
-    
+
     # Fix broken properties
     i = 0
     while dm_masses.max() == 0:
