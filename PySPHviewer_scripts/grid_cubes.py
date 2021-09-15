@@ -108,8 +108,8 @@ def single_frame(num, nframes, res):
 
     mean_den = np.sum(dm_masses) / boxsize ** 3
 
-    dm_vmax, dm_vmin = np.log10(3000 * mean_den), 6
-    gas_vmax, gas_vmin = np.log10(3000 * mean_den), 6
+    dm_vmax, dm_vmin = np.log10(10000 * mean_den), 4
+    gas_vmax, gas_vmin = np.log10(5000 * mean_den), 6
     gas_temp_vmax, gas_temp_vmin = 7, 2.5
     star_vmax, star_vmin = 13, 4
 
