@@ -8,7 +8,7 @@ import numpy as np
 from astropy.cosmology import Planck13 as cosmo
 from images import getimage, getimage_weighted
 from sphviewer.tools import camera_tools
-from swiftsimio import load
+import h5py
 from utilities import get_continuous_cmap
 
 ml.use('Agg')
@@ -23,11 +23,10 @@ def single_frame(num, nframes, res):
 
     snap = "%05d" % num
 
-    data = load(path)
+    hdf = h5py.File(path, "r")
 
-    meta = data.metadata
-    boxsize = meta.boxsize[0]
-    z = meta.redshift
+    boxsize = hdf["Header"].attrs["BoxSize"]
+    z = hdf["Header"].attrs["Redshift"]
 
     print("Boxsize:", boxsize)
 
@@ -56,63 +55,69 @@ def single_frame(num, nframes, res):
     # Define the camera trajectory
     cam_data = camera_tools.get_camera_trajectory(targets, anchors)
 
-    dm_poss = data.dark_matter.coordinates.value
-    gas_poss = data.gas.coordinates.value
+    dm_poss = hdf["/PartType1/Coordinates"][:, :]
+    gas_poss = hdf["/PartType0/Coordinates"][:, :]
     try:
-        star_poss = data.stars.coordinates.value
-    except AttributeError as e:
+        star_poss = hdf["/PartType4/Coordinates"][:, :]
+    except KeyError as e:
         print(e)
         star_poss = np.array([[]])
 
-    dm_masses = data.dark_matter.masses.value * 10 ** 10
-    gas_masses = data.gas.masses.value * 10 ** 10
+    dm_masses = hdf["/PartType1/Masses"][:] * 10 ** 10
+    gas_masses = hdf["/PartType0/Masses"][:] * 10 ** 10
     try:
-        star_masses = data.stars.masses.value * 10 ** 10
-    except AttributeError as e:
+        star_masses = hdf["/PartType4/Masses"][:] * 10 ** 10
+    except KeyError as e:
         print(e)
         star_masses = np.array([])
 
-    dm_hsmls = data.dark_matter.softenings.value
-    gas_hsmls = data.gas.smoothing_lengths.value
+    dm_hsmls = hdf["/PartType1/Softenings"][:]
+    gas_hsmls = hdf["/PartType1/SmoothingLengths"][:]
     try:
-        star_hsmls = data.stars.smoothing_lengths.value
-    except AttributeError as e:
+        star_hsmls = hdf["/PartType4/SmoothingLengths"][:]
+    except KeyError as e:
         print(e)
         star_hsmls = np.array([])
 
-    gas_temps = data.gas.temperatures.value
+    gas_temps = hdf["/PartType0/Temperatures"][:]
 
-    # Fix broken properties
-    i = 0
-    while dm_masses.max() == 0:
-        new_snap = "%04d" % (num + i)
+    hdf.close()
 
-        # Define path
-        path = "/cosma/home/dp004/dc-rope1/cosma7/SWIFT/" \
-               "hydro_1380_ani/data/ani_hydro_" + new_snap + ".hdf5"
-
-        data = load(path)
-        dm_masses = data.dark_matter.masses.value * 10 ** 10
-        i += 1
-
-    if star_hsmls.max() == 0:
-        return
-
-    i = 0
-    while gas_temps.max() == 0:
-
-        new_snap = "%04d" % (num + i)
-
-        # Define path
-        path = "/cosma/home/dp004/dc-rope1/cosma7/SWIFT/" \
-               "hydro_1380_ani/data/ani_hydro_" + new_snap + ".hdf5"
-
-        data = load(path)
-        gas_temps = data.gas.temperatures.value
-
-        if gas_temps.size != gas_masses.size:
-            gas_temps = gas_temps[:gas_masses.size]
-        i += 1
+    # # Fix broken properties
+    # i = 0
+    # while dm_masses.max() == 0:
+    #     print("No masses", snap, i)
+    #     new_snap = "%04d" % (num + i)
+    #
+    #     # Define path
+    #     path = "/cosma/home/dp004/dc-rope1/cosma7/SWIFT/" \
+    #            "hydro_1380_ani/data/ani_hydro_" + new_snap + ".hdf5"
+    #
+    #     hdf = h5py.File(path, "r")
+    #     dm_masses = hdf["/PartType1/Masses"][:] * 10 ** 10
+    #     hdf.close()
+    #     i += 1
+    #
+    # if star_hsmls.max() == 0:
+    #     return
+    #
+    # i = 0
+    # while gas_temps.max() == 0:
+    #     print("No temps", snap, i)
+    #
+    #     new_snap = "%04d" % (num + i)
+    #
+    #     # Define path
+    #     path = "/cosma/home/dp004/dc-rope1/cosma7/SWIFT/" \
+    #            "hydro_1380_ani/data/ani_hydro_" + new_snap + ".hdf5"
+    #
+    #     hdf = h5py.File(path, "r")
+    #     gas_temps = hdf["/PartType0/Temperatures"][:]
+    #     hdf.close()
+    #
+    #     if gas_temps.size != gas_masses.size:
+    #         gas_temps = gas_temps[:gas_masses.size]
+    #     i += 1
 
     dm_poss -= cent
     dm_poss[np.where(dm_poss > boxsize.value / 2)] -= boxsize.value
