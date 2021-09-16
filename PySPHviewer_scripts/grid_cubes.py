@@ -25,7 +25,7 @@ def single_frame(num, nframes, res):
 
     hdf = h5py.File(path, "r")
 
-    boxsize = hdf["Header"].attrs["BoxSize"]
+    boxsize = hdf["Header"].attrs["BoxSize"][0]
     z = hdf["Header"].attrs["Redshift"]
 
     print("Boxsize:", boxsize)
@@ -43,7 +43,7 @@ def single_frame(num, nframes, res):
     anchors['id_frames'] = np.linspace(0, nframes, 8, dtype=int)
     anchors['id_targets'] = [0, 'same', 'same', 'same', 'same', 'same', 'same',
                              'same']
-    anchors['r'] = [boxsize.value + 8, 'same', 'same', 'same', 'same', 'same',
+    anchors['r'] = [boxsize + 8, 'same', 'same', 'same', 'same', 'same',
                     'same', 'same']
     anchors['t'] = [5, 'same', 'same', 'same', 'same', 'same', 'same', 'same']
     anchors['p'] = [0, 'pass', 'pass', 'pass', 'pass', 'pass', 'pass', -360]
