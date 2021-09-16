@@ -83,41 +83,8 @@ def single_frame(num, nframes, res):
 
     hdf.close()
 
-    # Fix broken properties
-    i = 0
-    while dm_masses.max() == 0:
-        print("No masses", snap, i)
-        new_snap = "%04d" % (num + i)
-
-        # Define path
-        path = "/cosma/home/dp004/dc-rope1/cosma7/SWIFT/" \
-               "hydro_1380_ani/data/ani_hydro_" + new_snap + ".hdf5"
-
-        hdf = h5py.File(path, "r")
-        dm_masses = hdf["/PartType1/Masses"][:] * 10 ** 10
-        hdf.close()
-        i += 1
-
-    if star_hsmls.max() == 0:
+    if star_hsmls.max() == 0 or dm_masses.max() == 0 or gas_temps.max() == 0:
         return
-
-    i = 0
-    while gas_temps.max() == 0:
-        print("No temps", snap, i)
-
-        new_snap = "%04d" % (num + i)
-
-        # Define path
-        path = "/cosma/home/dp004/dc-rope1/cosma7/SWIFT/" \
-               "hydro_1380_ani/data/ani_hydro_" + new_snap + ".hdf5"
-
-        hdf = h5py.File(path, "r")
-        gas_temps = hdf["/PartType0/Temperatures"][:]
-        hdf.close()
-
-        if gas_temps.size != gas_masses.size:
-            gas_temps = gas_temps[:gas_masses.size]
-        i += 1
 
     dm_poss -= cent
     dm_poss[np.where(dm_poss > boxsize / 2)] -= boxsize

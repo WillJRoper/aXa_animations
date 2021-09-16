@@ -62,17 +62,8 @@ def single_frame(num, nframes, res):
     poss[np.where(poss < - boxsize.value / 2)] += boxsize.value
 
     # Fix broken properties
-    i = 0
-    while masses.max() == 0:
-        new_snap = "%04d" % (num + i)
-
-        # Define path
-        path = "/cosma/home/dp004/dc-rope1/cosma7/SWIFT/" \
-               "hydro_1380_ani/data/ani_hydro_" + new_snap + ".hdf5"
-
-        data = load(path)
-        masses = data.dark_matter.masses.value * 10 ** 10
-        i += 1
+    if masses.max() == 0:
+        return
 
     hsmls = data.dark_matter.softenings.value
 
