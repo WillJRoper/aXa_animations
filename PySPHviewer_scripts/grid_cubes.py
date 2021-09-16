@@ -72,7 +72,7 @@ def single_frame(num, nframes, res):
         star_masses = np.array([])
 
     dm_hsmls = hdf["/PartType1/Softenings"][:]
-    gas_hsmls = hdf["/PartType1/SmoothingLengths"][:]
+    gas_hsmls = hdf["/PartType0/SmoothingLengths"][:]
     try:
         star_hsmls = hdf["/PartType4/SmoothingLengths"][:]
     except KeyError as e:
