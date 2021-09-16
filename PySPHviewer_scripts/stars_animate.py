@@ -129,6 +129,10 @@ def single_frame(num, nframes, res):
             transform=ax.transAxes, verticalalignment="top",
             horizontalalignment='right', fontsize=1, color="w")
 
+    ax.text(0.975, 0.15, "$z=$%.1f" % z,
+            transform=ax.transAxes, verticalalignment="top",
+            horizontalalignment='right', fontsize=1, color="w")
+
     ax.plot([0.05, 0.15], [0.025, 0.025], lw=0.1, color='w', clip_on=False,
             transform=ax.transAxes)
 
