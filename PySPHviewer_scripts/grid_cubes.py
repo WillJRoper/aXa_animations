@@ -214,16 +214,16 @@ def single_frame(num, nframes, res):
                    bottom=False, labelleft=False,
                    labeltop=False, labelright=False, labelbottom=False)
 
-    ax.text(0.45, 0.45, "Gas Density",
+    ax.text(0.49, 0.49, "Gas Density",
             transform=ax.transAxes, verticalalignment="top",
             horizontalalignment='right', fontsize=1, color="w")
-    ax.text(0.45, 0.55, "Dark Matter",
+    ax.text(0.49, 0.51, "Dark Matter",
             transform=ax.transAxes, verticalalignment="bottom",
             horizontalalignment='right', fontsize=1, color="w")
-    ax.text(0.55, 0.45, "Gas Temperature",
+    ax.text(0.51, 0.49, "Gas Temperature",
             transform=ax.transAxes, verticalalignment="top",
             horizontalalignment='left', fontsize=1, color="w")
-    ax.text(0.55, 0.55, "Stellar Density",
+    ax.text(0.51, 0.51, "Stellar Density",
             transform=ax.transAxes, verticalalignment="bottom",
             horizontalalignment='left', fontsize=1, color="w")
 
@@ -231,7 +231,7 @@ def single_frame(num, nframes, res):
             transform=ax.transAxes, verticalalignment="top",
             horizontalalignment='right', fontsize=1, color="w")
 
-    ax.text(0.975, 0.15, "$z=$%.1f" % z,
+    ax.text(0.975, 0.075, "$z=$%.1f" % z,
             transform=ax.transAxes, verticalalignment="top",
             horizontalalignment='right', fontsize=1, color="w")
 
