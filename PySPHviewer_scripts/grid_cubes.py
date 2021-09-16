@@ -120,15 +120,15 @@ def single_frame(num, nframes, res):
     #     i += 1
 
     dm_poss -= cent
-    dm_poss[np.where(dm_poss > boxsize.value / 2)] -= boxsize.value
-    dm_poss[np.where(dm_poss < - boxsize.value / 2)] += boxsize.value
+    dm_poss[np.where(dm_poss > boxsize / 2)] -= boxsize
+    dm_poss[np.where(dm_poss < - boxsize / 2)] += boxsize
     gas_poss -= cent
-    gas_poss[np.where(gas_poss > boxsize.value / 2)] -= boxsize.value
-    gas_poss[np.where(gas_poss < - boxsize.value / 2)] += boxsize.value
+    gas_poss[np.where(gas_poss > boxsize / 2)] -= boxsize
+    gas_poss[np.where(gas_poss < - boxsize / 2)] += boxsize
     if star_masses.size > 0:
         star_poss -= cent
-        star_poss[np.where(star_poss > boxsize.value / 2)] -= boxsize.value
-        star_poss[np.where(star_poss < - boxsize.value / 2)] += boxsize.value
+        star_poss[np.where(star_poss > boxsize / 2)] -= boxsize
+        star_poss[np.where(star_poss < - boxsize / 2)] += boxsize
 
     mean_den = np.sum(dm_masses) / boxsize ** 3
     print(boxsize, np.sum(dm_masses), mean_den)
