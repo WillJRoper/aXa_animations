@@ -16,7 +16,8 @@ from utilities import parse_arguments, data_from_logger
 
 def single_frame(args, time, num, nframes, res):
 
-    data = data_from_logger(args, time, part_type1=, fields=("Coordinates", "Masses"))
+    data = data_from_logger(args, time, part_type=1,
+                            fields=("Coordinates", "Masses"))
 
     boxsize = data["Boxsize"]
     # z = meta.redshift
