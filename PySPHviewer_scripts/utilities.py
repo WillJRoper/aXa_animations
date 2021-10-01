@@ -1,6 +1,16 @@
+import argparse
+import sys
+from glob import glob
+
 import matplotlib as ml
 import matplotlib.colors as mcolors
 import numpy as np
+
+sys.path.append("/cosma7/data/dp004/dc-rope1/SWIFT/"
+                "swiftsim_master/csds/src/.libs/")
+
+import libcsds as csds
+
 
 ml.use('Agg')
 
@@ -61,3 +71,72 @@ def get_normalised_image(img, vmin=None, vmax=None):
     img = (img - vmin) / (vmax - vmin)
 
     return img
+
+
+def parse_arguments():
+    parser = argparse.ArgumentParser(
+        description='Read a logfile and plots some basic properties')
+
+    default_files = "index_*dump"
+    default_files = glob(default_files)
+
+    parser.add_argument('files', metavar='filenames', type=str, nargs="*",
+                        help='The filenames of the logfiles')
+    args = parser.parse_args()
+    if len(args.files) == 0:
+        args.files = default_files
+    return args
+
+
+def data_from_logger(args, time, part_type, fields=("Coordinates", )):
+
+    print("basename: %s" % args.files)
+
+    # read the csds
+    data = {}
+    for f in args.files:
+        if f.endswith(".dump"):
+            filename = f[:-5]
+        else:
+            raise Exception(
+                "It seems that you are not providing a logfile (.dump)")
+        with csds.Reader(filename, verbose=0, number_index=10,
+                         restart_init=False, use_cache=True) as reader:
+
+            print(reader.get_list_fields(part_type=[0, 1, 2, 3, 4, 5, 6]))
+
+            # Get boxsize
+            data["Boxsize"] = reader.get_box_size()
+
+            # Check the time limits
+            t0, t1 = reader.get_time_limits()
+            print("Time limits:", t0, t1)
+            if t0 > time > t1:
+                raise Exception("The time is outside the simulation range")
+
+            # Ensure that the fields are present
+            missing = set(fields).difference(
+                set(reader.get_list_fields(part_type=part_type)))
+
+            if missing:
+                raise Exception(
+                    "Fields %s not found in the logfile." % missing)
+
+            # Rewind a bit the time in order to update the particles
+            dt = 1e-3 * (time - t0)
+
+            # Read all the particles
+            out = reader.get_data(
+                fields=fields, time=time - dt,
+                filter_by_ids=None, part_type=part_type)
+
+            # Update the particles
+            out = reader.update_particles(fields=fields, time=time)
+
+            # Add the data to a dict and return
+            for key in fields:
+                data.setdefault(key, []).extend(out[key])
+
+    print(f"Extracted (part_type: {part_type})", [key for key in data.keys()])
+
+    return data
