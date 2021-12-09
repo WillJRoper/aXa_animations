@@ -100,7 +100,7 @@ def single_frame(num, nframes, res):
     # Get images
     rgb_output, ang_extent = getimage_weighted(cam_data, poss, masses, rel_vel,
                                                hsmls, num, cmap,
-                                               vmin, center, vmax, res)
+                                               vmin, vmax, res, center)
 
     i = cam_data[num]
     extent = [0, 2 * np.tan(ang_extent[1]) * i['r'],
