@@ -71,7 +71,7 @@ def single_frame(num, nframes, res):
     okinds = poss[:, 2] >= -0.1
     poss = poss[okinds, :]
     vels = vels[okinds, :]
-    masses = masses[okinds, :]
+    masses = masses[okinds]
 
     # Calculate recessional velocity
     rs = np.linalg.norm(poss, axis=1)
