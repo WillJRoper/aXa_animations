@@ -60,7 +60,9 @@ def single_frame(num, nframes, res):
     new_velocity_units = unyt.km / unyt.s
 
     poss = data.dark_matter.coordinates.value
-    vels = (data.dark_matter.velocities.convert_to_units(new_velocity_units).value)
+    vels = (data.dark_matter.velocities)
+    vels.convert_to_units(new_velocity_units)
+    vels = vels.value
     masses = data.dark_matter.masses.value * 10 ** 10
     poss -= cent
     poss[np.where(poss > boxsize.value / 2)] -= boxsize.value
