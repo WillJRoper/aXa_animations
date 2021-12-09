@@ -140,7 +140,7 @@ def single_frame(num, nframes, res):
 
     plt.margins(0, 0)
 
-    fig.savefig('../plots/Ani/DM/DM_Cube_Recessional' + snap + '.png',
+    fig.savefig('../plots/Ani/Recession/DM_' + snap + '.png',
                 bbox_inches='tight',
                 pad_inches=0)
 
