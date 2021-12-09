@@ -70,10 +70,12 @@ def getimage_weighted(data, poss, weight, quant, hsml, num, cmap,
 
     print("Image:", np.nanmin(img), np.nanmax(img))
 
-    img += np.nanmin(img)
+    offset = np.nanmin(img)
 
-    vmin += np.nanmin(img)
-    vmax += np.nanmin(img)
+    img += offset
+
+    vmin = 10
+    vmax += offset
 
     img_log = np.zeros_like(img)
     img_log[img > 0] = np.log10(img[img > 0])
@@ -82,10 +84,11 @@ def getimage_weighted(data, poss, weight, quant, hsml, num, cmap,
     if center is None:
         rgb = cmap(get_normalised_image(img_log, vmin=vmin, vmax=vmax))
     else:
-        center += np.nanmin(img)
+        center += offset
         vmin = np.log10(vmin)
         center = np.log10(center)
         vmax = np.log10(vmax)
+        print("Norm (after log):", vmin, center, vmax)
         divnorm = colors.TwoSlopeNorm(vmin=vmin, vcenter=center, vmax=vmax)
         rgb = cmap(divnorm(img_log))
 
