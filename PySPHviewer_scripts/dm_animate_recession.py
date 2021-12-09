@@ -91,7 +91,7 @@ def single_frame(num, nframes, res):
 
     # mean_den = np.sum(masses) / boxsize ** 3
     #
-    vmax, center, vmin = -100, 0, 800
+    vmax, center, vmin = 800, 0, -100
 
     print("Norm:", vmin, center, vmax)
 
