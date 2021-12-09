@@ -61,7 +61,10 @@ def getimage_weighted(data, poss, weight, quant, hsml, num, cmap,
     imgt = Rt.get_image()
     img = imgt / imgden
 
-    print("Image limits:", np.min(img), np.max(img))
+    print("Image limits:")
+    print("Density:", np.min(imgden), np.max(imgden))
+    print("Quantity:", np.min(imgt), np.max(imgt))
+    print("Image:", np.min(img), np.max(img))
 
     img = ndimage.gaussian_filter(img, sigma=(2.5, 2.5), order=0)
 

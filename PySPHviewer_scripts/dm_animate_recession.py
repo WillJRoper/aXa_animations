@@ -80,6 +80,9 @@ def single_frame(num, nframes, res):
 
     rel_vel = (H_z * rs * u.Mpc).to(u.km / u.s).value + v_r
 
+    print("Radial velocity:", np.min(v_r), np.max(v_r))
+    print("Recession velocity:", np.min(rel_vel), np.max(rel_vel))
+
     # Fix broken properties
     if masses.max() == 0:
         return
