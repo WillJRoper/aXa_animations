@@ -55,11 +55,11 @@ def getimage_weighted(data, poss, weight, quant, hsml, num, cmap,
     St.update_camera(**i)
     R = sph.Render(S)
     Rt = sph.Render(St)
-    R.set_logscale()
-    Rt.set_logscale()
+    # R.set_logscale()
+    # Rt.set_logscale()
     imgden = R.get_image()
     imgt = Rt.get_image()
-    img = imgt - imgden
+    img = imgt / imgden
 
     print("Image limits:", np.min(img), np.max(img))
 

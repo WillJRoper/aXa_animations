@@ -86,9 +86,9 @@ def single_frame(num, nframes, res):
 
     hsmls = data.dark_matter.softenings.value
 
-    mean_den = np.sum(masses) / boxsize ** 3
-
-    vmax, vmin = np.log10(10000 * mean_den), 4
+    # mean_den = np.sum(masses) / boxsize ** 3
+    #
+    vmax, vmin = 0, 100
 
     print("Norm:", vmin, vmax)
 
