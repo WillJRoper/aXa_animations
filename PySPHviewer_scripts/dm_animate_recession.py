@@ -8,9 +8,11 @@ import matplotlib.pyplot as plt
 from astropy.cosmology import Planck13 as cosmo
 import sys
 from swiftsimio import load
+import unyt
 from images import getimage_weighted
 import cmasher as cmr
 import os
+import astropy.units as u
 
 
 def single_frame(num, nframes, res):
@@ -55,9 +57,10 @@ def single_frame(num, nframes, res):
     # Define the camera trajectory
     cam_data = camera_tools.get_camera_trajectory(targets, anchors)
 
+    new_velocity_units = unyt.km / unyt.s
+
     poss = data.dark_matter.coordinates.value
-    vels = data.dark_matter.velocities.value
-    print(data.dark_matter.velocities.units)
+    vels = (data.dark_matter.velocities.convert_to_units(new_velocity_units).value)
     masses = data.dark_matter.masses.value * 10 ** 10
     poss -= cent
     poss[np.where(poss > boxsize.value / 2)] -= boxsize.value
@@ -73,7 +76,7 @@ def single_frame(num, nframes, res):
 
     H_z = cosmo.H(z)
 
-    rel_vel = (H_z * rs).value + v_r
+    rel_vel = (H_z * rs).to(u.km / u.s).value + v_r
 
     # Fix broken properties
     if masses.max() == 0:
