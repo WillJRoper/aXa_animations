@@ -10,9 +10,9 @@ import sys
 from swiftsimio import load
 import unyt
 from images import getimage_weighted
-import cmasher as cmr
 import os
 import astropy.units as u
+import matplotlib as mpl
 
 
 def single_frame(num, nframes, res):
@@ -91,16 +91,16 @@ def single_frame(num, nframes, res):
 
     # mean_den = np.sum(masses) / boxsize ** 3
     #
-    vmax, vmin = 0, 100
+    vmax, center, vmin = -100, 0, 800
 
-    print("Norm:", vmin, vmax)
+    print("Norm:", vmin, center, vmax)
 
-    cmap = cmr.eclipse
+    cmap = mpl.cm.get_cmap("coolwarm")
 
     # Get images
     rgb_output, ang_extent = getimage_weighted(cam_data, poss, masses, rel_vel,
                                                hsmls, num, cmap,
-                                               vmin, vmax, res)
+                                               vmin, center, vmax, res)
 
     i = cam_data[num]
     extent = [0, 2 * np.tan(ang_extent[1]) * i['r'],
@@ -149,7 +149,7 @@ def single_frame(num, nframes, res):
 
 if int(sys.argv[2]) > 0:
     snap = "%05d" % int(sys.argv[1])
-    if os.path.isfile('../plots/Ani/DM/DM_Cube_Recessional' + snap + '.png'):
+    if os.path.isfile('../plots/Ani/Recession/DM_' + snap + '.png'):
         print("File exists")
     else:
         res = (2160, 3840)

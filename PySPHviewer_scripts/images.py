@@ -5,6 +5,7 @@ import numpy as np
 import sphviewer as sph
 import scipy.ndimage as ndimage
 from utilities import get_normalised_image
+from matplotlib import colors
 
 
 def getimage(data, poss, masses, hsml, num, cmap, vmin, vmax, res):
@@ -36,7 +37,7 @@ def getimage(data, poss, masses, hsml, num, cmap, vmin, vmax, res):
 
 
 def getimage_weighted(data, poss, weight, quant, hsml, num, cmap,
-                      vmin, vmax, res):
+                      vmin, vmax, res, center=None):
     print('There are', poss.shape[0], 'particles in the region')
 
     # Set up particle objects
@@ -64,11 +65,16 @@ def getimage_weighted(data, poss, weight, quant, hsml, num, cmap,
     print("Image limits:")
     print("Density:", np.nanmin(imgden), np.nanmax(imgden))
     print("Quantity:", np.nanmin(imgt), np.nanmax(imgt))
-    print("Image:", np.nanmin(img), np.nanmax(img))
 
     img = ndimage.gaussian_filter(img, sigma=(2.5, 2.5), order=0)
 
+    print("Image:", np.nanmin(img), np.nanmax(img))
+
     # Convert images to rgb arrays
-    rgb = cmap(get_normalised_image(img, vmin=vmin, vmax=vmax))
+    if center is None:
+        rgb = cmap(get_normalised_image(img, vmin=vmin, vmax=vmax))
+    else:
+        divnorm = colors.TwoSlopeNorm(vmin=vmin, vcenter=center, vmax=vmax)
+        rgb = cmap(divnorm(img))
 
     return rgb, R.get_extent()
