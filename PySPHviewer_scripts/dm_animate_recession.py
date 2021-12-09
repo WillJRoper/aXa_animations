@@ -57,6 +57,7 @@ def single_frame(num, nframes, res):
 
     poss = data.dark_matter.coordinates.value
     vels = data.dark_matter.velocities.value
+    print(data.dark_matter.velocities.units)
     masses = data.dark_matter.masses.value * 10 ** 10
     poss -= cent
     poss[np.where(poss > boxsize.value / 2)] -= boxsize.value
@@ -72,7 +73,7 @@ def single_frame(num, nframes, res):
 
     H_z = cosmo.H(z)
 
-    rel_vel = H_z * rs + v_r
+    rel_vel = (H_z * rs).value + v_r
 
     # Fix broken properties
     if masses.max() == 0:
