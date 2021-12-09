@@ -62,9 +62,9 @@ def getimage_weighted(data, poss, weight, quant, hsml, num, cmap,
     img = imgt / imgden
 
     print("Image limits:")
-    print("Density:", np.min(imgden), np.max(imgden))
-    print("Quantity:", np.min(imgt), np.max(imgt))
-    print("Image:", np.min(img), np.max(img))
+    print("Density:", np.nanmin(imgden), np.nanmax(imgden))
+    print("Quantity:", np.nanmin(imgt), np.nanmax(imgt))
+    print("Image:", np.nanmin(img), np.nanmax(img))
 
     img = ndimage.gaussian_filter(img, sigma=(2.5, 2.5), order=0)
 
