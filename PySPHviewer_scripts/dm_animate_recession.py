@@ -68,6 +68,11 @@ def single_frame(num, nframes, res):
     poss[np.where(poss > boxsize.value / 2)] -= boxsize.value
     poss[np.where(poss < - boxsize.value / 2)] += boxsize.value
 
+    okinds = poss[:, 2] >= -0.1
+    poss = poss[okinds, :]
+    vels = vels[okinds, :]
+    masses = masses[okinds, :]
+
     # Calculate recessional velocity
     rs = np.linalg.norm(poss, axis=1)
     v_r = (poss[:, 0] * vels[:, 0]
