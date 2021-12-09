@@ -70,11 +70,11 @@ def getimage_weighted(data, poss, weight, quant, hsml, num, cmap,
 
     print("Image:", np.nanmin(img), np.nanmax(img))
 
-    offset = np.nanmin(img)
+    offset = np.abs(np.nanmin(img))
 
     img += offset
 
-    vmin = 10
+    vmin = 1
     vmax += offset
 
     img_log = np.zeros_like(img)
