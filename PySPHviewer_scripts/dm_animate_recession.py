@@ -78,7 +78,7 @@ def single_frame(num, nframes, res):
 
     H_z = cosmo.H(z)
 
-    rel_vel = (H_z * rs).to(u.km / u.s).value + v_r
+    rel_vel = (H_z * rs * u.Mpc).to(u.km / u.s).value + v_r
 
     # Fix broken properties
     if masses.max() == 0:
