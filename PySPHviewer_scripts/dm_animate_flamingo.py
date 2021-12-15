@@ -89,7 +89,7 @@ def single_frame(num, nframes, res, size, rank, comm):
     mean_den = tot_mass / boxsize ** 3
 
     # vmax, vmin = np.log10(10000 * mean_den), 4
-    vmax, vmin = 10, 4
+    vmax, vmin = 5, 3
 
     print("Norm:", vmin, vmax)
 
@@ -102,7 +102,7 @@ def single_frame(num, nframes, res, size, rank, comm):
     final_img = np.zeros_like(img)
 
     collected_img = comm.gather(img, root=0)
-
+    print(collected_img)
     for i in collected_img:
         final_img += i
 
