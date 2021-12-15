@@ -36,6 +36,31 @@ def getimage(data, poss, masses, hsml, num, cmap, vmin, vmax, res):
     return rgb, R.get_extent()
 
 
+def get_mono_image(data, poss, masses, hsml, num, res):
+    print('There are', poss.shape[0], 'particles in the region')
+
+    # Set up particle objects
+    P = sph.Particles(poss, mass=masses, hsml=hsml)
+
+    # Initialise the scene
+    S = sph.Scene(P)
+
+    i = data[num]
+    i['xsize'] = res[1]
+    i['ysize'] = res[0]
+    i['roll'] = 0
+    S.update_camera(**i)
+    R = sph.Render(S)
+    R.set_logscale()
+    img = R.get_image()
+
+    print("Image limits:", np.min(img), np.max(img))
+
+    img = ndimage.gaussian_filter(img, sigma=(2.5, 2.5), order=0)
+
+    return img, R.get_extent()
+
+
 def getimage_weighted(data, poss, weight, quant, hsml, num, cmap,
                       vmin, vmax, res, center=None):
     print('There are', poss.shape[0], 'particles in the region')

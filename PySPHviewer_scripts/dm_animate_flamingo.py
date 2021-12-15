@@ -5,15 +5,25 @@ ml.use('Agg')
 import numpy as np
 from sphviewer.tools import camera_tools
 import matplotlib.pyplot as plt
+from matplotlib.colors import Normalize
 from astropy.cosmology import Planck13 as cosmo
 import sys
 import h5py
-from images import getimage
+from images import get_mono_image
 import cmasher as cmr
 import os
+import mpi4py
+from mpi4py import MPI
+
+mpi4py.rc.recv_mprobe = False
+
+# Initializations and preliminaries
+comm = MPI.COMM_WORLD  # get MPI communicator object
+size = comm.size  # total number of processes
+rank = comm.rank  # rank of this process
 
 
-def single_frame(num, nframes, res):
+def single_frame(num, nframes, res, size, rank, comm):
 
     snap = "0007"
 
@@ -28,14 +38,17 @@ def single_frame(num, nframes, res):
     hdf = h5py.File(path, "r")
 
     # Get metadata
-    boxsize = hdf["Header"].attrs["BoxSize"]
+    boxsize = hdf["Header"].attrs["BoxSize"][0]
     z = hdf["Header"].attrs["Redshift"]
-    nparts = hdf["Header"].attrs["NumPart_Total"][1]
+    # nparts = hdf["Header"].attrs["NumPart_Total"][1]
+    nparts = 100000
+    pmass = hdf["/PartType1/Masses"][0]
+    tot_mass = nparts * pmass
 
-    print("Boxsize:", boxsize)
-
-    print(hdf["/PartType1"].keys())
-    print(hdf["/PartType1"].attrs.keys())
+    if rank == 0:
+        print("Boxsize:", boxsize)
+        print("Redshift:", z)
+        print("Npart:", nparts)
 
     # Define centre
     cent = np.array([boxsize / 2, boxsize / 2, boxsize / 2])
@@ -63,15 +76,17 @@ def single_frame(num, nframes, res):
     # Define the camera trajectory
     cam_data = camera_tools.get_camera_trajectory(targets, anchors)
 
-    poss = data.dark_matter.coordinates.value
-    masses = data.dark_matter.masses.value * 10 ** 10
+    rank_bins = np.linspace(0, nparts, size + 1)
+
+    poss = hdf["/PartType1/Coordinates"][rank_bins[rank]: rank_bins[rank + 1]]
+    masses = hdf["/PartType1/Masses"][rank_bins[rank]: rank_bins[rank + 1]]
     poss -= cent
-    poss[np.where(poss > boxsize.value / 2)] -= boxsize.value
-    poss[np.where(poss < - boxsize.value / 2)] += boxsize.value
+    poss[np.where(poss > boxsize / 2)] -= boxsize
+    poss[np.where(poss < - boxsize / 2)] += boxsize
 
-    hsmls = data.dark_matter.softenings.value
+    hsmls = hdf["/PartType1/Softenings"][rank_bins[rank]: rank_bins[rank + 1]]
 
-    mean_den = np.sum(masses) / boxsize ** 3
+    mean_den = tot_mass / boxsize ** 3
 
     vmax, vmin = np.log10(10000 * mean_den), 4
 
@@ -80,52 +95,65 @@ def single_frame(num, nframes, res):
     cmap = cmr.eclipse
 
     # Get images
-    rgb_output, ang_extent = getimage(cam_data, poss, masses, hsmls,
-                                      num, cmap, vmin, vmax, res)
+    img, ang_extent = get_mono_image(cam_data, poss, masses, hsmls,
+                                     num, res)
 
-    i = cam_data[num]
-    extent = [0, 2 * np.tan(ang_extent[1]) * i['r'],
-              0, 2 * np.tan(ang_extent[-1]) * i['r']]
-    print("Extents:", ang_extent, extent)
+    final_img = np.zeros_like(img)
 
-    dpi = rgb_output.shape[0] / 2
-    print("DPI, Output Shape:", dpi, rgb_output.shape)
-    fig = plt.figure(figsize=(2, 2 * 1.77777777778), dpi=dpi)
-    ax = fig.add_subplot(111)
+    collected_img = comm.gather(img, root=0)
 
-    ax.imshow(rgb_output, extent=ang_extent, origin='lower')
-    ax.tick_params(axis='both', left=False, top=False, right=False,
-                   bottom=False, labelleft=False,
-                   labeltop=False, labelright=False, labelbottom=False)
+    for i in collected_img:
+        final_img += i
 
-    ax.text(0.975, 0.05, "$t=$%.1f Gyr" % cosmo.age(z).value,
-            transform=ax.transAxes, verticalalignment="top",
-            horizontalalignment='right', fontsize=1, color="w")
+    norm = Normalize(vmin=vmin, vmax=vmax)
 
-    ax.plot([0.05, 0.15], [0.025, 0.025], lw=0.1, color='w', clip_on=False,
-            transform=ax.transAxes)
+    rgb_output = cmap(norm(final_img))
 
-    ax.plot([0.05, 0.05], [0.022, 0.027], lw=0.15, color='w', clip_on=False,
-            transform=ax.transAxes)
-    ax.plot([0.15, 0.15], [0.022, 0.027], lw=0.15, color='w', clip_on=False,
-            transform=ax.transAxes)
+    if rank == 0:
 
-    axis_to_data = ax.transAxes + ax.transData.inverted()
-    left = axis_to_data.transform((0.05, 0.075))
-    right = axis_to_data.transform((0.15, 0.075))
-    dist = extent[1] * (right[0] - left[0]) / (ang_extent[1] - ang_extent[0])
+        i = cam_data[num]
+        extent = [0, 2 * np.tan(ang_extent[1]) * i['r'],
+                  0, 2 * np.tan(ang_extent[-1]) * i['r']]
+        print("Extents:", ang_extent, extent)
 
-    ax.text(0.1, 0.055, "%.2f cMpc" % dist,
-            transform=ax.transAxes, verticalalignment="top",
-            horizontalalignment='center', fontsize=1, color="w")
+        dpi = rgb_output.shape[0] / 2
+        print("DPI, Output Shape:", dpi, rgb_output.shape)
+        fig = plt.figure(figsize=(2, 2 * 1.77777777778), dpi=dpi)
+        ax = fig.add_subplot(111)
 
-    plt.margins(0, 0)
+        ax.imshow(rgb_output, extent=ang_extent, origin='lower')
+        ax.tick_params(axis='both', left=False, top=False, right=False,
+                       bottom=False, labelleft=False,
+                       labeltop=False, labelright=False, labelbottom=False)
 
-    fig.savefig('../plots/Ani/DM/Flamingo_DM_' + frame + '.png',
-                bbox_inches='tight',
-                pad_inches=0)
+        ax.text(0.975, 0.05, "$t=$%.1f Gyr" % cosmo.age(z).value,
+                transform=ax.transAxes, verticalalignment="top",
+                horizontalalignment='right', fontsize=1, color="w")
 
-    plt.close(fig)
+        ax.plot([0.05, 0.15], [0.025, 0.025], lw=0.1, color='w', clip_on=False,
+                transform=ax.transAxes)
+
+        ax.plot([0.05, 0.05], [0.022, 0.027], lw=0.15, color='w', clip_on=False,
+                transform=ax.transAxes)
+        ax.plot([0.15, 0.15], [0.022, 0.027], lw=0.15, color='w', clip_on=False,
+                transform=ax.transAxes)
+
+        axis_to_data = ax.transAxes + ax.transData.inverted()
+        left = axis_to_data.transform((0.05, 0.075))
+        right = axis_to_data.transform((0.15, 0.075))
+        dist = extent[1] * (right[0] - left[0]) / (ang_extent[1] - ang_extent[0])
+
+        ax.text(0.1, 0.055, "%.2f cMpc" % dist,
+                transform=ax.transAxes, verticalalignment="top",
+                horizontalalignment='center', fontsize=1, color="w")
+
+        plt.margins(0, 0)
+
+        fig.savefig('../plots/Ani/DM/Flamingo_DM_' + frame + '.png',
+                    bbox_inches='tight',
+                    pad_inches=0)
+
+        plt.close(fig)
 
 
 if int(sys.argv[2]) > 0:
@@ -134,7 +162,9 @@ if int(sys.argv[2]) > 0:
         print("File exists")
     else:
         res = (2160, 3840)
-        single_frame(int(sys.argv[1]), nframes=3600, res=res)
+        single_frame(int(sys.argv[1]), nframes=3600, res=res,
+                     size=size, rank=rank, comm=comm)
 else:
     res = (2160, 3840)
-    single_frame(int(sys.argv[1]), nframes=3600, res=res)
+    single_frame(int(sys.argv[1]), nframes=3600, res=res,
+                 size=size, rank=rank, comm=comm)
