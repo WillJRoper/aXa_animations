@@ -41,7 +41,7 @@ def single_frame(num, nframes, res, size, rank, comm):
     boxsize = hdf["Header"].attrs["BoxSize"][0]
     z = hdf["Header"].attrs["Redshift"]
     nparts = hdf["Header"].attrs["NumPart_Total"][1]
-    pmass = hdf["/PartType1/Masses"][0]
+    pmass = hdf["/PartType1/Masses"][0] * 10**10
     tot_mass = nparts * pmass
 
     if rank == 0:
@@ -78,7 +78,7 @@ def single_frame(num, nframes, res, size, rank, comm):
     rank_bins = np.linspace(0, nparts, size + 1, dtype=int)
 
     poss = hdf["/PartType1/Coordinates"][rank_bins[rank]: rank_bins[rank + 1]]
-    masses = hdf["/PartType1/Masses"][rank_bins[rank]: rank_bins[rank + 1]]
+    masses = hdf["/PartType1/Masses"][rank_bins[rank]: rank_bins[rank + 1]] * 10**10
     poss -= cent
     poss[np.where(poss > boxsize / 2)] -= boxsize
     poss[np.where(poss < - boxsize / 2)] += boxsize
@@ -87,9 +87,9 @@ def single_frame(num, nframes, res, size, rank, comm):
 
     mean_den = tot_mass / boxsize ** 3
 
-    vmax, vmin = 7, 1
+    vmax, vmin = 7, 0
 
-    print("Norm:", vmin, vmax)
+    print("Norm:", vmin, "-", vmax)
 
     cmap = cmr.eclipse
 
@@ -160,10 +160,10 @@ if int(sys.argv[2]) > 0:
     if os.path.isfile('../plots/Ani/DM/Flamingo_DM_' + frame + '.png'):
         print("File exists")
     else:
-        res = (2160, 3840)
+        res = (2160*4, 3840*4)
         single_frame(int(sys.argv[1]), nframes=nframes, res=res,
                      size=size, rank=rank, comm=comm)
 else:
-    res = (2160, 3840)
+    res = (2160*4, 3840*4)
     single_frame(int(sys.argv[1]), nframes=nframes, res=res,
                  size=size, rank=rank, comm=comm)
