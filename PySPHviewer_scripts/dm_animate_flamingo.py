@@ -88,8 +88,7 @@ def single_frame(num, nframes, res, size, rank, comm):
 
     mean_den = tot_mass / boxsize ** 3
 
-    # vmax, vmin = np.log10(10000 * mean_den), 4
-    vmax, vmin = 5, 3
+    vmax, vmin = np.log10(10000 * mean_den), 4
 
     print("Norm:", vmin, vmax)
 
@@ -98,7 +97,7 @@ def single_frame(num, nframes, res, size, rank, comm):
     # Get images
     img, ang_extent = get_mono_image(cam_data, poss, masses, hsmls,
                                      num, res)
-    
+
     collected_img = comm.gather(img, root=0)
 
     if rank == 0:
