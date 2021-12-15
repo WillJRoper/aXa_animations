@@ -25,7 +25,7 @@ rank = comm.rank  # rank of this process
 
 def single_frame(num, nframes, res, size, rank, comm):
 
-    snap = "0007"
+    snap = "0004"
 
     # Define path
     path = "/cosma8/data/dp004/jlvc76/FLAMINGO/ScienceRuns/L2800N5040/" \
@@ -76,7 +76,7 @@ def single_frame(num, nframes, res, size, rank, comm):
     # Define the camera trajectory
     cam_data = camera_tools.get_camera_trajectory(targets, anchors)
 
-    rank_bins = np.linspace(0, nparts, size + 1)
+    rank_bins = np.linspace(0, nparts, size + 1, dtype=int)
 
     poss = hdf["/PartType1/Coordinates"][rank_bins[rank]: rank_bins[rank + 1]]
     masses = hdf["/PartType1/Masses"][rank_bins[rank]: rank_bins[rank + 1]]
