@@ -19,7 +19,8 @@ def single_frame(num, nframes, res):
 
     # Define path
     path = "/cosma8/data/dp004/jlvc76/FLAMINGO/ScienceRuns/L2800N5040/" \
-           "HYDRO_FIDUCIAL/snapshots/flamingo_" + snap + ".hdf5"
+           "HYDRO_FIDUCIAL/snapshots/flamingo_" + snap \
+           + "/flamingo_" + snap + ".hdf5"
 
     frame = "%05d" % num
 
@@ -133,7 +134,7 @@ if int(sys.argv[2]) > 0:
         print("File exists")
     else:
         res = (2160, 3840)
-        single_frame(int(sys.argv[1]), nframes=1380, res=res)
+        single_frame(int(sys.argv[1]), nframes=3600, res=res)
 else:
     res = (2160, 3840)
-    single_frame(int(sys.argv[1]), nframes=1380, res=res)
+    single_frame(int(sys.argv[1]), nframes=3600, res=res)
