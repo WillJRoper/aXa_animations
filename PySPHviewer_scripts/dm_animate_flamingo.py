@@ -87,7 +87,7 @@ def single_frame(num, nframes, res, size, rank, comm):
 
     mean_den = tot_mass / boxsize ** 3
 
-    vmax, vmin = np.log10(10000 * mean_den), 4
+    vmax, vmin = 7, 3
 
     print("Norm:", vmin, vmax)
 
@@ -155,16 +155,16 @@ def single_frame(num, nframes, res, size, rank, comm):
 
         plt.close(fig)
 
-
+nframes = 1000
 if int(sys.argv[2]) > 0:
     frame = "%05d" % int(sys.argv[1])
     if os.path.isfile('../plots/Ani/DM/Flamingo_DM_' + frame + '.png'):
         print("File exists")
     else:
         res = (2160, 3840)
-        single_frame(int(sys.argv[1]), nframes=3600, res=res,
+        single_frame(int(sys.argv[1]), nframes=nframes, res=res,
                      size=size, rank=rank, comm=comm)
 else:
     res = (2160, 3840)
-    single_frame(int(sys.argv[1]), nframes=3600, res=res,
+    single_frame(int(sys.argv[1]), nframes=nframes, res=res,
                  size=size, rank=rank, comm=comm)
