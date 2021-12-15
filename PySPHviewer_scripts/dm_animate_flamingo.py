@@ -69,7 +69,7 @@ def single_frame(num, nframes, res, size, rank, comm):
     anchors['p'] = [0, 'pass', 'pass', 'pass', 'pass', 'pass', 'pass', -360]
     anchors['zoom'] = [1., 'same', 'same', 'same', 'same', 'same', 'same',
                        'same']
-    anchors['extent'] = [10, 'same', 'same', 'same', 'same', 'same', 'same',
+    anchors['extent'] = [boxsize, 'same', 'same', 'same', 'same', 'same', 'same',
                          'same']
 
     # Define the camera trajectory
