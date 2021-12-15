@@ -1,6 +1,6 @@
 #!/bin/bash -l
 #SBATCH --ntasks 256 # The number of cores you need...
-#SBATCH --array=1-100
+#SBATCH --array=1-100%10
 #SBATCH -J FLAMINGO-ANI #Give it something meaningful.
 #SBATCH -o logs/output_flamingo_ani.%J.%A.%a.out
 #SBATCH -e logs/output_flamingo_ani.%J.%A.%a.err

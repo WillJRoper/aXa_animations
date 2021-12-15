@@ -25,7 +25,7 @@ rank = comm.rank  # rank of this process
 
 def single_frame(num, nframes, res, size, rank, comm):
 
-    snap = "0004"
+    snap = "0001"
 
     # Define path
     path = "/cosma8/data/dp004/jlvc76/FLAMINGO/ScienceRuns/L2800N5040/" \
