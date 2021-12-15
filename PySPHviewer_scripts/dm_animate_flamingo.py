@@ -62,7 +62,7 @@ def single_frame(num, nframes, res, size, rank, comm):
     anchors['id_frames'] = np.linspace(0, nframes, 8, dtype=int)
     anchors['id_targets'] = [0, 'same', 'same', 'same', 'same', 'same', 'same',
                              'same']
-    anchors['r'] = [boxsize + 0.2 * boxsize, 'same', 'same',
+    anchors['r'] = [boxsize + (0.5 * boxsize), 'same', 'same',
                     'same', 'same', 'same',
                     'same', 'same']
     anchors['t'] = [5, 'same', 'same', 'same', 'same', 'same', 'same', 'same']
@@ -87,7 +87,7 @@ def single_frame(num, nframes, res, size, rank, comm):
 
     mean_den = tot_mass / boxsize ** 3
 
-    vmax, vmin = 7, 3
+    vmax, vmin = 7, 1
 
     print("Norm:", vmin, vmax)
 
@@ -103,7 +103,6 @@ def single_frame(num, nframes, res, size, rank, comm):
 
         final_img = np.zeros_like(img)
 
-        print(collected_img)
         for i in collected_img:
             final_img += i
 
