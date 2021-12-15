@@ -1,12 +1,12 @@
 #!/bin/bash -l
-#SBATCH --ntasks 256 # The number of cores you need...
-#SBATCH --array=1-100%10
+#SBATCH --ntasks 32 # The number of cores you need...
+#SBATCH --array=1-100%1
+#SBATCH --cpus-per-task=4
 #SBATCH -J FLAMINGO-ANI #Give it something meaningful.
 #SBATCH -o logs/output_flamingo_ani.%J.%A.%a.out
 #SBATCH -e logs/output_flamingo_ani.%J.%A.%a.err
-#SBATCH -p cosma8
+#SBATCH -p cosma8-shm
 #SBATCH -A dp004
-#SBATCH --exclusive
 #SBATCH -t 72:00:00
 
 # Run the job from the following directory - change this to point to your own personal space on /lustre
@@ -21,7 +21,7 @@ source activate flares-env
 i=$(($SLURM_ARRAY_TASK_ID - 1))
 
 # Run the program
-mpirun -np 256 python dm_animate_flamingo.py $i 0
+mpirun -np 32 python dm_animate_flamingo.py $i 0
 
 source deactivate
 
