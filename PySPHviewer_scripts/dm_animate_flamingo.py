@@ -98,19 +98,20 @@ def single_frame(num, nframes, res, size, rank, comm):
     # Get images
     img, ang_extent = get_mono_image(cam_data, poss, masses, hsmls,
                                      num, res)
-
-    final_img = np.zeros_like(img)
-
+    
     collected_img = comm.gather(img, root=0)
-    print(collected_img)
-    for i in collected_img:
-        final_img += i
-
-    norm = Normalize(vmin=vmin, vmax=vmax)
-
-    rgb_output = cmap(norm(final_img))
 
     if rank == 0:
+
+        final_img = np.zeros_like(img)
+
+        print(collected_img)
+        for i in collected_img:
+            final_img += i
+
+        norm = Normalize(vmin=vmin, vmax=vmax)
+
+        rgb_output = cmap(norm(final_img))
 
         i = cam_data[num]
         extent = [0, 2 * np.tan(ang_extent[1]) * i['r'],
