@@ -162,10 +162,10 @@ if int(sys.argv[2]) > 0:
     if os.path.isfile('../plots/Ani/DM/Flamingo_DM_' + frame + '.png'):
         print("File exists")
     else:
-        res = (2160*4, 3840*4)
+        res = (2160*2, 3840*2)
         single_frame(int(sys.argv[1]), nframes=nframes, res=res,
                      size=size, rank=rank, comm=comm)
 else:
-    res = (2160*4, 3840*4)
+    res = (2160*2, 3840*2)
     single_frame(int(sys.argv[1]), nframes=nframes, res=res,
                  size=size, rank=rank, comm=comm)
