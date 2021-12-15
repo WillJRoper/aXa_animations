@@ -40,8 +40,7 @@ def single_frame(num, nframes, res, size, rank, comm):
     # Get metadata
     boxsize = hdf["Header"].attrs["BoxSize"][0]
     z = hdf["Header"].attrs["Redshift"]
-    # nparts = hdf["Header"].attrs["NumPart_Total"][1]
-    nparts = 100000
+    nparts = hdf["Header"].attrs["NumPart_Total"][1]
     pmass = hdf["/PartType1/Masses"][0]
     tot_mass = nparts * pmass
 
