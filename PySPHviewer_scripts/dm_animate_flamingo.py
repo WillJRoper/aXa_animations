@@ -166,7 +166,7 @@ def single_frame(num, nframes, size, rank, comm):
                     hsmls = hdf["/PartType1/Softenings"][
                             my_offset:my_offset + my_count]
 
-                    print(my_count)
+                    print(my_count, poss.min(), poss.max())
 
                     # Compute camera radial distance to cell
                     cam_sep = cam_pos - my_cent - true_cent
