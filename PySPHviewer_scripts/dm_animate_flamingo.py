@@ -47,7 +47,7 @@ def single_frame(num, nframes, size, rank, comm):
     nparts = hdf["Header"].attrs["NumPart_Total"][1]
     pmass = hdf["/PartType1/Masses"][0] * 10 ** 10
     ncell_dimens = hdf["Cells/Meta-data"].attrs["dimension"]
-    ncells = hdf["/Cells/Meta-data"].attrs["nr_cells"] // 10
+    ncells = hdf["/Cells/Meta-data"].attrs["nr_cells"]
     cell_width = hdf["Cells/Meta-data"].attrs["size"]
     tot_mass = nparts * pmass
 
