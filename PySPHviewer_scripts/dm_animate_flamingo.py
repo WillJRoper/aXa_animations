@@ -59,11 +59,17 @@ def single_frame(num, nframes, size, rank, comm):
         if npix_per_2cells[i] % 2 != 0:
             npix_per_2cells[i] += 1
     res = (npix_per_2cells[0], npix_per_2cells[1])
-    full_image_res = (ncells**(1/3) * res[0] // 2,
-                      ncells**(1/3) * res[1] // 2)
+    full_image_res = (int(ncells**(1/3) * res[0] // 2),
+                      int(ncells**(1/3) * res[1] // 2))
 
     # Define width and height
     w, h = 2 * cell_width[1], 2 * cell_width[0]
+
+    mean_den = tot_mass / boxsize ** 3
+
+    vmax, vmin = 10000 * mean_den, mean_den
+
+    cmap = cmr.eclipse
 
     if rank == 0:
         print("Boxsize:", boxsize)
@@ -84,6 +90,8 @@ def single_frame(num, nframes, size, rank, comm):
     cam_pos = np.array([boxsize / 2, boxsize / 2, - boxsize])
 
     if rank == 0:
+
+        results = []
 
         ncell = -1
 
@@ -159,59 +167,53 @@ def single_frame(num, nframes, size, rank, comm):
                     # cam_data = camera_tools.get_camera_trajectory(targets,
                     #                                               anchors)
 
-                    mean_den = tot_mass / boxsize ** 3
-
-                    vmax, vmin = 10000 * mean_den, mean_den
-
-                    cmap = cmr.eclipse
-
                     # Get images
                     img = make_spline_img_cart(poss, res, w, h, masses, hsmls)
                     print("Image limits:", img.min(), img.max())
 
-                    if img.max() > 0:
-
-                        norm = LogNorm(vmin=vmin, vmax=vmax, clip=True)
-
-                        rgb_output = cmap(norm(img))
-
-                        # print("Extents:", ang_extent, extent)
-
-                        dpi = rgb_output.shape[0] / 2
-                        # print("DPI, Output Shape:", dpi, rgb_output.shape)
-                        fig = plt.figure(figsize=(2, 2 * 1.77777777778), dpi=dpi)
-                        ax = fig.add_subplot(111)
-
-                        ax.imshow(rgb_output, extent=[-h/2, h/2, -w/2, w/2],
-                                  origin='lower')
-                        ax.tick_params(axis='both', left=False, top=False, right=False,
-                                       bottom=False, labelleft=False,
-                                       labeltop=False, labelright=False,
-                                       labelbottom=False)
-
-                        # ax.text(0.975, 0.05, "$t=$%.1f Gyr" % cosmo.age(z).value,
-                        #         transform=ax.transAxes, verticalalignment="top",
-                        #         horizontalalignment='right', fontsize=1, color="w")
-                        #
-                        # ax.plot([0.05, 0.15], [0.025, 0.025], lw=0.1, color='w',
-                        #         clip_on=False,
-                        #         transform=ax.transAxes)
-                        #
-                        # ax.plot([0.05, 0.05], [0.022, 0.027], lw=0.15, color='w',
-                        #         clip_on=False,
-                        #         transform=ax.transAxes)
-                        # ax.plot([0.15, 0.15], [0.022, 0.027], lw=0.15, color='w',
-                        #         clip_on=False,
-                        #         transform=ax.transAxes)
-
-                        plt.margins(0, 0)
-
-                        fig.savefig('../plots/Ani/DM/Flamingo_DM_' + frame
-                                    + '_' + str(my_cell) + '.png',
-                                    bbox_inches='tight',
-                                    pad_inches=0)
-
-                        plt.close(fig)
+                    # if img.max() > 0:
+                    #
+                    #     norm = LogNorm(vmin=vmin, vmax=vmax, clip=True)
+                    #
+                    #     rgb_output = cmap(norm(img))
+                    #
+                    #     # print("Extents:", ang_extent, extent)
+                    #
+                    #     dpi = rgb_output.shape[0] / 2
+                    #     # print("DPI, Output Shape:", dpi, rgb_output.shape)
+                    #     fig = plt.figure(figsize=(2, 2 * 1.77777777778), dpi=dpi)
+                    #     ax = fig.add_subplot(111)
+                    #
+                    #     ax.imshow(rgb_output, extent=[-h/2, h/2, -w/2, w/2],
+                    #               origin='lower')
+                    #     ax.tick_params(axis='both', left=False, top=False, right=False,
+                    #                    bottom=False, labelleft=False,
+                    #                    labeltop=False, labelright=False,
+                    #                    labelbottom=False)
+                    #
+                    #     # ax.text(0.975, 0.05, "$t=$%.1f Gyr" % cosmo.age(z).value,
+                    #     #         transform=ax.transAxes, verticalalignment="top",
+                    #     #         horizontalalignment='right', fontsize=1, color="w")
+                    #     #
+                    #     # ax.plot([0.05, 0.15], [0.025, 0.025], lw=0.1, color='w',
+                    #     #         clip_on=False,
+                    #     #         transform=ax.transAxes)
+                    #     #
+                    #     # ax.plot([0.05, 0.05], [0.022, 0.027], lw=0.15, color='w',
+                    #     #         clip_on=False,
+                    #     #         transform=ax.transAxes)
+                    #     # ax.plot([0.15, 0.15], [0.022, 0.027], lw=0.15, color='w',
+                    #     #         clip_on=False,
+                    #     #         transform=ax.transAxes)
+                    #
+                    #     plt.margins(0, 0)
+                    #
+                    #     fig.savefig('../plots/Ani/DM/Flamingo_DM_' + frame
+                    #                 + '_' + str(my_cell) + '.png',
+                    #                 bbox_inches='tight',
+                    #                 pad_inches=0)
+                    #
+                    #     plt.close(fig)
 
                     results.append((my_cell, my_cent, img))
 
@@ -220,62 +222,88 @@ def single_frame(num, nframes, size, rank, comm):
 
         comm.send(None, dest=0, tag=tags.EXIT)
 
-    # collected_img = comm.gather(img, root=0)
-    #
-    # if rank == 0:
-    #
-    #     final_img = np.zeros_like(img)
-    #
-    #     for rk, i_img in enumerate(collected_img):
-    #         final_img += i_img
-    #
-    #     norm = Normalize(vmin=vmin, vmax=vmax)
-    #
-    #     rgb_output = cmap(norm(final_img))
-    #
-    #     i = cam_data[num]
-    #     extent = [0, 2 * np.tan(ang_extent[1]) * i['r'],
-    #               0, 2 * np.tan(ang_extent[-1]) * i['r']]
-    #     print("Extents:", ang_extent, extent)
-    #
-    #     dpi = rgb_output.shape[0] / 2
-    #     print("DPI, Output Shape:", dpi, rgb_output.shape)
-    #     fig = plt.figure(figsize=(2, 2 * 1.77777777778), dpi=dpi)
-    #     ax = fig.add_subplot(111)
-    #
-    #     ax.imshow(rgb_output, extent=ang_extent, origin='lower')
-    #     ax.tick_params(axis='both', left=False, top=False, right=False,
-    #                    bottom=False, labelleft=False,
-    #                    labeltop=False, labelright=False, labelbottom=False)
-    #
-    #     ax.text(0.975, 0.05, "$t=$%.1f Gyr" % cosmo.age(z).value,
-    #             transform=ax.transAxes, verticalalignment="top",
-    #             horizontalalignment='right', fontsize=1, color="w")
-    #
-    #     ax.plot([0.05, 0.15], [0.025, 0.025], lw=0.1, color='w', clip_on=False,
-    #             transform=ax.transAxes)
-    #
-    #     ax.plot([0.05, 0.05], [0.022, 0.027], lw=0.15, color='w', clip_on=False,
-    #             transform=ax.transAxes)
-    #     ax.plot([0.15, 0.15], [0.022, 0.027], lw=0.15, color='w', clip_on=False,
-    #             transform=ax.transAxes)
-    #
-    #     axis_to_data = ax.transAxes + ax.transData.inverted()
-    #     left = axis_to_data.transform((0.05, 0.075))
-    #     right = axis_to_data.transform((0.15, 0.075))
-    #     dist = extent[1] * (right[0] - left[0]) / (ang_extent[1] - ang_extent[0])
-    #
-    #     ax.text(0.1, 0.055, "%.2f cMpc" % dist,
-    #             transform=ax.transAxes, verticalalignment="top",
-    #             horizontalalignment='center', fontsize=1, color="w")
-    #
-    #     plt.margins(0, 0)
-    #
-    #     fig.savefig('../plots/Ani/DM/Flamingo_DM_' + frame + '.png',
-    #                 bbox_inches='tight',
-    #                 pad_inches=0)
-    #
-    #     plt.close(fig)
+    results_list = comm.gather(results, root=0)
+
+    if rank == 0:
+
+        final_img = np.zeros_like(full_image_res)
+
+        for res in results_list:
+            for tup in res:
+
+                cell = tup[0]
+                cent = tup[1]
+                img = tup[2]
+
+                i = int(cent[0] / pix_res)
+                j = int(cent[1] / pix_res)
+
+                dimens = img.shape
+
+                ilow = i - (dimens[0] // 2)
+                ihigh = i + (dimens[0] // 2)
+                jlow = j - (dimens[1] // 2)
+                jhigh = j + (dimens[1] // 2)
+
+                if ilow < 0:
+                    img = img[abs(ilow):, :]
+                    ilow = 0
+                if jlow < 0:
+                    img = img[:, abs(jlow):]
+                    jlow = 0
+                if ihigh >= full_image_res[1]:
+                    img = img[:ihigh - full_image_res[1] - 1, :]
+                    ihigh = full_image_res[1] - 1
+                if jhigh >= full_image_res[0]:
+                    img = img[:, :jhigh - full_image_res[0] - 1]
+                    jhigh = full_image_res[0] - 1
+
+                print(ihigh - ilow, jhigh - jlow, img.shape)
+
+                final_img[ilow: ihigh, jlow: jhigh] += img
+
+        norm = LogNorm(vmin=vmin, vmax=vmax, clip=True)
+
+        rgb_output = cmap(norm(final_img))
+
+        dpi = rgb_output.shape[0] / 2
+        print("DPI, Output Shape:", dpi, rgb_output.shape)
+        fig = plt.figure(figsize=(2, 2 * 1.77777777778), dpi=dpi)
+        ax = fig.add_subplot(111)
+
+        ax.imshow(rgb_output, origin='lower')
+        ax.tick_params(axis='both', left=False, top=False, right=False,
+                       bottom=False, labelleft=False,
+                       labeltop=False, labelright=False, labelbottom=False)
+
+        # ax.text(0.975, 0.05, "$t=$%.1f Gyr" % cosmo.age(z).value,
+        #         transform=ax.transAxes, verticalalignment="top",
+        #         horizontalalignment='right', fontsize=1, color="w")
+        #
+        # ax.plot([0.05, 0.15], [0.025, 0.025], lw=0.1, color='w', clip_on=False,
+        #         transform=ax.transAxes)
+        #
+        # ax.plot([0.05, 0.05], [0.022, 0.027], lw=0.15, color='w', clip_on=False,
+        #         transform=ax.transAxes)
+        # ax.plot([0.15, 0.15], [0.022, 0.027], lw=0.15, color='w', clip_on=False,
+        #         transform=ax.transAxes)
+        #
+        # axis_to_data = ax.transAxes + ax.transData.inverted()
+        # left = axis_to_data.transform((0.05, 0.075))
+        # right = axis_to_data.transform((0.15, 0.075))
+        # dist = extent[1] * (right[0] - left[0]) / (ang_extent[1] - ang_extent[0])
+
+        # ax.text(0.1, 0.055, "%.2f cMpc" % dist,
+        #         transform=ax.transAxes, verticalalignment="top",
+        #         horizontalalignment='center', fontsize=1, color="w")
+
+        plt.margins(0, 0)
+
+        fig.savefig('../plots/Ani/DM/Flamingo_DM_' + frame + '.png',
+                    bbox_inches='tight',
+                    pad_inches=0)
+
+        plt.close(fig)
 
 
 nframes = 1000
