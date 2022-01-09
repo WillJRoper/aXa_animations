@@ -93,11 +93,12 @@ def make_spline_img_cart(part_pos, Ndim, w, h, ls, smooth,
     n = 0
     for ipos, l, sml in zip(part_pos, ls, smooth):
 
-        i, j = int(ipos[1] / pix_width), int(ipos[0] / pix_width)
-        i_low = int((ipos[1] - (sml * spline_cut_off)) / pix_width)
-        j_low = int((ipos[0] - (sml * spline_cut_off)) / pix_width)
-        i_high = int((ipos[1] + (sml * spline_cut_off)) / pix_width)
-        j_high = int((ipos[0] + (sml * spline_cut_off)) / pix_width)
+        i, j = int(ipos[1] / pix_width + Ndim[0] / 2), \
+               int(ipos[0] / pix_width + Ndim[1] / 2)
+        i_low = int((ipos[1] - (sml * spline_cut_off)) / pix_width) + (Ndim[1] // 2)
+        j_low = int((ipos[0] - (sml * spline_cut_off)) / pix_width) + (Ndim[0] // 2)
+        i_high = int((ipos[1] + (sml * spline_cut_off)) / pix_width) + (Ndim[1] // 2)
+        j_high = int((ipos[0] + (sml * spline_cut_off)) / pix_width) + (Ndim[0] // 2)
 
         if i < 0 or i > Ndim[1] or j < 0 or j > Ndim[0]:
             continue
