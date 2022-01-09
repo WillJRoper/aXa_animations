@@ -155,7 +155,7 @@ def single_frame(num, nframes, size, rank, comm):
                         my_offset:my_offset + my_count]
 
                 # Compute camera radial distance to cell
-                cam_sep = cam_pos - my_cent
+                cam_sep = cam_pos - my_cent - true_cent
                 cam_dist = np.sqrt(cam_sep[0] ** 2
                                    + cam_sep[1] ** 2
                                    + cam_sep[2] ** 2)
