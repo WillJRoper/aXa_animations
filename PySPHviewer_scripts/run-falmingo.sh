@@ -1,6 +1,6 @@
 #!/bin/bash -l
 #SBATCH --ntasks 32 # The number of cores you need...
-#SBATCH --array=1-100%1
+#SBATCH --array=1-10%1
 #SBATCH --cpus-per-task=4
 #SBATCH -J FLAMINGO-ANI #Give it something meaningful.
 #SBATCH -o logs/output_flamingo_ani.%J.%A.%a.out
