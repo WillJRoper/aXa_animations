@@ -93,8 +93,8 @@ def single_frame(num, nframes, size, rank, comm):
     anchors['r'] = ["infinity", 'same', 'same',
                     'same', 'same', 'same',
                     'same', 'same']
-    anchors['t'] = [5, 'same', 'same', 'same', 'same', 'same', 'same', 'same']
-    anchors['p'] = [0, 'pass', 'pass', 'pass', 'pass', 'pass', 'pass', -360]
+    anchors['t'] = [0, 'same', 'same', 'same', 'same', 'same', 'same', 'same']
+    anchors['p'] = [0, 'same', 'same', 'same', 'same', 'same', 'same', 'same']
     anchors['zoom'] = [1., 'same', 'same', 'same', 'same', 'same', 'same',
                        'same']
     anchors['extent'] = [2 * cell_width[0], 'same', 'same', 'same', 'same',
@@ -166,7 +166,10 @@ def single_frame(num, nframes, size, rank, comm):
                     hsmls = hdf["/PartType1/Softenings"][
                             my_offset:my_offset + my_count]
 
-                    print(my_count, poss.min(), poss.max())
+                    print(my_cell, my_count, 2 * cell_width[0],
+                          poss.min(), poss.max())
+                    print(np.min(masses), np.max(masses),
+                          np.min(hsmls), np.max(hsmls))
 
                     # Compute camera radial distance to cell
                     cam_sep = cam_pos - my_cent - true_cent
@@ -190,62 +193,65 @@ def single_frame(num, nframes, size, rank, comm):
                     cmap = cmr.eclipse
 
                     # Get images
-                    img, ang_extent = get_mono_image(cam_data, poss, masses, hsmls,
+                    img, ang_extent = get_mono_image(cam_data, poss, masses,
+                                                     hsmls,
                                                      num, res)
 
-                    norm = Normalize(vmin=vmin, vmax=vmax)
+                    if img.max() > 0:
 
-                    rgb_output = cmap(norm(img))
+                        norm = Normalize(vmin=vmin, vmax=vmax)
 
-                    i = cam_data[num]
-                    extent = [0, 2 * np.tan(ang_extent[1]) * i['r'],
-                              0, 2 * np.tan(ang_extent[-1]) * i['r']]
-                    # print("Extents:", ang_extent, extent)
+                        rgb_output = cmap(norm(img))
 
-                    dpi = rgb_output.shape[0] / 2
-                    # print("DPI, Output Shape:", dpi, rgb_output.shape)
-                    fig = plt.figure(figsize=(2, 2 * 1.77777777778), dpi=dpi)
-                    ax = fig.add_subplot(111)
+                        i = cam_data[num]
+                        extent = [0, 2 * np.tan(ang_extent[1]) * i['r'],
+                                  0, 2 * np.tan(ang_extent[-1]) * i['r']]
+                        # print("Extents:", ang_extent, extent)
 
-                    ax.imshow(rgb_output, extent=ang_extent, origin='lower')
-                    ax.tick_params(axis='both', left=False, top=False, right=False,
-                                   bottom=False, labelleft=False,
-                                   labeltop=False, labelright=False,
-                                   labelbottom=False)
+                        dpi = rgb_output.shape[0] / 2
+                        # print("DPI, Output Shape:", dpi, rgb_output.shape)
+                        fig = plt.figure(figsize=(2, 2 * 1.77777777778), dpi=dpi)
+                        ax = fig.add_subplot(111)
 
-                    ax.text(0.975, 0.05, "$t=$%.1f Gyr" % cosmo.age(z).value,
-                            transform=ax.transAxes, verticalalignment="top",
-                            horizontalalignment='right', fontsize=1, color="w")
+                        ax.imshow(rgb_output, extent=ang_extent, origin='lower')
+                        ax.tick_params(axis='both', left=False, top=False, right=False,
+                                       bottom=False, labelleft=False,
+                                       labeltop=False, labelright=False,
+                                       labelbottom=False)
 
-                    ax.plot([0.05, 0.15], [0.025, 0.025], lw=0.1, color='w',
-                            clip_on=False,
-                            transform=ax.transAxes)
+                        ax.text(0.975, 0.05, "$t=$%.1f Gyr" % cosmo.age(z).value,
+                                transform=ax.transAxes, verticalalignment="top",
+                                horizontalalignment='right', fontsize=1, color="w")
 
-                    ax.plot([0.05, 0.05], [0.022, 0.027], lw=0.15, color='w',
-                            clip_on=False,
-                            transform=ax.transAxes)
-                    ax.plot([0.15, 0.15], [0.022, 0.027], lw=0.15, color='w',
-                            clip_on=False,
-                            transform=ax.transAxes)
+                        ax.plot([0.05, 0.15], [0.025, 0.025], lw=0.1, color='w',
+                                clip_on=False,
+                                transform=ax.transAxes)
 
-                    axis_to_data = ax.transAxes + ax.transData.inverted()
-                    left = axis_to_data.transform((0.05, 0.075))
-                    right = axis_to_data.transform((0.15, 0.075))
-                    dist = extent[1] * (right[0] - left[0]) / (
-                            ang_extent[1] - ang_extent[0])
+                        ax.plot([0.05, 0.05], [0.022, 0.027], lw=0.15, color='w',
+                                clip_on=False,
+                                transform=ax.transAxes)
+                        ax.plot([0.15, 0.15], [0.022, 0.027], lw=0.15, color='w',
+                                clip_on=False,
+                                transform=ax.transAxes)
 
-                    ax.text(0.1, 0.055, "%.2f cMpc" % dist,
-                            transform=ax.transAxes, verticalalignment="top",
-                            horizontalalignment='center', fontsize=1, color="w")
+                        axis_to_data = ax.transAxes + ax.transData.inverted()
+                        left = axis_to_data.transform((0.05, 0.075))
+                        right = axis_to_data.transform((0.15, 0.075))
+                        dist = extent[1] * (right[0] - left[0]) / (
+                                ang_extent[1] - ang_extent[0])
 
-                    plt.margins(0, 0)
+                        ax.text(0.1, 0.055, "%.2f cMpc" % dist,
+                                transform=ax.transAxes, verticalalignment="top",
+                                horizontalalignment='center', fontsize=1, color="w")
 
-                    fig.savefig('../plots/Ani/DM/Flamingo_DM_' + frame
-                                + '_' + str(my_cell) + '.png',
-                                bbox_inches='tight',
-                                pad_inches=0)
+                        plt.margins(0, 0)
 
-                    plt.close(fig)
+                        fig.savefig('../plots/Ani/DM/Flamingo_DM_' + frame
+                                    + '_' + str(my_cell) + '.png',
+                                    bbox_inches='tight',
+                                    pad_inches=0)
+
+                        plt.close(fig)
 
                     results.append((my_cell, my_cent, img))
 
