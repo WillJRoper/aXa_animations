@@ -182,7 +182,8 @@ def single_frame(num, nframes, size, rank, comm):
                         fig = plt.figure(figsize=(2, 2 * 1.77777777778), dpi=dpi)
                         ax = fig.add_subplot(111)
 
-                        ax.imshow(rgb_output, extent=[h, w], origin='lower')
+                        ax.imshow(rgb_output, extent=[-h/2, h/2, -w/2, w/2],
+                                  origin='lower')
                         ax.tick_params(axis='both', left=False, top=False, right=False,
                                        bottom=False, labelleft=False,
                                        labeltop=False, labelright=False,
