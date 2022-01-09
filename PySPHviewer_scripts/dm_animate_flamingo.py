@@ -189,20 +189,20 @@ def single_frame(num, nframes, size, rank, comm):
                                        labeltop=False, labelright=False,
                                        labelbottom=False)
 
-                        ax.text(0.975, 0.05, "$t=$%.1f Gyr" % cosmo.age(z).value,
-                                transform=ax.transAxes, verticalalignment="top",
-                                horizontalalignment='right', fontsize=1, color="w")
-
-                        ax.plot([0.05, 0.15], [0.025, 0.025], lw=0.1, color='w',
-                                clip_on=False,
-                                transform=ax.transAxes)
-
-                        ax.plot([0.05, 0.05], [0.022, 0.027], lw=0.15, color='w',
-                                clip_on=False,
-                                transform=ax.transAxes)
-                        ax.plot([0.15, 0.15], [0.022, 0.027], lw=0.15, color='w',
-                                clip_on=False,
-                                transform=ax.transAxes)
+                        # ax.text(0.975, 0.05, "$t=$%.1f Gyr" % cosmo.age(z).value,
+                        #         transform=ax.transAxes, verticalalignment="top",
+                        #         horizontalalignment='right', fontsize=1, color="w")
+                        #
+                        # ax.plot([0.05, 0.15], [0.025, 0.025], lw=0.1, color='w',
+                        #         clip_on=False,
+                        #         transform=ax.transAxes)
+                        #
+                        # ax.plot([0.05, 0.05], [0.022, 0.027], lw=0.15, color='w',
+                        #         clip_on=False,
+                        #         transform=ax.transAxes)
+                        # ax.plot([0.15, 0.15], [0.022, 0.027], lw=0.15, color='w',
+                        #         clip_on=False,
+                        #         transform=ax.transAxes)
 
                         plt.margins(0, 0)
 
