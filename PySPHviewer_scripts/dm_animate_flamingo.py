@@ -25,7 +25,7 @@ rank = comm.rank  # rank of this process
 
 def single_frame(num, nframes, res, size, rank, comm):
 
-    snap = "0010"
+    snap = "0020"
 
     # Define path
     path = "/cosma8/data/dp004/jlvc76/FLAMINGO/ScienceRuns/L2800N5040/" \
@@ -62,7 +62,7 @@ def single_frame(num, nframes, res, size, rank, comm):
     anchors['id_frames'] = np.linspace(0, nframes, 8, dtype=int)
     anchors['id_targets'] = [0, 'same', 'same', 'same', 'same', 'same', 'same',
                              'same']
-    anchors['r'] = [0, 'same', 'same',
+    anchors['r'] = ["infinity", 'same', 'same',
                     'same', 'same', 'same',
                     'same', 'same']
     anchors['t'] = [5, 'same', 'same', 'same', 'same', 'same', 'same', 'same']
@@ -85,9 +85,12 @@ def single_frame(num, nframes, res, size, rank, comm):
 
     hsmls = hdf["/PartType1/Softenings"][rank_bins[rank]: rank_bins[rank + 1]]
 
+    if rank == 0:
+        print("Theoretical resolution:", boxsize / hsmls[0])
+
     mean_den = tot_mass / boxsize ** 3
 
-    vmax, vmin = 18, 0
+    vmax, vmin = 17, 0
 
     print("Norm:", vmin, "-", vmax)
 
