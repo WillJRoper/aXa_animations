@@ -166,10 +166,10 @@ def single_frame(num, nframes, size, rank, comm):
                                    + cam_sep[1] ** 2
                                    + cam_sep[2] ** 2)
 
-                # Define anchors dict for camera parameters
-                anchors['r'] = ["infinity", 'same', 'same',
-                                'same', 'same', 'same',
-                                'same', 'same']
+                # # Define anchors dict for camera parameters
+                # anchors['r'] = ["infinity", 'same', 'same',
+                #                 'same', 'same', 'same',
+                #                 'same', 'same']
 
                 # Define the camera trajectory
                 cam_data = camera_tools.get_camera_trajectory(targets, anchors)
