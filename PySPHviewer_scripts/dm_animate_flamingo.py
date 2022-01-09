@@ -146,7 +146,7 @@ def single_frame(num, nframes, res, size, rank, comm):
     plt.margins(0, 0)
 
     fig.savefig('../plots/Ani/DM/Flamingo_DM_' + frame
-                + '_' + rank + '.png',
+                + '_' + str(rank) + '.png',
                 bbox_inches='tight',
                 pad_inches=0)
 
@@ -206,7 +206,7 @@ def single_frame(num, nframes, res, size, rank, comm):
     #     fig.savefig('../plots/Ani/DM/Flamingo_DM_' + frame + '.png',
     #                 bbox_inches='tight',
     #                 pad_inches=0)
-    # 
+    #
     #     plt.close(fig)
 
 nframes = 1000
