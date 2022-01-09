@@ -25,7 +25,7 @@ rank = comm.rank  # rank of this process
 
 def single_frame(num, nframes, res, size, rank, comm):
 
-    snap = "0001"
+    snap = "0010"
 
     # Define path
     path = "/cosma8/data/dp004/jlvc76/FLAMINGO/ScienceRuns/L2800N5040/" \
@@ -62,7 +62,7 @@ def single_frame(num, nframes, res, size, rank, comm):
     anchors['id_frames'] = np.linspace(0, nframes, 8, dtype=int)
     anchors['id_targets'] = [0, 'same', 'same', 'same', 'same', 'same', 'same',
                              'same']
-    anchors['r'] = [boxsize + (0.5 * boxsize), 'same', 'same',
+    anchors['r'] = [0, 'same', 'same',
                     'same', 'same', 'same',
                     'same', 'same']
     anchors['t'] = [5, 'same', 'same', 'same', 'same', 'same', 'same', 'same']
@@ -87,7 +87,7 @@ def single_frame(num, nframes, res, size, rank, comm):
 
     mean_den = tot_mass / boxsize ** 3
 
-    vmax, vmin = 17, 0
+    vmax, vmin = 18, 0
 
     print("Norm:", vmin, "-", vmax)
 
