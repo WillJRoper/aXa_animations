@@ -1,4 +1,5 @@
 import numpy as np
+import scipy.ndimage as ndimage
 
 
 def quartic_spline(q):
