@@ -54,8 +54,13 @@ def single_frame(num, nframes, size, rank, comm):
     # Define the simulation's "resolution"
     pix_res = hdf["/PartType1/Softenings"][0]
 
-    res = (2 * np.int32(np.floor(cell_width / pix_res)),
-           2 * np.int32(np.floor(cell_width / pix_res)))
+    npix_per_2cells = 2 * np.int32(np.floor(cell_width / pix_res))
+    for i in range(3):
+        if npix_per_2cells[i] % 2 != 0:
+            npix_per_2cells[i] += 1
+    res = (npix_per_2cells[0], npix_per_2cells[1])
+    full_image_res = (ncells**(1/3) * res[0] // 2,
+                      ncells**(1/3) * res[1] // 2)
 
     if rank == 0:
         print("Boxsize:", boxsize)
@@ -63,10 +68,11 @@ def single_frame(num, nframes, size, rank, comm):
         print("Npart:", nparts)
         print("Number of cells:", ncells)
         print("Cell width:", cell_width)
-        print("Cell Pixel resolution:", np.int32(np.floor(cell_width / pix_res)))
+        print("Cell Pixel resolution:", np.int32(np.floor(cell_width[0]
+                                                          / pix_res)))
         print("Cell Pixel resolution (with padding):",
               res)
-        print("Full image resolution:", np.int32(np.floor(boxsize / pix_res)))
+        print("Full image resolution:", full_image_res)
 
     # Define centre
     true_cent = np.array([boxsize / 2, boxsize / 2, boxsize / 2])
