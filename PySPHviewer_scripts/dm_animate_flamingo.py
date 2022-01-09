@@ -25,7 +25,7 @@ rank = comm.rank  # rank of this process
 status = MPI.Status()  # get MPI status object
 
 
-def single_frame(num, nframes, res, size, rank, comm):
+def single_frame(num, nframes, size, rank, comm):
     # Define MPI message tags
     tags = utilities.enum('READY', 'DONE', 'EXIT', 'START')
 
@@ -54,16 +54,19 @@ def single_frame(num, nframes, res, size, rank, comm):
     # Define the simulation's "resolution"
     pix_res = hdf["/PartType1/Softenings"][0]
 
+    res = (2 * np.int32(np.floor(cell_width / pix_res)),
+           2 * np.int32(np.floor(cell_width / pix_res)))
+
     if rank == 0:
         print("Boxsize:", boxsize)
         print("Redshift:", z)
         print("Npart:", nparts)
         print("Number of cells:", ncells)
         print("Cell width:", cell_width)
-        print("Cell Pixel resolution:", int(np.floor(cell_width / pix_res)))
+        print("Cell Pixel resolution:", np.int32(np.floor(cell_width / pix_res)))
         print("Cell Pixel resolution (with padding):",
-              2 * int(np.floor(cell_width / pix_res)))
-        print("Full image resolution:", int(np.floor(boxsize / pix_res)))
+              res)
+        print("Full image resolution:", np.int32(np.floor(boxsize / pix_res)))
 
     # Define centre
     true_cent = np.array([boxsize / 2, boxsize / 2, boxsize / 2])
@@ -304,10 +307,8 @@ if int(sys.argv[2]) > 0:
     if os.path.isfile('../plots/Ani/DM/Flamingo_DM_' + frame + '.png'):
         print("File exists")
     else:
-        res = (2160 * 2, 3840 * 2)
-        single_frame(int(sys.argv[1]), nframes=nframes, res=res,
+        single_frame(int(sys.argv[1]), nframes=nframes,
                      size=size, rank=rank, comm=comm)
 else:
-    res = (2160 * 2, 3840 * 2)
-    single_frame(int(sys.argv[1]), nframes=nframes, res=res,
+    single_frame(int(sys.argv[1]), nframes=nframes,
                  size=size, rank=rank, comm=comm)
