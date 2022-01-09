@@ -5,7 +5,7 @@ ml.use('Agg')
 import numpy as np
 from get_images import make_spline_img_cart
 import matplotlib.pyplot as plt
-from matplotlib.colors import Normalize
+from matplotlib.colors import Normalize, LogNorm
 from astropy.cosmology import Planck13 as cosmo
 import sys
 import h5py
@@ -144,11 +144,6 @@ def single_frame(num, nframes, size, rank, comm):
                     hsmls = hdf["/PartType1/Softenings"][
                             my_offset:my_offset + my_count]
 
-                    print(my_cell, my_count, 2 * cell_width[0],
-                          poss.min(), poss.max())
-                    print(np.min(masses), np.max(masses),
-                          np.min(hsmls), np.max(hsmls))
-
                     # Compute camera radial distance to cell
                     cam_sep = cam_pos - my_cent - true_cent
                     cam_dist = np.sqrt(cam_sep[0] ** 2
@@ -166,16 +161,17 @@ def single_frame(num, nframes, size, rank, comm):
 
                     mean_den = tot_mass / boxsize ** 3
 
-                    vmax, vmin = 8, 0
+                    vmax, vmin = 10000 * mean_den, mean_den
 
                     cmap = cmr.eclipse
 
                     # Get images
                     img = make_spline_img_cart(poss, res, w, h, masses, hsmls)
+                    print("Image limits:", img.min(), img.max())
 
                     if img.max() > 0:
 
-                        norm = Normalize(vmin=vmin, vmax=vmax)
+                        norm = LogNorm(vmin=vmin, vmax=vmax, clip=True)
 
                         rgb_output = cmap(norm(img))
 
@@ -186,7 +182,7 @@ def single_frame(num, nframes, size, rank, comm):
                         fig = plt.figure(figsize=(2, 2 * 1.77777777778), dpi=dpi)
                         ax = fig.add_subplot(111)
 
-                        ax.imshow(rgb_output, origin='lower')
+                        ax.imshow(rgb_output, extent=[h, w], origin='lower')
                         ax.tick_params(axis='both', left=False, top=False, right=False,
                                        bottom=False, labelleft=False,
                                        labeltop=False, labelright=False,
