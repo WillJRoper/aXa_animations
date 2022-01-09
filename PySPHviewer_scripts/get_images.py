@@ -37,7 +37,8 @@ def make_spline_img(part_pos, Ndim, w, h, ls, smooth_low, smooth_high,
     smooth_img = np.zeros((Ndim[1], Ndim[0]))
 
     # Compute pixel width
-    pix_width = w / Ndim[1]
+    w_pix_width = w / Ndim[1]
+    h_pix_width = h / Ndim[1]
     n = 0
     for ipos, l, sml_l, sml_h in zip(part_pos, ls, smooth_low, smooth_high):
 

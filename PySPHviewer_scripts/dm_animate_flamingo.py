@@ -105,8 +105,61 @@ def single_frame(num, nframes, res, size, rank, comm):
 
         final_img = np.zeros_like(img)
 
-        for i in collected_img:
-            final_img += i
+        for rk, i_img in enumerate(collected_img):
+            final_img += i_img
+
+            norm = Normalize(vmin=vmin, vmax=vmax)
+
+            rgb_output = cmap(norm(i_img))
+
+            i = cam_data[num]
+            extent = [0, 2 * np.tan(ang_extent[1]) * i['r'],
+                      0, 2 * np.tan(ang_extent[-1]) * i['r']]
+            print("Extents:", ang_extent, extent)
+
+            dpi = rgb_output.shape[0] / 2
+            print("DPI, Output Shape:", dpi, rgb_output.shape)
+            fig = plt.figure(figsize=(2, 2 * 1.77777777778), dpi=dpi)
+            ax = fig.add_subplot(111)
+
+            ax.imshow(rgb_output, extent=ang_extent, origin='lower')
+            ax.tick_params(axis='both', left=False, top=False, right=False,
+                           bottom=False, labelleft=False,
+                           labeltop=False, labelright=False, labelbottom=False)
+
+            ax.text(0.975, 0.05, "$t=$%.1f Gyr" % cosmo.age(z).value,
+                    transform=ax.transAxes, verticalalignment="top",
+                    horizontalalignment='right', fontsize=1, color="w")
+
+            ax.plot([0.05, 0.15], [0.025, 0.025], lw=0.1, color='w',
+                    clip_on=False,
+                    transform=ax.transAxes)
+
+            ax.plot([0.05, 0.05], [0.022, 0.027], lw=0.15, color='w',
+                    clip_on=False,
+                    transform=ax.transAxes)
+            ax.plot([0.15, 0.15], [0.022, 0.027], lw=0.15, color='w',
+                    clip_on=False,
+                    transform=ax.transAxes)
+
+            axis_to_data = ax.transAxes + ax.transData.inverted()
+            left = axis_to_data.transform((0.05, 0.075))
+            right = axis_to_data.transform((0.15, 0.075))
+            dist = extent[1] * (right[0] - left[0]) / (
+                        ang_extent[1] - ang_extent[0])
+
+            ax.text(0.1, 0.055, "%.2f cMpc" % dist,
+                    transform=ax.transAxes, verticalalignment="top",
+                    horizontalalignment='center', fontsize=1, color="w")
+
+            plt.margins(0, 0)
+
+            fig.savefig('../plots/Ani/DM/Flamingo_DM_' + frame
+                        + '_' + rk + '.png',
+                        bbox_inches='tight',
+                        pad_inches=0)
+
+            plt.close(fig)
 
         norm = Normalize(vmin=vmin, vmax=vmax)
 
