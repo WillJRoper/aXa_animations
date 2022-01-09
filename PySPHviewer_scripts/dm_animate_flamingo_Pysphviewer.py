@@ -3,13 +3,13 @@ import matplotlib as ml
 
 ml.use('Agg')
 import numpy as np
-from get_images import make_spline_img_cart
+from sphviewer.tools import camera_tools
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
 from astropy.cosmology import Planck13 as cosmo
 import sys
 import h5py
-# from images import get_mono_image
+from images import get_mono_image
 import cmasher as cmr
 import utilities
 import os
@@ -62,9 +62,6 @@ def single_frame(num, nframes, size, rank, comm):
     full_image_res = (ncells**(1/3) * res[0] // 2,
                       ncells**(1/3) * res[1] // 2)
 
-    # Define width and height
-    w, h = 2 * cell_width[1], 2 * cell_width[0]
-
     if rank == 0:
         print("Boxsize:", boxsize)
         print("Redshift:", z)
@@ -82,6 +79,31 @@ def single_frame(num, nframes, size, rank, comm):
 
     # Define the camera's position
     cam_pos = np.array([boxsize / 2, boxsize / 2, - boxsize])
+
+    # Define targets
+    targets = [[0, 0, 0]]
+
+    # Define anchors dict for camera parameters
+    anchors = {}
+    anchors['sim_times'] = [0.0, 'same', 'same', 'same', 'same', 'same',
+                            'same', 'same']
+    anchors['id_frames'] = np.linspace(0, nframes, 8, dtype=int)
+    anchors['id_targets'] = [0, 'same', 'same', 'same', 'same', 'same', 'same',
+                             'same']
+    anchors['r'] = ["infinity", 'same', 'same',
+                    'same', 'same', 'same',
+                    'same', 'same']
+    anchors['t'] = [0, 'same', 'same', 'same', 'same', 'same', 'same', 'same']
+    anchors['p'] = [0, 'same', 'same', 'same', 'same', 'same', 'same', 'same']
+    anchors['zoom'] = [1., 'same', 'same', 'same', 'same', 'same', 'same',
+                       'same']
+    anchors['extent'] = [2 * cell_width[0], 'same', 'same', 'same', 'same',
+                         'same', 'same',
+                         'same']
+
+    # Define the camera trajectory
+    cam_data = camera_tools.get_camera_trajectory(targets,
+                                                  anchors)
 
     if rank == 0:
 
@@ -171,7 +193,9 @@ def single_frame(num, nframes, size, rank, comm):
                     cmap = cmr.eclipse
 
                     # Get images
-                    img = make_spline_img_cart(poss, res, w, h, masses, hsmls)
+                    img, ang_extent = get_mono_image(cam_data, poss, masses,
+                                                     hsmls,
+                                                     num, res)
 
                     if img.max() > 0:
 

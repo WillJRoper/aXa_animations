@@ -86,7 +86,7 @@ def make_spline_img_cart(part_pos, Ndim, w, h, ls, smooth,
                          spline_func=quartic_spline, spline_cut_off=5 / 2):
 
     # Initialise the image array
-    smooth_img = np.zeros((Ndim[1], Ndim[0]))
+    smooth_img = np.zeros((Ndim[0], Ndim[1]))
 
     # Compute pixel width
     pix_width = w / Ndim[1]
