@@ -127,7 +127,7 @@ def make_spline_img_cart(part_pos, Ndim, w, h, ls, smooth,
         kernel = w / sml ** 3
         norm_kernel = kernel / np.sum(kernel)
 
-        smooth_img[i_low: i_high + 1, j_low: j_high + 1] += l.value * norm_kernel
+        smooth_img[i_low: i_high + 1, j_low: j_high + 1] += l * norm_kernel
         n += 1
 
     return smooth_img
