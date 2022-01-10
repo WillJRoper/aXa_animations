@@ -1,5 +1,5 @@
 #!/bin/bash -l
-#SBATCH --ntasks 1024 # The number of cores you need...
+#SBATCH --ntasks 2048 # The number of cores you need...
 #SBATCH --array=5-20%1
 #SBATCH --cpus-per-task=1
 #SBATCH -J FLAMINGO-ANI #Give it something meaningful.
@@ -7,7 +7,7 @@
 #SBATCH -e logs/output_flamingo_ani.%J.%A.%a.err
 #SBATCH -p cosma8
 #SBATCH -A dp004
-#SBATCH -t 02:00:00
+#SBATCH -t 04:00:00
 
 # Run the job from the following directory - change this to point to your own personal space on /lustre
 cd /cosma/home/dp004/dc-rope1/cosma7/Animations/codes/aXa_animations/PySPHviewer_scripts
@@ -21,7 +21,7 @@ source activate flares-env
 i=$(($SLURM_ARRAY_TASK_ID - 1))
 
 # Run the program
-mpirun -np 1024 python dm_animate_flamingo.py $i 0
+mpirun -np 2048 python dm_animate_flamingo.py $i 0
 
 source deactivate
 
