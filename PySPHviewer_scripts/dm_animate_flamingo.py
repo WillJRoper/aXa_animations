@@ -61,8 +61,8 @@ def single_frame(num, nframes, size, rank, comm):
         if npix_per_cell_with_pad[i] % 2 != 0:
             npix_per_cell_with_pad[i] += 1
     res = (npix_per_cell_with_pad[0], npix_per_cell_with_pad[1])
-    full_image_res = (int(ncells**(1/3) * npix_per_cell[0]) + 200,
-                      int(ncells**(1/3) * npix_per_cell[1]) + 200)
+    full_image_res = (int(ncells**(1/3) * npix_per_cell[0]) + 202,
+                      int(ncells**(1/3) * npix_per_cell[1]) + 202)
 
     # Set up the final image for each rank
     rank_final_img = np.zeros(full_image_res)
@@ -72,7 +72,7 @@ def single_frame(num, nframes, size, rank, comm):
 
     mean_den = tot_mass / boxsize ** 3
 
-    vmax, vmin = 10000 * mean_den, mean_den
+    vmax, vmin = 5000 * mean_den, mean_den
 
     cmap = cmr.eclipse
 
@@ -148,10 +148,12 @@ def single_frame(num, nframes, size, rank, comm):
                 print("jlow<0", jlow, img.shape)
             if ihigh >= full_image_res[1]:
                 img = img[:res[1] - 100, :]
+                print("ihigh>size", ihigh, img.shape)
                 ihigh = full_image_res[1] - 1
                 print("ihigh>size", ihigh, img.shape)
             if jhigh >= full_image_res[0]:
                 img = img[:, :res[0] - 100]
+                print("jhigh>size", jhigh, img.shape)
                 jhigh = full_image_res[0] - 1
                 print("jhigh>size", jhigh, img.shape)
 
