@@ -111,7 +111,7 @@ def single_frame(num, nframes, size, rank, comm):
                 ncell += 1
 
                 # Worker is ready, so send it a task
-                if ncell < ncells // 1000:
+                if ncell < ncells:
 
                     comm.send(ncell, dest=source, tag=tags.START)
 
