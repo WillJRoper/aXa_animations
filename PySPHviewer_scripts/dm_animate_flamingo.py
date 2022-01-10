@@ -243,7 +243,7 @@ def single_frame(num, nframes, size, rank, comm):
             for cell in out_hdf.keys():
 
                 cent = out_hdf[cell].attrs["Cent"]
-                img = out_hdf[cell].attrs["Img"][...]
+                img = out_hdf[cell]["Img"][...]
 
                 i = int(cent[0] / pix_res)
                 j = int(cent[1] / pix_res)
