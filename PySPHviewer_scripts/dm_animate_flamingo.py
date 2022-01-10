@@ -29,7 +29,7 @@ def single_frame(num, nframes, size, rank, comm):
     # Define MPI message tags
     tags = utilities.enum('READY', 'DONE', 'EXIT', 'START')
 
-    snaps = [str(i).zfill(4) for i in range(0, 20)]
+    snaps = [str(i).zfill(4) for i in range(0, 30)]
     snap = snaps[num]
 
     # Define path
@@ -53,7 +53,7 @@ def single_frame(num, nframes, size, rank, comm):
     tot_mass = nparts * pmass
 
     # Define the simulation's "resolution"
-    pix_res = hdf["/PartType1/Softenings"][0] * 2
+    pix_res = hdf["/PartType1/Softenings"][0]
 
     npix_per_cell = np.int32(np.floor(cell_width / pix_res))
     npix_per_cell_with_pad = npix_per_cell + 200
@@ -61,8 +61,8 @@ def single_frame(num, nframes, size, rank, comm):
         if npix_per_cell_with_pad[i] % 2 != 0:
             npix_per_cell_with_pad[i] += 1
     res = (npix_per_cell_with_pad[0], npix_per_cell_with_pad[1])
-    full_image_res = (int(ncells**(1/3) * npix_per_cell[0]) + 400,
-                      int(ncells**(1/3) * npix_per_cell[1]) + 400)
+    full_image_res = (int(ncells**(1/3) * npix_per_cell[0]) + 500,
+                      int(ncells**(1/3) * npix_per_cell[1]) + 500)
 
     # Set up the final image for each rank
     rank_final_img = np.zeros(full_image_res)
