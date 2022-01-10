@@ -236,7 +236,7 @@ def single_frame(num, nframes, size, rank, comm):
 
     if rank == 0:
 
-        final_img = np.zeros_like(full_image_res)
+        final_img = np.zeros(full_image_res)
 
         for rank in range(1, size):
             out_hdf = h5py.File("logs/out_" + str(rank) + ".hdf5", "r")
