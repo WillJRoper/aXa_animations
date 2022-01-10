@@ -86,6 +86,7 @@ def single_frame(num, nframes, size, rank, comm):
         print("Cell Pixel resolution (with padding):",
               res)
         print("Full image resolution:", full_image_res)
+        print("Vmin - Vmax:", np.log10(vmin), "-", np.log10(vmax))
 
     # Define centre
     true_cent = np.array([boxsize / 2, boxsize / 2, boxsize / 2])
