@@ -111,7 +111,7 @@ def single_frame(num, nframes, size, rank, comm):
                 ncell += 1
 
                 # Worker is ready, so send it a task
-                if ncell < ncells:
+                if ncell < 500:
 
                     comm.send(ncell, dest=source, tag=tags.START)
 
@@ -276,9 +276,9 @@ def single_frame(num, nframes, size, rank, comm):
 
         rgb_output = cmap(norm(final_img))
 
-        dpi = rgb_output.shape[0] / 2
+        dpi = 8000
         print("DPI, Output Shape:", dpi, rgb_output.shape)
-        fig = plt.figure(figsize=(2, 2 * 1.77777777778), dpi=dpi)
+        fig = plt.figure(figsize=(2, 2), dpi=dpi)
         ax = fig.add_subplot(111)
 
         ax.imshow(rgb_output, origin='lower')
