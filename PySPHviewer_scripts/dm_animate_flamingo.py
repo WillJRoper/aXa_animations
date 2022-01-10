@@ -169,8 +169,7 @@ def single_frame(num, nframes, size, rank, comm):
 
                     # Get images
                     img = make_spline_img_cart(poss, res, w, h, masses, hsmls)
-                    print("Image limits:",
-                          np.log10(img.min()), np.log10(img.max()), my_cell)
+                    print("Image limits:", np.log10(img.max()), my_cell)
 
                     # if img.max() > 0:
                     #
@@ -239,7 +238,7 @@ def single_frame(num, nframes, size, rank, comm):
 
         final_img = np.zeros_like(full_image_res)
 
-        for rank in range(size):
+        for rank in range(1, size):
             out_hdf = h5py.File("logs/out_" + str(rank) + ".hdf5", "r")
             for cell in out_hdf.keys():
 
