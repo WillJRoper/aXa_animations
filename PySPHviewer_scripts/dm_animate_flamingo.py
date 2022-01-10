@@ -223,18 +223,28 @@ def single_frame(num, nframes, size, rank, comm):
 
         comm.send(None, dest=0, tag=tags.EXIT)
 
-    results_list = comm.gather(results, root=0)
+        out_hdf = h5py.File("logs/out_" + str(rank) + ".hdf5", "w")
+
+        for res in results:
+
+            cell_grp = out_hdf.create_group(str(res[0]))
+            cell_grp.attrs["Cent"] = res[1]
+            cell_grp.create_dataset("Img", data=res[2], shape=res[2].shape)
+
+        out_hdf.close()
+
+    comm.Barrier()
 
     if rank == 0:
 
         final_img = np.zeros_like(full_image_res)
 
-        for res in results_list:
-            for tup in res:
+        for rank in range(size):
+            out_hdf = h5py.File("logs/out_" + str(rank) + ".hdf5", "r")
+            for cell in out_hdf.keys():
 
-                cell = tup[0]
-                cent = tup[1]
-                img = tup[2]
+                cent = out_hdf[cell].attrs["Cent"]
+                img = out_hdf[cell].attrs["Img"][...]
 
                 i = int(cent[0] / pix_res)
                 j = int(cent[1] / pix_res)
