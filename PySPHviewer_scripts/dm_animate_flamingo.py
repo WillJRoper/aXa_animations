@@ -61,8 +61,8 @@ def single_frame(num, nframes, size, rank, comm):
         if npix_per_cell_with_pad[i] % 2 != 0:
             npix_per_cell_with_pad[i] += 1
     res = (npix_per_cell_with_pad[0], npix_per_cell_with_pad[1])
-    full_image_res = (int(ncells**(1/3) * npix_per_cell[0]) + 202,
-                      int(ncells**(1/3) * npix_per_cell[1]) + 202)
+    full_image_res = (int(ncells**(1/3) * npix_per_cell[0]) + 400,
+                      int(ncells**(1/3) * npix_per_cell[1]) + 400)
 
     # Set up the final image for each rank
     rank_final_img = np.zeros(full_image_res)
@@ -130,8 +130,8 @@ def single_frame(num, nframes, size, rank, comm):
             img = make_spline_img_cart(poss, res, w, h, masses, hsmls)
             print("Image limits:", np.log10(img.max()), my_cell)
 
-            ilow = int((my_cent[0] - (cell_width[0] / 2)) / pix_res) + 100
-            jlow = int((my_cent[1] - (cell_width[1] / 2)) / pix_res) + 100
+            ilow = int((my_cent[0] - (cell_width[0] / 2)) / pix_res) + 150
+            jlow = int((my_cent[1] - (cell_width[1] / 2)) / pix_res) + 150
 
             dimens = img.shape
 
