@@ -55,13 +55,14 @@ def single_frame(num, nframes, size, rank, comm):
     # Define the simulation's "resolution"
     pix_res = hdf["/PartType1/Softenings"][0]
 
-    npix_per_2cells = 2 * np.int32(np.floor(cell_width / pix_res))
+    npix_per_cell = np.int32(np.floor(cell_width / pix_res))
+    npix_per_cell_with_pad = npix_per_cell + 200
     for i in range(3):
-        if npix_per_2cells[i] % 2 != 0:
-            npix_per_2cells[i] += 1
-    res = (npix_per_2cells[0], npix_per_2cells[1])
-    full_image_res = (int(ncells**(1/3) * res[0] // 2),
-                      int(ncells**(1/3) * res[1] // 2))
+        if npix_per_cell_with_pad[i] % 2 != 0:
+            npix_per_cell_with_pad[i] += 1
+    res = (npix_per_cell_with_pad[0], npix_per_cell_with_pad[1])
+    full_image_res = (int(ncells**(1/3) * npix_per_cell[0]),
+                      int(ncells**(1/3) * npix_per_cell[1]))
 
     # Set up the final image for each rank
     rank_final_img = np.zeros(full_image_res)
@@ -140,16 +141,16 @@ def single_frame(num, nframes, size, rank, comm):
             jhigh = j + (dimens[1] // 2)
 
             if ilow < 0:
-                img = img[abs(ilow):, :]
+                img = img[100:, :]
                 ilow = 0
             if jlow < 0:
-                img = img[:, abs(jlow):]
+                img = img[:, 100:]
                 jlow = 0
             if ihigh >= full_image_res[1]:
-                img = img[:ihigh - full_image_res[1] - 1, :]
+                img = img[:-100, :]
                 ihigh = full_image_res[1] - 1
             if jhigh >= full_image_res[0]:
-                img = img[:, :jhigh - full_image_res[0] - 1]
+                img = img[:, :-100]
                 jhigh = full_image_res[0] - 1
 
             print(ihigh - ilow, jhigh - jlow, img.shape)
