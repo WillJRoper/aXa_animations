@@ -95,7 +95,7 @@ def single_frame(num, nframes, size, rank, comm):
     cam_pos = np.array([boxsize / 2, boxsize / 2, - boxsize])
 
     # Get cells for this rank
-    rank_cells = np.linspace(0, ncells, size + 1)
+    rank_cells = np.linspace(0, ncells, size + 1, dtype=int)
     my_cells = (rank_cells[rank], rank_cells[rank + 1])
 
     print("Rank:", rank)
