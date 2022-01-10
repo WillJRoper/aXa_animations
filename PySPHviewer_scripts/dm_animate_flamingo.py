@@ -29,7 +29,8 @@ def single_frame(num, nframes, size, rank, comm):
     # Define MPI message tags
     tags = utilities.enum('READY', 'DONE', 'EXIT', 'START')
 
-    snap = "0020"
+    snaps = [str(i).zfill(4) for i in range(0, 20)]
+    snap = snaps[num]
 
     # Define path
     path = "/cosma8/data/dp004/jlvc76/FLAMINGO/ScienceRuns/L2800N5040/" \
@@ -61,6 +62,9 @@ def single_frame(num, nframes, size, rank, comm):
     res = (npix_per_2cells[0], npix_per_2cells[1])
     full_image_res = (int(ncells**(1/3) * res[0] // 2),
                       int(ncells**(1/3) * res[1] // 2))
+
+    # Set up the final image for each rank
+    rank_final_img = np.zeros(full_image_res)
 
     # Define width and height
     w, h = 2 * cell_width[1], 2 * cell_width[0]
@@ -215,20 +219,43 @@ def single_frame(num, nframes, size, rank, comm):
                     #
                     #     plt.close(fig)
 
-                    results.append((my_cell, my_cent, img))
+                    i = int(my_cent[0] / pix_res)
+                    j = int(my_cent[1] / pix_res)
+
+                    dimens = img.shape
+
+                    ilow = i - (dimens[0] // 2)
+                    ihigh = i + (dimens[0] // 2)
+                    jlow = j - (dimens[1] // 2)
+                    jhigh = j + (dimens[1] // 2)
+
+                    if ilow < 0:
+                        img = img[abs(ilow):, :]
+                        ilow = 0
+                    if jlow < 0:
+                        img = img[:, abs(jlow):]
+                        jlow = 0
+                    if ihigh >= full_image_res[1]:
+                        img = img[:ihigh - full_image_res[1] - 1, :]
+                        ihigh = full_image_res[1] - 1
+                    if jhigh >= full_image_res[0]:
+                        img = img[:, :jhigh - full_image_res[0] - 1]
+                        jhigh = full_image_res[0] - 1
+
+                    print(ihigh - ilow, jhigh - jlow, img.shape)
+
+                    rank_final_img[ilow: ihigh, jlow: jhigh] += img
 
             elif tag == tags.EXIT:
                 break
 
         comm.send(None, dest=0, tag=tags.EXIT)
 
-        out_hdf = h5py.File("logs/out_" + str(rank) + ".hdf5", "w")
+        out_hdf = h5py.File("logs/out_" + str(num) + "_" + str(rank) + ".hdf5",
+                            "w")
 
-        for res in results:
-
-            cell_grp = out_hdf.create_group(str(res[0]))
-            cell_grp.attrs["Cent"] = res[1]
-            cell_grp.create_dataset("Img", data=res[2], shape=res[2].shape)
+        out_hdf.create_dataset("Img", data=rank_final_img,
+                               shape=rank_final_img.shape)
 
         out_hdf.close()
 
@@ -239,44 +266,18 @@ def single_frame(num, nframes, size, rank, comm):
         final_img = np.zeros(full_image_res)
 
         for rank in range(1, size):
-            out_hdf = h5py.File("logs/out_" + str(rank) + ".hdf5", "r")
-            for cell in out_hdf.keys():
+            out_hdf = h5py.File("logs/out_" + str(num)
+                                + "_" + str(rank) + ".hdf5", "r")
 
-                cent = out_hdf[cell].attrs["Cent"]
-                img = out_hdf[cell]["Img"][...]
+                img = out_hdf["Img"][...]
 
-                i = int(cent[0] / pix_res)
-                j = int(cent[1] / pix_res)
-
-                dimens = img.shape
-
-                ilow = i - (dimens[0] // 2)
-                ihigh = i + (dimens[0] // 2)
-                jlow = j - (dimens[1] // 2)
-                jhigh = j + (dimens[1] // 2)
-
-                if ilow < 0:
-                    img = img[abs(ilow):, :]
-                    ilow = 0
-                if jlow < 0:
-                    img = img[:, abs(jlow):]
-                    jlow = 0
-                if ihigh >= full_image_res[1]:
-                    img = img[:ihigh - full_image_res[1] - 1, :]
-                    ihigh = full_image_res[1] - 1
-                if jhigh >= full_image_res[0]:
-                    img = img[:, :jhigh - full_image_res[0] - 1]
-                    jhigh = full_image_res[0] - 1
-
-                print(ihigh - ilow, jhigh - jlow, img.shape)
-
-                final_img[ilow: ihigh, jlow: jhigh] += img
+                final_img += img
 
         norm = LogNorm(vmin=vmin, vmax=vmax, clip=True)
 
         rgb_output = cmap(norm(final_img))
 
-        dpi = 8000
+        dpi = 2**16 - 1
         print("DPI, Output Shape:", dpi, rgb_output.shape)
         fig = plt.figure(figsize=(2, 2), dpi=dpi)
         ax = fig.add_subplot(111)
