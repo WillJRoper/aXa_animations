@@ -99,7 +99,7 @@ def single_frame(num, nframes, size, rank, comm):
     my_cells = np.arange(rank_cells[rank], rank_cells[rank + 1], 1, dtype=int)
 
     print("Rank:", rank)
-    print("My cells:", my_cells)
+    print("My Ncells:", my_cells.size)
 
     for my_cell in my_cells:
 
