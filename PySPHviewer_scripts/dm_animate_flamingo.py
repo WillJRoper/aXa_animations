@@ -96,12 +96,12 @@ def single_frame(num, nframes, size, rank, comm):
 
     # Get cells for this rank
     rank_cells = np.linspace(0, ncells, size + 1, dtype=int)
-    my_cells = (rank_cells[rank], rank_cells[rank + 1])
+    my_cells = np.arange(rank_cells[rank], rank_cells[rank + 1], 1, dtype=int)
 
     print("Rank:", rank)
     print("My cells:", my_cells)
 
-    for my_cell in range(my_cells[0], my_cells[1]):
+    for my_cell in my_cells:
 
         # Retrieve the offset and counts
         my_offset = hdf["/Cells/OffsetsInFile/PartType1"][my_cell]
