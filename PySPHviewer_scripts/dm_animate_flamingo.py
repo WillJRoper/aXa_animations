@@ -269,9 +269,11 @@ def single_frame(num, nframes, size, rank, comm):
             out_hdf = h5py.File("logs/out_" + str(num)
                                 + "_" + str(rank) + ".hdf5", "r")
 
-                img = out_hdf["Img"][...]
+            img = out_hdf["Img"][...]
 
-                final_img += img
+            final_img += img
+
+            out_hdf.close()
 
         norm = LogNorm(vmin=vmin, vmax=vmax, clip=True)
 
