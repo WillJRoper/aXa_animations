@@ -130,8 +130,8 @@ def single_frame(num, nframes, size, rank, comm):
             img = make_spline_img_cart(poss, res, w, h, masses, hsmls)
             print("Image limits:", np.log10(img.max()), my_cell)
 
-            ilow = int((my_cent[0] - (cell_width / 2)) / pix_res)
-            jlow = int((my_cent[1] - (cell_width / 2)) / pix_res)
+            ilow = int((my_cent[0] - (cell_width[0] / 2)) / pix_res)
+            jlow = int((my_cent[1] - (cell_width[1] / 2)) / pix_res)
 
             dimens = img.shape
 
