@@ -94,171 +94,77 @@ def single_frame(num, nframes, size, rank, comm):
     # Define the camera's position
     cam_pos = np.array([boxsize / 2, boxsize / 2, - boxsize])
 
-    if rank == 0:
+    # Get cells for this rank
+    rank_cells = np.linspace(0, ncells, size + 1)
+    my_cells = (rank_cells[rank], rank_cells[rank + 1])
 
-        results = []
+    print("Rank:", rank)
+    print("My cells:", my_cells)
 
-        ncell = -1
+    for my_cell in range(my_cells[0], my_cells[1]):
 
-        # Master process executes code below
-        num_workers = size - 1
-        closed_workers = 0
-        while closed_workers < num_workers:
+        # Retrieve the offset and counts
+        my_offset = hdf["/Cells/OffsetsInFile/PartType1"][my_cell]
+        my_count = hdf["/Cells/Counts/PartType1"][my_cell]
+        my_cent = hdf["/Cells/Centres"][my_cell, :]
 
-            data = comm.recv(source=MPI.ANY_SOURCE,
-                             tag=MPI.ANY_TAG,
-                             status=status)
-            source = status.Get_source()
-            tag = status.Get_tag()
+        if my_count > 0:
 
-            if tag == tags.READY:
+            poss = hdf["/PartType1/Coordinates"][
+                   my_offset:my_offset + my_count, :]
+            masses = hdf["/PartType1/Masses"][
+                     my_offset:my_offset + my_count] * 10 ** 10
+            poss -= my_cent
 
-                ncell += 1
+            hsmls = hdf["/PartType1/Softenings"][
+                    my_offset:my_offset + my_count]
 
-                # Worker is ready, so send it a task
-                if ncell < ncells:
+            # Compute camera radial distance to cell
+            cam_sep = cam_pos - my_cent - true_cent
+            cam_dist = np.sqrt(cam_sep[0] ** 2
+                               + cam_sep[1] ** 2
+                               + cam_sep[2] ** 2)
 
-                    comm.send(ncell, dest=source, tag=tags.START)
+            # Get images
+            img = make_spline_img_cart(poss, res, w, h, masses, hsmls)
+            print("Image limits:", np.log10(img.max()), my_cell)
 
-                else:
+            i = int(my_cent[0] / pix_res)
+            j = int(my_cent[1] / pix_res)
 
-                    # There are no tasks left so terminate this process
-                    comm.send(None, dest=source, tag=tags.EXIT)
+            dimens = img.shape
 
-            elif tag == tags.EXIT:
+            ilow = i - (dimens[0] // 2)
+            ihigh = i + (dimens[0] // 2)
+            jlow = j - (dimens[1] // 2)
+            jhigh = j + (dimens[1] // 2)
 
-                closed_workers += 1
+            if ilow < 0:
+                img = img[abs(ilow):, :]
+                ilow = 0
+            if jlow < 0:
+                img = img[:, abs(jlow):]
+                jlow = 0
+            if ihigh >= full_image_res[1]:
+                img = img[:ihigh - full_image_res[1] - 1, :]
+                ihigh = full_image_res[1] - 1
+            if jhigh >= full_image_res[0]:
+                img = img[:, :jhigh - full_image_res[0] - 1]
+                jhigh = full_image_res[0] - 1
 
-    else:
+            print(ihigh - ilow, jhigh - jlow, img.shape)
 
-        results = []
+            rank_final_img[ilow: ihigh, jlow: jhigh] += img
 
-        while True:
+    hdf.close()
 
-            comm.send(None, dest=0, tag=tags.READY)
-            my_cell = comm.recv(source=0, tag=MPI.ANY_TAG, status=status)
-            tag = status.Get_tag()
+    out_hdf = h5py.File("logs/out_" + str(num) + "_" + str(rank) + ".hdf5",
+                        "w")
 
-            if tag == tags.START:
+    out_hdf.create_dataset("Img", data=rank_final_img,
+                           shape=rank_final_img.shape)
 
-                # Retrieve the offset and counts
-                my_offset = hdf["/Cells/OffsetsInFile/PartType1"][my_cell]
-                my_count = hdf["/Cells/Counts/PartType1"][my_cell]
-                my_cent = hdf["/Cells/Centres"][my_cell, :]
-
-                if my_count > 0:
-
-                    poss = hdf["/PartType1/Coordinates"][
-                           my_offset:my_offset + my_count, :]
-                    masses = hdf["/PartType1/Masses"][
-                             my_offset:my_offset + my_count] * 10 ** 10
-                    poss -= my_cent
-
-                    hsmls = hdf["/PartType1/Softenings"][
-                            my_offset:my_offset + my_count]
-
-                    # Compute camera radial distance to cell
-                    cam_sep = cam_pos - my_cent - true_cent
-                    cam_dist = np.sqrt(cam_sep[0] ** 2
-                                       + cam_sep[1] ** 2
-                                       + cam_sep[2] ** 2)
-
-                    # # Define anchors dict for camera parameters
-                    # anchors['r'] = ["infinity", 'same', 'same',
-                    #                 'same', 'same', 'same',
-                    #                 'same', 'same']
-                    #
-                    # # Define the camera trajectory
-                    # cam_data = camera_tools.get_camera_trajectory(targets,
-                    #                                               anchors)
-
-                    # Get images
-                    img = make_spline_img_cart(poss, res, w, h, masses, hsmls)
-                    print("Image limits:", np.log10(img.max()), my_cell)
-
-                    # if img.max() > 0:
-                    #
-                    #     norm = LogNorm(vmin=vmin, vmax=vmax, clip=True)
-                    #
-                    #     rgb_output = cmap(norm(img))
-                    #
-                    #     # print("Extents:", ang_extent, extent)
-                    #
-                    #     dpi = rgb_output.shape[0] / 2
-                    #     # print("DPI, Output Shape:", dpi, rgb_output.shape)
-                    #     fig = plt.figure(figsize=(2, 2 * 1.77777777778), dpi=dpi)
-                    #     ax = fig.add_subplot(111)
-                    #
-                    #     ax.imshow(rgb_output, extent=[-h/2, h/2, -w/2, w/2],
-                    #               origin='lower')
-                    #     ax.tick_params(axis='both', left=False, top=False, right=False,
-                    #                    bottom=False, labelleft=False,
-                    #                    labeltop=False, labelright=False,
-                    #                    labelbottom=False)
-                    #
-                    #     # ax.text(0.975, 0.05, "$t=$%.1f Gyr" % cosmo.age(z).value,
-                    #     #         transform=ax.transAxes, verticalalignment="top",
-                    #     #         horizontalalignment='right', fontsize=1, color="w")
-                    #     #
-                    #     # ax.plot([0.05, 0.15], [0.025, 0.025], lw=0.1, color='w',
-                    #     #         clip_on=False,
-                    #     #         transform=ax.transAxes)
-                    #     #
-                    #     # ax.plot([0.05, 0.05], [0.022, 0.027], lw=0.15, color='w',
-                    #     #         clip_on=False,
-                    #     #         transform=ax.transAxes)
-                    #     # ax.plot([0.15, 0.15], [0.022, 0.027], lw=0.15, color='w',
-                    #     #         clip_on=False,
-                    #     #         transform=ax.transAxes)
-                    #
-                    #     plt.margins(0, 0)
-                    #
-                    #     fig.savefig('../plots/Ani/DM/Flamingo_DM_' + frame
-                    #                 + '_' + str(my_cell) + '.png',
-                    #                 bbox_inches='tight',
-                    #                 pad_inches=0)
-                    #
-                    #     plt.close(fig)
-
-                    i = int(my_cent[0] / pix_res)
-                    j = int(my_cent[1] / pix_res)
-
-                    dimens = img.shape
-
-                    ilow = i - (dimens[0] // 2)
-                    ihigh = i + (dimens[0] // 2)
-                    jlow = j - (dimens[1] // 2)
-                    jhigh = j + (dimens[1] // 2)
-
-                    if ilow < 0:
-                        img = img[abs(ilow):, :]
-                        ilow = 0
-                    if jlow < 0:
-                        img = img[:, abs(jlow):]
-                        jlow = 0
-                    if ihigh >= full_image_res[1]:
-                        img = img[:ihigh - full_image_res[1] - 1, :]
-                        ihigh = full_image_res[1] - 1
-                    if jhigh >= full_image_res[0]:
-                        img = img[:, :jhigh - full_image_res[0] - 1]
-                        jhigh = full_image_res[0] - 1
-
-                    print(ihigh - ilow, jhigh - jlow, img.shape)
-
-                    rank_final_img[ilow: ihigh, jlow: jhigh] += img
-
-            elif tag == tags.EXIT:
-                break
-
-        comm.send(None, dest=0, tag=tags.EXIT)
-
-        out_hdf = h5py.File("logs/out_" + str(num) + "_" + str(rank) + ".hdf5",
-                            "w")
-
-        out_hdf.create_dataset("Img", data=rank_final_img,
-                               shape=rank_final_img.shape)
-
-        out_hdf.close()
+    out_hdf.close()
 
     comm.Barrier()
 
@@ -266,7 +172,7 @@ def single_frame(num, nframes, size, rank, comm):
 
         final_img = np.zeros(full_image_res)
 
-        for rank in range(1, size):
+        for rank in range(0, size):
             out_hdf = h5py.File("logs/out_" + str(num)
                                 + "_" + str(rank) + ".hdf5", "r")
 
