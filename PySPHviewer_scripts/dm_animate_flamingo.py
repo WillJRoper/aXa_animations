@@ -141,16 +141,16 @@ def single_frame(num, nframes, size, rank, comm):
             jhigh = j + (dimens[1] // 2)
 
             if ilow < 0:
-                img = img[100:, :]
+                img = img[abs(ilow):, :]
                 ilow = 0
             if jlow < 0:
-                img = img[:, 100:]
+                img = img[:, abs(jlow):]
                 jlow = 0
             if ihigh >= full_image_res[1]:
-                img = img[:-100, :]
+                img = img[:ihigh - full_image_res[1] - 1, :]
                 ihigh = full_image_res[1] - 1
             if jhigh >= full_image_res[0]:
-                img = img[:, :-100]
+                img = img[:, :jhigh - full_image_res[0] - 1]
                 jhigh = full_image_res[0] - 1
 
             print(ihigh - ilow, jhigh - jlow, img.shape)
