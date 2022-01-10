@@ -135,8 +135,8 @@ def single_frame(num, nframes, size, rank, comm):
 
             dimens = img.shape
 
-            ihigh = i + dimens[0]
-            jhigh = j + dimens[1]
+            ihigh = ilow + dimens[0]
+            jhigh = jlow + dimens[1]
 
             if ilow < 0:
                 img = img[100:, :]
