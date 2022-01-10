@@ -61,8 +61,8 @@ def single_frame(num, nframes, size, rank, comm):
         if npix_per_cell_with_pad[i] % 2 != 0:
             npix_per_cell_with_pad[i] += 1
     res = (npix_per_cell_with_pad[0], npix_per_cell_with_pad[1])
-    full_image_res = (int(ncells**(1/3) * npix_per_cell[0]) + 400,
-                      int(ncells**(1/3) * npix_per_cell[1]) + 400)
+    full_image_res = (int(ncells**(1/3) * npix_per_cell[0]) + 500,
+                      int(ncells**(1/3) * npix_per_cell[1]) + 500)
 
     # Set up the final image for each rank
     rank_final_img = np.zeros(full_image_res)
