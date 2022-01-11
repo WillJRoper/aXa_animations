@@ -96,20 +96,21 @@ def single_frame(num, nframes, size, rank, comm):
     cam_pos = np.array([boxsize / 2, boxsize / 2, - boxsize])
 
     # Get cells for this rank
-    rank_cells = np.linspace(0, ncells, size + 1, dtype=int)
-    my_cells = np.arange(rank_cells[rank], rank_cells[rank + 1], 1, dtype=int)
+    all_cells = []
+    for i in range(cdim[0]):
+        for j in range(cdim[1]):
+            for k in range(2):
+
+                cell = (k + cdim[2] * (j + cdim[1] * i))
+                all_cells.append(cell)
+
+    rank_cells = np.linspace(0, len(all_cells), size + 1, dtype=int)
+    my_cells = all_cells[rank_cells[rank]: rank_cells[rank + 1]]
 
     print("Rank:", rank)
-    print("My Ncells:", my_cells.size)
+    print("My Ncells:", len(my_cells))
 
     for my_cell in my_cells:
-
-        i = my_cell / (cdim[1] * cdim[2])
-        j = (my_cell / cdim[2]) % cdim[1]
-        k = my_cell % cdim[2]
-
-        if k > 1:
-            continue
 
         # Retrieve the offset and counts
         my_offset = hdf["/Cells/OffsetsInFile/PartType1"][my_cell]
