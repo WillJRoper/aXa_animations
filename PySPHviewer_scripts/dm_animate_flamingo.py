@@ -200,7 +200,7 @@ def single_frame(num, nframes, size, rank, comm):
 
         dpi = 2**16 - 1
         print("DPI, Output Shape:", dpi, rgb_output.shape)
-        fig = plt.figure(figsize=(2, 2), dpi=dpi)
+        fig = plt.figure(figsize=(1, 1), dpi=dpi)
         ax = fig.add_subplot(111)
 
         ax.imshow(rgb_output, origin='lower')
