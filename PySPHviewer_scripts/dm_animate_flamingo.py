@@ -191,6 +191,9 @@ def single_frame(num, nframes, size, rank, comm):
 
             out_hdf.close()
 
+            os.remove("logs/out_" + str(num)
+                      + "_" + str(rank) + ".hdf5")
+
         norm = LogNorm(vmin=vmin, vmax=vmax, clip=True)
 
         rgb_output = cmap(norm(final_img))
