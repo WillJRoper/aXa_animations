@@ -47,7 +47,7 @@ def single_frame(num, nframes, size, rank, comm):
     z = hdf["Header"].attrs["Redshift"]
     nparts = hdf["Header"].attrs["NumPart_Total"][1]
     pmass = hdf["/PartType1/Masses"][0] * 10 ** 10
-    ncell_dimens = hdf["Cells/Meta-data"].attrs["dimension"]
+    cdim = hdf["Cells/Meta-data"].attrs["dimension"]
     ncells = hdf["/Cells/Meta-data"].attrs["nr_cells"]
     cell_width = hdf["Cells/Meta-data"].attrs["size"]
     tot_mass = nparts * pmass
@@ -103,6 +103,13 @@ def single_frame(num, nframes, size, rank, comm):
     print("My Ncells:", my_cells.size)
 
     for my_cell in my_cells:
+
+        i = my_cell / (cdim[1] * cdim[2])
+        j = (my_cell / cdim[2]) % cdim[1]
+        k = my_cell % cdim[2]
+
+        if k > 1:
+            continue
 
         # Retrieve the offset and counts
         my_offset = hdf["/Cells/OffsetsInFile/PartType1"][my_cell]
