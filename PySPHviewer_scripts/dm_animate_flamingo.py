@@ -107,7 +107,7 @@ def single_frame(num, nframes, size, rank, comm):
     all_cells = []
     for i in range(cdim[0]):
         for j in range(cdim[1]):
-            for k in range(2):
+            for k in range(1):
 
                 cell = (k + cdim[2] * (j + cdim[1] * i))
                 all_cells.append(cell)
