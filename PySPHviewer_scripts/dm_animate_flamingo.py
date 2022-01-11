@@ -70,8 +70,8 @@ def single_frame(num, nframes, size, rank, comm):
     if rank == 0:
         out_hdf = h5py.File("logs/img_" + str(num) + ".hdf5", "w")
 
-        out_hdf.create_dataset("Img", data=final_img,
-                               shape=final_img.shape)
+        out_hdf.create_dataset("Img", data=rank_final_img,
+                               shape=rank_final_img.shape)
 
         out_hdf.close()
 
