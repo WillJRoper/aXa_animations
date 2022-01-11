@@ -178,7 +178,7 @@ def single_frame(num, nframes, size, rank, comm):
 
     while True:
 
-        if not os.exists("logs/lock.txt"):
+        if not os.path.isfile("logs/lock.txt"):
 
             file1 = open("logs/lock.txt", "w")
             file1.close()
