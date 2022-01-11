@@ -67,6 +67,14 @@ def single_frame(num, nframes, size, rank, comm):
     # Set up the final image for each rank
     rank_final_img = np.zeros(full_image_res)
 
+    if rank == 0:
+        out_hdf = h5py.File("logs/img_" + str(num) + ".hdf5", "w")
+
+        out_hdf.create_dataset("Img", data=final_img,
+                               shape=final_img.shape)
+
+        out_hdf.close()
+
     # Define width and height
     w, h = 2 * cell_width[1], 2 * cell_width[0]
 
@@ -168,32 +176,38 @@ def single_frame(num, nframes, size, rank, comm):
 
     hdf.close()
 
-    out_hdf = h5py.File("logs/out_" + str(num) + "_" + str(rank) + ".hdf5",
-                        "w")
+    while True:
 
-    out_hdf.create_dataset("Img", data=rank_final_img,
-                           shape=rank_final_img.shape)
+        if not os.exists("logs/lock.txt"):
 
-    out_hdf.close()
+            file1 = open("logs/lock.txt", "w")
+            file1.close()
+
+            out_hdf = h5py.File("logs/img_" + str(num) + ".hdf5",
+                                "r+")
+
+            final_img = out_hdf["Img"][...]
+            final_img += rank_final_img
+            del out_hdf["Img"]
+
+            out_hdf.create_dataset("Img", data=final_img,
+                                   shape=final_img.shape)
+
+            out_hdf.close()
+
+            os.remove("logs/lock.txt")
+
+            break
 
     comm.Barrier()
 
     if rank == 0:
 
-        final_img = np.zeros(full_image_res)
+        out_hdf = h5py.File("logs/img_" + str(num) + ".hdf5", "r")
 
-        for rank in range(0, size):
-            out_hdf = h5py.File("logs/out_" + str(num)
-                                + "_" + str(rank) + ".hdf5", "r")
+        final_img = out_hdf["Img"][...]
 
-            img = out_hdf["Img"][...]
-
-            final_img += img
-
-            out_hdf.close()
-
-            os.remove("logs/out_" + str(num)
-                      + "_" + str(rank) + ".hdf5")
+        out_hdf.close()
 
         norm = LogNorm(vmin=vmin, vmax=vmax, clip=True)
 
