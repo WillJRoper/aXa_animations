@@ -169,12 +169,12 @@ def make_spline_img_cart_dm(part_pos, Ndim, w, h, ls, smooth,
         i_high = i + (norm_kernel.shape[1] // 2)
         j_high = j + (norm_kernel.shape[0] // 2)
 
-        if i_high - i_low != 4 or j_high - j_low != 4:
+        try:
+            smooth_img[i_low: i_high + 1, j_low: j_high + 1] += l * norm_kernel
+        except IndexError:
             print(i_low, i_high, j_low, j_high, i_high - i_low, j_high - j_low,
                   smooth_img[i_low: i_high + 1, j_low: j_high + 1].shape,
                   norm_kernel.shape)
-
-        smooth_img[i_low: i_high + 1, j_low: j_high + 1] += l * norm_kernel
 
     # smooth_img = ndimage.gaussian_filter(smooth_img, sigma=(2.5, 2.5), order=0)
 
