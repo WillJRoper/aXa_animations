@@ -54,7 +54,7 @@ def single_frame(num, nframes, size, rank, comm):
     tot_mass = nparts * pmass
 
     # Define the simulation's "resolution"
-    pix_res = hdf["/PartType1/Softenings"][0] * 5
+    pix_res = hdf["/PartType1/Softenings"][0]
 
     npix_per_cell = np.int32(np.floor(cell_width / pix_res))
     npix_per_cell_with_pad = npix_per_cell + 200
