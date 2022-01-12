@@ -144,10 +144,10 @@ def make_spline_img_cart_dm(part_pos, Ndim, w, h, ls, smooth,
     pix_width = w / Ndim[1]
     sml = smooth[0]
 
-    low = -(sml * 1.5 * spline_cut_off) / pix_width
-    high = sml * 1.5 * spline_cut_off / pix_width
+    low = int(-(sml * 1.5 * spline_cut_off) / pix_width)
+    high = int(sml * 1.5 * spline_cut_off / pix_width)
 
-    pix_range = np.arange(low, high + 1, 1)
+    pix_range = np.arange(low, high + 1, 1, dtype=int)
 
     ii, jj = np.meshgrid(pix_range, pix_range)
 
