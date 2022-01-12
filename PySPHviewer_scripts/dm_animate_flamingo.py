@@ -15,6 +15,7 @@ import utilities
 import os
 import mpi4py
 from mpi4py import MPI
+import scipy.sparse as sp
 
 mpi4py.rc.recv_mprobe = False
 
@@ -105,8 +106,8 @@ def single_frame(num, nframes, size, rank, comm):
 
     # Get cells for this rank
     all_cells = []
-    for i in range(cdim[0]):
-        for j in range(cdim[1]):
+    for i in range(cdim[0] // 2):
+        for j in range(cdim[1] // 2):
             for k in range(1):
 
                 cell = (k + cdim[2] * (j + cdim[1] * i))
@@ -176,38 +177,25 @@ def single_frame(num, nframes, size, rank, comm):
 
     hdf.close()
 
-    while True:
-
-        if not os.path.isfile("logs/lock.txt"):
-
-            file1 = open("logs/lock.txt", "w")
-            file1.close()
-
-            out_hdf = h5py.File("logs/img_" + str(num) + ".hdf5",
-                                "r+")
-
-            final_img = out_hdf["Img"][...]
-            final_img += rank_final_img
-            del out_hdf["Img"]
-
-            out_hdf.create_dataset("Img", data=final_img,
-                                   shape=final_img.shape)
-
-            out_hdf.close()
-
-            os.remove("logs/lock.txt")
-
-            break
+    # Convert image to a spare matrix for efficient saving
+    sparse_img = sp.coo_matrix(rank_final_img)
+    sp.save_npz("logs/img_" + str(num) + "_" + str(rank) + ".npz",
+                sparse_img)
 
     comm.Barrier()
 
+    final_img = np.zeros(full_image_res)
+
     if rank == 0:
 
-        out_hdf = h5py.File("logs/img_" + str(num) + ".hdf5", "r")
+        for rk in range(0, size):
 
-        final_img = out_hdf["Img"][...]
+            sparse_rank_img = sp.load("logs/img_" + str(num)
+                                      + "_" + str(rk) + ".npz")
 
-        out_hdf.close()
+            os.remove("logs/img_" + str(num) + "_" + str(rk) + ".npz")
+
+            final_img += sparse_rank_img.toarray()
 
         norm = LogNorm(vmin=vmin, vmax=vmax, clip=True)
 
