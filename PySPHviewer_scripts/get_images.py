@@ -169,6 +169,8 @@ def make_spline_img_cart_dm(part_pos, Ndim, w, h, ls, smooth,
         i_high = high + i + (Ndim[1] // 2)
         j_high = high + j + (Ndim[0] // 2)
 
+        print(i, j, i_low, i_high, j_low, j_high)
+
         smooth_img[i_low: i_high + 1, j_low: j_high + 1] += l * norm_kernel
 
     # smooth_img = ndimage.gaussian_filter(smooth_img, sigma=(2.5, 2.5), order=0)
