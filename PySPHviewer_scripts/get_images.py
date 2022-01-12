@@ -133,3 +133,44 @@ def make_spline_img_cart(part_pos, Ndim, w, h, ls, smooth,
     # smooth_img = ndimage.gaussian_filter(smooth_img, sigma=(2.5, 2.5), order=0)
 
     return smooth_img
+
+def make_spline_img_cart_dm(part_pos, Ndim, w, h, ls, smooth,
+                            spline_func=quartic_spline, spline_cut_off=5 / 2):
+
+    # Initialise the image array
+    smooth_img = np.zeros((Ndim[0], Ndim[1]))
+
+    # Compute pixel width
+    pix_width = w / Ndim[1]
+    sml = smooth[0]
+
+    low = -(sml * 1.5 * spline_cut_off) / pix_width
+    high = sml * 1.5 * spline_cut_off / pix_width
+
+    pix_range = np.arange(low, high + 1, 1)
+
+    ii, jj = np.meshgrid(pix_range, pix_range)
+
+    dists = np.sqrt(ii ** 2 + jj ** 2) * pix_width
+
+    # Get the kernel
+    w = spline_func(dists / sml)
+
+    # Place the kernel for this particle within the img
+    kernel = w / sml ** 3
+    norm_kernel = kernel / np.sum(kernel)
+
+    for ipos, l in zip(part_pos, ls):
+
+        i, j = int((ipos[1] / pix_width) + Ndim[1] / 2), \
+               int((ipos[0] / pix_width) + Ndim[0] / 2)
+        i_low = low + i + (Ndim[1] // 2)
+        j_low = low + j + (Ndim[0] // 2)
+        i_high = high + i + (Ndim[1] // 2)
+        j_high = high + j + (Ndim[0] // 2)
+
+        smooth_img[i_low: i_high + 1, j_low: j_high + 1] += l * norm_kernel
+
+    # smooth_img = ndimage.gaussian_filter(smooth_img, sigma=(2.5, 2.5), order=0)
+
+    return smooth_img

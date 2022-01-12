@@ -98,9 +98,9 @@ def single_frame(num, nframes, size, rank, comm):
 
     # Get cells for this rank
     all_cells = []
-    for i in range(cdim[0] // 4):
-        for j in range(cdim[1] // 4):
-            for k in range(1):
+    for i in range(cdim[0]):
+        for j in range(cdim[1]):
+            for k in range(11):
 
                 cell = (k + cdim[2] * (j + cdim[1] * i))
                 all_cells.append(cell)
@@ -136,7 +136,7 @@ def single_frame(num, nframes, size, rank, comm):
                                + cam_sep[2] ** 2)
 
             # Get images
-            img = make_spline_img_cart(poss, res, w, h, masses, hsmls)
+            img = make_spline_img_cart_dm(poss, res, w, h, masses, hsmls)
 
             ilow = int((my_cent[0] - (cell_width[0] / 2) - 100 * pix_res) / pix_res) + 100
             jlow = int((my_cent[1] - (cell_width[1] / 2) - 100 * pix_res) / pix_res) + 100
@@ -188,8 +188,6 @@ def single_frame(num, nframes, size, rank, comm):
             os.remove("logs/img_" + str(num) + "_" + str(rk) + ".npz")
 
             final_img += sparse_rank_img.toarray()
-
-            print(np.sum(sparse_rank_img.toarray()))
 
         norm = LogNorm(vmin=vmin, vmax=vmax, clip=True)
 
