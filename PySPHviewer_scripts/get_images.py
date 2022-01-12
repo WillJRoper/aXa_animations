@@ -94,12 +94,12 @@ def make_spline_img_cart(part_pos, Ndim, w, h, ls, smooth,
     n = 0
     for ipos, l, sml in zip(part_pos, ls, smooth):
 
-        i, j = int(ipos[1] / pix_width + Ndim[0] / 2), \
-               int(ipos[0] / pix_width + Ndim[1] / 2)
-        i_low = int((ipos[1] - (sml * spline_cut_off)) / pix_width) + (Ndim[1] // 2)
-        j_low = int((ipos[0] - (sml * spline_cut_off)) / pix_width) + (Ndim[0] // 2)
-        i_high = int((ipos[1] + (sml * spline_cut_off)) / pix_width) + (Ndim[1] // 2)
-        j_high = int((ipos[0] + (sml * spline_cut_off)) / pix_width) + (Ndim[0] // 2)
+        i, j = int((ipos[1] / pix_width) + Ndim[1] / 2), \
+               int((ipos[0] / pix_width) + Ndim[0] / 2)
+        i_low = int((ipos[1] - (sml * 1.5 * spline_cut_off)) / pix_width) + (Ndim[1] // 2)
+        j_low = int((ipos[0] - (sml * 1.5 * spline_cut_off)) / pix_width) + (Ndim[0] // 2)
+        i_high = int((ipos[1] + (sml * 1.5 * spline_cut_off)) / pix_width) + (Ndim[1] // 2)
+        j_high = int((ipos[0] + (sml * 1.5 * spline_cut_off)) / pix_width) + (Ndim[0] // 2)
 
         if i < 0 or i > Ndim[1] or j < 0 or j > Ndim[0]:
             continue
@@ -113,20 +113,23 @@ def make_spline_img_cart(part_pos, Ndim, w, h, ls, smooth,
         if j_high >= Ndim[0]:
             j_high = Ndim[0] - 1
 
-        # NOTE: SMOOTHING LENGTHS ARE WRONG FIX THIS FUTURE WILL
-
         i_range = np.arange(i_low, i_high + 1, 1)
         j_range = np.arange(j_low, j_high + 1, 1)
 
         ii, jj = np.meshgrid(j_range - j, i_range - i)
 
+        print(ii.shape)
+
         dists = np.sqrt(ii**2 + jj**2) * pix_width
+        print(dists.shape)
 
         # Get the kernel
         w = spline_func(dists / sml)
+        print(w.shape)
 
         # Place the kernel for this particle within the img
         kernel = w / sml ** 3
+        print(kernel.shape, np.sum(kernel))
         norm_kernel = kernel / np.sum(kernel)
         print(i_low, j_low, i_high, j_high)
         print(kernel)
