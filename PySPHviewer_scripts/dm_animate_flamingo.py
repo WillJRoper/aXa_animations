@@ -3,7 +3,7 @@ import matplotlib as ml
 
 ml.use('Agg')
 import numpy as np
-from get_images import make_spline_img_cart
+from get_images import make_spline_img_cart_dm
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize, LogNorm
 from astropy.cosmology import Planck13 as cosmo
@@ -138,8 +138,8 @@ def single_frame(num, nframes, size, rank, comm):
             # Get images
             img = make_spline_img_cart_dm(poss, res, w, h, masses, hsmls)
 
-            ilow = int((my_cent[0] - (cell_width[0] / 2) - 100 * pix_res) / pix_res) + 100
-            jlow = int((my_cent[1] - (cell_width[1] / 2) - 100 * pix_res) / pix_res) + 100
+            ilow = int((my_cent[0] - (cell_width[0] / 2)) / pix_res) + 100
+            jlow = int((my_cent[1] - (cell_width[1] / 2)) / pix_res) + 100
 
             dimens = img.shape
 
