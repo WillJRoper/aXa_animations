@@ -164,10 +164,10 @@ def make_spline_img_cart_dm(part_pos, Ndim, w, h, ls, smooth,
 
         i, j = int((ipos[1] / pix_width) + Ndim[1] / 2), \
                int((ipos[0] / pix_width) + Ndim[0] / 2)
-        i_low = i + (Ndim[1] // 2) - (norm_kernel[1] // 2)
-        j_low = j + (Ndim[0] // 2) - (norm_kernel[0] // 2)
-        i_high = i + (Ndim[1] // 2) + (norm_kernel[1] // 2)
-        j_high = j + (Ndim[0] // 2) + (norm_kernel[0] // 2)
+        i_low = i - (norm_kernel[1] // 2)
+        j_low = j - (norm_kernel[0] // 2)
+        i_high = i + (norm_kernel[1] // 2)
+        j_high = j + (norm_kernel[0] // 2)
 
         print(i_high - i_low, j_high - j_low, norm_kernel.shape)
 
