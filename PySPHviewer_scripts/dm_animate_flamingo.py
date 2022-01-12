@@ -54,7 +54,7 @@ def single_frame(num, nframes, size, rank, comm):
     tot_mass = nparts * pmass
 
     # Define the simulation's "resolution"
-    pix_res = hdf["/PartType1/Softenings"][0]
+    pix_res = hdf["/PartType1/Softenings"][0] * 10
 
     npix_per_cell = np.int32(np.floor(cell_width / pix_res))
     npix_per_cell_with_pad = npix_per_cell + 200
@@ -182,8 +182,8 @@ def single_frame(num, nframes, size, rank, comm):
 
         for rk in range(0, size):
 
-            sparse_rank_img = sp.load("logs/img_" + str(num)
-                                      + "_" + str(rk) + ".npz")
+            sparse_rank_img = sp.load_npz("logs/img_" + str(num)
+                                          + "_" + str(rk) + ".npz")
 
             os.remove("logs/img_" + str(num) + "_" + str(rk) + ".npz")
 
