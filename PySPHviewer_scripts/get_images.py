@@ -118,21 +118,14 @@ def make_spline_img_cart(part_pos, Ndim, w, h, ls, smooth,
 
         ii, jj = np.meshgrid(j_range - j, i_range - i)
 
-        print(ii.shape)
-
         dists = np.sqrt(ii**2 + jj**2) * pix_width
-        print(dists.shape)
 
         # Get the kernel
         w = spline_func(dists / sml)
-        print(w.shape)
 
         # Place the kernel for this particle within the img
         kernel = w / sml ** 3
-        print(kernel.shape, np.sum(kernel))
         norm_kernel = kernel / np.sum(kernel)
-        print(i_low, j_low, i_high, j_high)
-        print(kernel)
 
         smooth_img[i_low: i_high + 1, j_low: j_high + 1] += l * norm_kernel
         n += 1
