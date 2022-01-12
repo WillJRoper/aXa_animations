@@ -68,14 +68,6 @@ def single_frame(num, nframes, size, rank, comm):
     # Set up the final image for each rank
     rank_final_img = np.zeros(full_image_res)
 
-    if rank == 0:
-        out_hdf = h5py.File("logs/img_" + str(num) + ".hdf5", "w")
-
-        out_hdf.create_dataset("Img", data=rank_final_img,
-                               shape=rank_final_img.shape)
-
-        out_hdf.close()
-
     # Define width and height
     w, h = 2 * cell_width[1], 2 * cell_width[0]
 
@@ -106,8 +98,8 @@ def single_frame(num, nframes, size, rank, comm):
 
     # Get cells for this rank
     all_cells = []
-    for i in range(cdim[0] // 2):
-        for j in range(cdim[1] // 2):
+    for i in range(cdim[0] // 4):
+        for j in range(cdim[1] // 4):
             for k in range(1):
 
                 cell = (k + cdim[2] * (j + cdim[1] * i))
@@ -184,9 +176,9 @@ def single_frame(num, nframes, size, rank, comm):
 
     comm.Barrier()
 
-    final_img = np.zeros(full_image_res)
-
     if rank == 0:
+
+        final_img = np.zeros(full_image_res)
 
         for rk in range(0, size):
 
