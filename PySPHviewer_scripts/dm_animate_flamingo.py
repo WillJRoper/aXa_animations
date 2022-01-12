@@ -189,11 +189,13 @@ def single_frame(num, nframes, size, rank, comm):
 
             final_img += sparse_rank_img.toarray()
 
+            print(np.sum(sparse_rank_img.toarray()))
+
         norm = LogNorm(vmin=vmin, vmax=vmax, clip=True)
 
         rgb_output = cmap(norm(final_img))
 
-        dpi = 2**16 - 1
+        dpi = np.min(2**16 - 1, rgb_output.shape[0])
         print("DPI, Output Shape:", dpi, rgb_output.shape)
         fig = plt.figure(figsize=(1, 1), dpi=dpi)
         ax = fig.add_subplot(111)
