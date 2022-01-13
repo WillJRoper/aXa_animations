@@ -55,7 +55,10 @@ def single_frame(num, nframes, size, rank, comm):
     tot_mass = nparts * pmass
 
     # Define the simulation's "resolution"
-    pix_res = hdf["/PartType1/Softenings"][0] * 10
+    pix_res = hdf["/PartType1/Softenings"][0]
+
+    # Size modification for debugging
+    mod = 4
 
     npix_per_cell = np.int32(np.floor(cell_width / pix_res))
     npix_per_cell_with_pad = npix_per_cell + 200
@@ -63,11 +66,11 @@ def single_frame(num, nframes, size, rank, comm):
         if npix_per_cell_with_pad[i] % 2 != 0:
             npix_per_cell_with_pad[i] += 1
     res = (npix_per_cell_with_pad[0], npix_per_cell_with_pad[1])
-    full_image_res = (int(ncells**(1/3) * npix_per_cell[0]) + 500,
-                      int(ncells**(1/3) * npix_per_cell[1]) + 500)
+    full_image_res = ((int(ncells**(1/3) * npix_per_cell[0]) + 500) // mod,
+                      (int(ncells**(1/3) * npix_per_cell[1]) + 500) // mod)
 
     # Set up the final image for each rank
-    rank_final_img = np.zeros(full_image_res)
+    rank_final_img = np.zeros(full_image_res, dtype=np.float32)
 
     # Define width and height
     w, h = 2 * cell_width[1], 2 * cell_width[0]
@@ -101,8 +104,8 @@ def single_frame(num, nframes, size, rank, comm):
     all_cells = []
     i_s = []
     j_s = []
-    for i in range(cdim[0]):
-        for j in range(cdim[1]):
+    for i in range(cdim[0] // mod):
+        for j in range(cdim[1] // mod):
             for k in range(3):
 
                 cell = (k + cdim[2] * (j + cdim[1] * i))
@@ -137,7 +140,7 @@ def single_frame(num, nframes, size, rank, comm):
             poss[poss < -boxsize / 2] += boxsize
 
             hsmls = hdf["/PartType1/Softenings"][
-                    my_offset:my_offset + my_count] * 20
+                    my_offset:my_offset + my_count]
 
             # Compute camera radial distance to cell
             cam_sep = cam_pos - my_cent - true_cent
@@ -189,7 +192,7 @@ def single_frame(num, nframes, size, rank, comm):
 
     if rank == 0:
 
-        final_img = np.zeros(full_image_res)
+        final_img = np.zeros(full_image_res, dtype=np.float32)
 
         for rk in range(0, size):
 
@@ -204,9 +207,7 @@ def single_frame(num, nframes, size, rank, comm):
 
         rgb_output = cmap(norm(final_img))
 
-        print(rgb_output.shape)
-        print(cv2.cvtColor(rgb_output, cv2.COLOR_RGBA2BGRA))
-        print(cv2.cvtColor(rgb_output, cv2.COLOR_RGBA2BGRA).shape)
+        print(rgb_output.shape, rgb_output.dtype)
 
         cv2.imwrite('../plots/Ani/DM/Flamingo_DM_' + frame + '.jp2',
                     cv2.cvtColor(rgb_output, cv2.COLOR_RGBA2BGRA))
