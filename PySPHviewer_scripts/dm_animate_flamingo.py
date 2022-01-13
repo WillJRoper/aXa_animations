@@ -100,7 +100,7 @@ def single_frame(num, nframes, size, rank, comm):
     all_cells = []
     for i in range(cdim[0]):
         for j in range(cdim[1]):
-            for k in range(11):
+            for k in range(3):
 
                 cell = (k + cdim[2] * (j + cdim[1] * i))
                 all_cells.append(cell)
@@ -125,6 +125,9 @@ def single_frame(num, nframes, size, rank, comm):
             masses = hdf["/PartType1/Masses"][
                      my_offset:my_offset + my_count] * 10 ** 10
             poss -= my_cent
+            
+            poss[poss > boxsize / 2] -= boxsize
+            poss[poss < -boxsize / 2] += boxsize
 
             hsmls = hdf["/PartType1/Softenings"][
                     my_offset:my_offset + my_count]
