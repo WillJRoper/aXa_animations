@@ -16,6 +16,7 @@ import os
 import mpi4py
 from mpi4py import MPI
 import scipy.sparse as sp
+import cv2
 
 mpi4py.rc.recv_mprobe = False
 
@@ -98,20 +99,26 @@ def single_frame(num, nframes, size, rank, comm):
 
     # Get cells for this rank
     all_cells = []
+    i_s = []
+    j_s = []
     for i in range(cdim[0]):
         for j in range(cdim[1]):
             for k in range(3):
 
                 cell = (k + cdim[2] * (j + cdim[1] * i))
                 all_cells.append(cell)
+                i_s.append(i)
+                j_s.append(j)
 
     rank_cells = np.linspace(0, len(all_cells), size + 1, dtype=int)
     my_cells = all_cells[rank_cells[rank]: rank_cells[rank + 1]]
+    my_i_s = i_s[rank_cells[rank]: rank_cells[rank + 1]]
+    my_j_s = j_s[rank_cells[rank]: rank_cells[rank + 1]]
 
     print("Rank:", rank)
     print("My Ncells:", len(my_cells))
 
-    for my_cell in my_cells:
+    for i, j, my_cell in zip(my_i_s, my_j_s, my_cells):
 
         # Retrieve the offset and counts
         my_offset = hdf["/Cells/OffsetsInFile/PartType1"][my_cell]
@@ -125,7 +132,7 @@ def single_frame(num, nframes, size, rank, comm):
             masses = hdf["/PartType1/Masses"][
                      my_offset:my_offset + my_count] * 10 ** 10
             poss -= my_cent
-            
+
             poss[poss > boxsize / 2] -= boxsize
             poss[poss < -boxsize / 2] += boxsize
 
@@ -139,10 +146,11 @@ def single_frame(num, nframes, size, rank, comm):
                                + cam_sep[2] ** 2)
 
             # Get images
-            img = make_spline_img_cart_dm(poss, res, w, h, masses, hsmls, my_cent)
+            img = make_spline_img_cart_dm(poss, res, w, h, masses,
+                                          hsmls, my_cent)
 
-            ilow = int((my_cent[0] - (cell_width[0] / 2)) / pix_res) + 100
-            jlow = int((my_cent[1] - (cell_width[1] / 2)) / pix_res) + 100
+            ilow = i * npix_per_cell[1]
+            jlow = j * npix_per_cell[0]
 
             dimens = img.shape
 
@@ -196,15 +204,18 @@ def single_frame(num, nframes, size, rank, comm):
 
         rgb_output = cmap(norm(final_img))
 
-        dpi = np.min((2**16 - 1, rgb_output.shape[0]))
-        print("DPI, Output Shape:", dpi, rgb_output.shape)
-        fig = plt.figure(figsize=(1, 1), dpi=dpi)
-        ax = fig.add_subplot(111)
+        cv2.imwrite('../plots/Ani/DM/Flamingo_DM_' + frame + '.jp2',
+                    cv2.cvtColor(np.array(rgb_output), cv2.COLOR_RGBA2BGRA))
 
-        ax.imshow(rgb_output, origin='lower')
-        ax.tick_params(axis='both', left=False, top=False, right=False,
-                       bottom=False, labelleft=False,
-                       labeltop=False, labelright=False, labelbottom=False)
+        # dpi = np.min((2**16 - 1, rgb_output.shape[0]))
+        # print("DPI, Output Shape:", dpi, rgb_output.shape)
+        # fig = plt.figure(figsize=(1, 1), dpi=dpi)
+        # ax = fig.add_subplot(111)
+        #
+        # ax.imshow(rgb_output, origin='lower')
+        # ax.tick_params(axis='both', left=False, top=False, right=False,
+        #                bottom=False, labelleft=False,
+        #                labeltop=False, labelright=False, labelbottom=False)
 
         # ax.text(0.975, 0.05, "$t=$%.1f Gyr" % cosmo.age(z).value,
         #         transform=ax.transAxes, verticalalignment="top",
@@ -227,13 +238,13 @@ def single_frame(num, nframes, size, rank, comm):
         #         transform=ax.transAxes, verticalalignment="top",
         #         horizontalalignment='center', fontsize=1, color="w")
 
-        plt.margins(0, 0)
-
-        fig.savefig('../plots/Ani/DM/Flamingo_DM_' + frame + '.png',
-                    bbox_inches='tight',
-                    pad_inches=0)
-
-        plt.close(fig)
+        # plt.margins(0, 0)
+        #
+        # fig.savefig('../plots/Ani/DM/Flamingo_DM_' + frame + '.png',
+        #             bbox_inches='tight',
+        #             pad_inches=0)
+        #
+        # plt.close(fig)
 
 
 nframes = 1000
