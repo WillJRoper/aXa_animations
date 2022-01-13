@@ -172,7 +172,7 @@ def make_spline_img_cart_dm(part_pos, Ndim, w, h, ls, smooth, my_cent,
         try:
             smooth_img[i_low: i_high + 1, j_low: j_high + 1] += l * norm_kernel
         except ValueError:
-            print(my_cent, ipos, ipos - my_cent, i_low, i_high, j_low,
+            print(my_cent, ipos, ipos + my_cent, i_low, i_high, j_low,
                   j_high, i_high - i_low, j_high - j_low,
                   smooth_img[i_low: i_high + 1, j_low: j_high + 1].shape,
                   norm_kernel.shape)
