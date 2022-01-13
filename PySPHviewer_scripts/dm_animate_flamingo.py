@@ -136,7 +136,7 @@ def single_frame(num, nframes, size, rank, comm):
                                + cam_sep[2] ** 2)
 
             # Get images
-            img = make_spline_img_cart_dm(poss, res, w, h, masses, hsmls)
+            img = make_spline_img_cart_dm(poss, res, w, h, masses, hsmls, my_cent)
 
             ilow = int((my_cent[0] - (cell_width[0] / 2)) / pix_res) + 100
             jlow = int((my_cent[1] - (cell_width[1] / 2)) / pix_res) + 100
