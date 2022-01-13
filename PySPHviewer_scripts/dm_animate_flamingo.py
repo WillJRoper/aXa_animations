@@ -205,7 +205,7 @@ def single_frame(num, nframes, size, rank, comm):
 
         norm = LogNorm(vmin=vmin, vmax=vmax, clip=True)
 
-        rgb_output = cmap(norm(final_img))
+        rgb_output = np.float32(cmap(norm(final_img)))
 
         print(rgb_output.shape, rgb_output.dtype)
 
