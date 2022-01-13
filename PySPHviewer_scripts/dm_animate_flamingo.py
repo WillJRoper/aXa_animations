@@ -55,7 +55,7 @@ def single_frame(num, nframes, size, rank, comm):
     tot_mass = nparts * pmass
 
     # Define the simulation's "resolution"
-    pix_res = hdf["/PartType1/Softenings"][0]
+    pix_res = hdf["/PartType1/Softenings"][0] * 10
 
     npix_per_cell = np.int32(np.floor(cell_width / pix_res))
     npix_per_cell_with_pad = npix_per_cell + 200
@@ -137,7 +137,7 @@ def single_frame(num, nframes, size, rank, comm):
             poss[poss < -boxsize / 2] += boxsize
 
             hsmls = hdf["/PartType1/Softenings"][
-                    my_offset:my_offset + my_count]
+                    my_offset:my_offset + my_count] * 20
 
             # Compute camera radial distance to cell
             cam_sep = cam_pos - my_cent - true_cent
@@ -204,8 +204,12 @@ def single_frame(num, nframes, size, rank, comm):
 
         rgb_output = cmap(norm(final_img))
 
+        print(rgb_output.shape)
+        print(cv2.cvtColor(rgb_output, cv2.COLOR_RGBA2BGRA))
+        print(cv2.cvtColor(rgb_output, cv2.COLOR_RGBA2BGRA).shape)
+
         cv2.imwrite('../plots/Ani/DM/Flamingo_DM_' + frame + '.jp2',
-                    cv2.cvtColor(np.array(rgb_output), cv2.COLOR_RGBA2BGRA))
+                    cv2.cvtColor(rgb_output, cv2.COLOR_RGBA2BGRA))
 
         # dpi = np.min((2**16 - 1, rgb_output.shape[0]))
         # print("DPI, Output Shape:", dpi, rgb_output.shape)
