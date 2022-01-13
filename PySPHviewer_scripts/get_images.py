@@ -134,7 +134,7 @@ def make_spline_img_cart(part_pos, Ndim, w, h, ls, smooth,
 
     return smooth_img
 
-def make_spline_img_cart_dm(part_pos, Ndim, w, h, ls, smooth,
+def make_spline_img_cart_dm(part_pos, Ndim, w, h, ls, smooth, my_cent,
                             spline_func=quartic_spline, spline_cut_off=5 / 2):
 
     # Initialise the image array
@@ -172,7 +172,8 @@ def make_spline_img_cart_dm(part_pos, Ndim, w, h, ls, smooth,
         try:
             smooth_img[i_low: i_high + 1, j_low: j_high + 1] += l * norm_kernel
         except ValueError:
-            print(i_low, i_high, j_low, j_high, i_high - i_low, j_high - j_low,
+            print(my_cent, ipos, ipos - my_cent, i_low, i_high, j_low,
+                  j_high, i_high - i_low, j_high - j_low,
                   smooth_img[i_low: i_high + 1, j_low: j_high + 1].shape,
                   norm_kernel.shape)
 
