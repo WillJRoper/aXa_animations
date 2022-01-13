@@ -45,7 +45,7 @@ def single_frame(num, nframes, size, rank, comm):
     hdf = h5py.File(path, "r")
 
     # Resolution modification for debugging
-    mod = 10
+    mod = 1
 
     # Get metadata
     boxsize = hdf["Header"].attrs["BoxSize"][0]
