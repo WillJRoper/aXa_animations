@@ -206,11 +206,12 @@ def single_frame(num, nframes, size, rank, comm):
 
         norm = LogNorm(vmin=vmin, vmax=vmax, clip=True)
 
-        rgb_output = np.float32(cmap(norm(final_img)))
+        rgb_output = np.int8(cmap(norm(final_img)))
 
-        print(rgb_output.shape, rgb_output.dtype)
+        print(rgb_output.shape, rgb_output.dtype,
+              rgb_output.min(), rgb_output.max())
 
-        im = Image.fromarray(rgb_output)
+        im = Image.fromarray(rgb_output, "RGBA")
         im.save('../plots/Ani/DM/Flamingo_DM_' + frame + '.tiff')
 
         # cv2.imwrite('../plots/Ani/DM/Flamingo_DM_' + frame + '.jp2',
