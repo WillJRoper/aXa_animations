@@ -17,6 +17,7 @@ import mpi4py
 from mpi4py import MPI
 import scipy.sparse as sp
 import cv2
+from PIL import Image
 
 mpi4py.rc.recv_mprobe = False
 
@@ -209,8 +210,11 @@ def single_frame(num, nframes, size, rank, comm):
 
         print(rgb_output.shape, rgb_output.dtype)
 
-        cv2.imwrite('../plots/Ani/DM/Flamingo_DM_' + frame + '.jp2',
-                    cv2.cvtColor(rgb_output, cv2.COLOR_RGBA2BGR))
+        im = Image.fromarray(rgb_output)
+        im.save('../plots/Ani/DM/Flamingo_DM_' + frame + '.tiff')
+
+        # cv2.imwrite('../plots/Ani/DM/Flamingo_DM_' + frame + '.jp2',
+        #             cv2.cvtColor(rgb_output, cv2.COLOR_RGBA2BGR))
 
         # dpi = np.min((2**16 - 1, rgb_output.shape[0]))
         # print("DPI, Output Shape:", dpi, rgb_output.shape)
