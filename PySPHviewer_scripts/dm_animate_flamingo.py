@@ -29,6 +29,7 @@ status = MPI.Status()  # get MPI status object
 
 
 def single_frame(num, nframes, size, rank, comm):
+
     # Define MPI message tags
     tags = utilities.enum('READY', 'DONE', 'EXIT', 'START')
 
@@ -211,50 +212,40 @@ def single_frame(num, nframes, size, rank, comm):
         print(rgb_output.shape, rgb_output.dtype,
               rgb_output.min(), rgb_output.max())
 
-        im = Image.fromarray(rgb_output, "RGBA")
-        im.save('../plots/Ani/DM/Flamingo_DM_' + frame + '.tiff')
+        # im = Image.fromarray(rgb_output, "RGBA")
+        # im.save('../plots/Ani/DM/Flamingo_DM_' + frame + '.tiff')
 
         # cv2.imwrite('../plots/Ani/DM/Flamingo_DM_' + frame + '.jp2',
         #             cv2.cvtColor(rgb_output, cv2.COLOR_RGBA2BGR))
 
-        # dpi = np.min((2**16 - 1, rgb_output.shape[0]))
-        # print("DPI, Output Shape:", dpi, rgb_output.shape)
-        # fig = plt.figure(figsize=(1, 1), dpi=dpi)
-        # ax = fig.add_subplot(111)
-        #
-        # ax.imshow(rgb_output, origin='lower')
-        # ax.tick_params(axis='both', left=False, top=False, right=False,
-        #                bottom=False, labelleft=False,
-        #                labeltop=False, labelright=False, labelbottom=False)
+        # Compute the number of images to split full projection into
+        img_size = rgb_output.shape[0]
+        lims = np.linspace(0, img_size, int(img_size / 2**15) + 1)
 
-        # ax.text(0.975, 0.05, "$t=$%.1f Gyr" % cosmo.age(z).value,
-        #         transform=ax.transAxes, verticalalignment="top",
-        #         horizontalalignment='right', fontsize=1, color="w")
-        #
-        # ax.plot([0.05, 0.15], [0.025, 0.025], lw=0.1, color='w', clip_on=False,
-        #         transform=ax.transAxes)
-        #
-        # ax.plot([0.05, 0.05], [0.022, 0.027], lw=0.15, color='w', clip_on=False,
-        #         transform=ax.transAxes)
-        # ax.plot([0.15, 0.15], [0.022, 0.027], lw=0.15, color='w', clip_on=False,
-        #         transform=ax.transAxes)
-        #
-        # axis_to_data = ax.transAxes + ax.transData.inverted()
-        # left = axis_to_data.transform((0.05, 0.075))
-        # right = axis_to_data.transform((0.15, 0.075))
-        # dist = extent[1] * (right[0] - left[0]) / (ang_extent[1] - ang_extent[0])
+        for i_ind in lims[:-1]:
+            for j_ind in lims[:-1]:
 
-        # ax.text(0.1, 0.055, "%.2f cMpc" % dist,
-        #         transform=ax.transAxes, verticalalignment="top",
-        #         horizontalalignment='center', fontsize=1, color="w")
+                # Get the subsample image
+                subsample = final_img[lims[i_ind] + lims[i_ind + 1], lims[j_ind] + lims[j_ind + 1], :]
 
-        # plt.margins(0, 0)
-        #
-        # fig.savefig('../plots/Ani/DM/Flamingo_DM_' + frame + '.png',
-        #             bbox_inches='tight',
-        #             pad_inches=0)
-        #
-        # plt.close(fig)
+                dpi = subsample.shape[0]
+                print("DPI, Output Shape:", dpi, rgb_output.shape)
+                fig = plt.figure(figsize=(1, 1), dpi=dpi)
+                ax = fig.add_subplot(111)
+
+                ax.imshow(subsample, origin='lower')
+                ax.tick_params(axis='both', left=False, top=False, right=False,
+                               bottom=False, labelleft=False,
+                               labeltop=False, labelright=False, labelbottom=False)
+
+                plt.margins(0, 0)
+
+                fig.savefig('../plots/Ani/DM/Flamingo_DM_%d_%d%d.tiff'
+                            % (frame, i_ind, j_ind),
+                            bbox_inches='tight',
+                            pad_inches=0)
+
+                plt.close(fig)
 
 
 nframes = 1000
