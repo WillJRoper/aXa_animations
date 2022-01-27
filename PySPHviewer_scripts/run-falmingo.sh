@@ -22,6 +22,7 @@ i=$(($SLURM_ARRAY_TASK_ID - 1))
 
 # Run the program
 mpirun -np 256 python dm_animate_flamingo.py $i 0
+#mpirun -np 256 python gas_animate_flamingo.py $i 0
 
 source deactivate
 

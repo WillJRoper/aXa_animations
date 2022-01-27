@@ -3,7 +3,7 @@ import matplotlib as ml
 
 ml.use('Agg')
 import numpy as np
-from get_images import make_spline_img_cart_dm
+from get_images import make_spline_img_cart_gas
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize, LogNorm
 from astropy.cosmology import Planck13 as cosmo
@@ -132,9 +132,9 @@ def single_frame(num, nframes, size, rank, comm):
 
         if my_count > 0:
 
-            poss = hdf["/PartType1/Coordinates"][
+            poss = hdf["/PartType0/Coordinates"][
                    my_offset:my_offset + my_count, :]
-            masses = hdf["/PartType1/Masses"][
+            masses = hdf["/PartType0/Masses"][
                      my_offset:my_offset + my_count] * 10 ** 10
             poss -= my_cent
 
@@ -151,8 +151,8 @@ def single_frame(num, nframes, size, rank, comm):
                                + cam_sep[2] ** 2)
 
             # Get images
-            img = make_spline_img_cart_dm(poss, res, w, h, masses,
-                                          hsmls, my_cent)
+            img = make_spline_img_cart_gas(poss, res, w, h, masses,
+                                           hsmls, my_cent)
 
             ilow = i * npix_per_cell[1]
             jlow = j * npix_per_cell[0]
@@ -226,8 +226,7 @@ def single_frame(num, nframes, size, rank, comm):
             for j_ind in lims[:-1]:
 
                 # Get the subsample image
-                subsample = final_img[lims[i_ind]: lims[i_ind + 1],
-                            lims[j_ind]: lims[j_ind + 1], :]
+                subsample = final_img[lims[i_ind]: lims[i_ind + 1], lims[j_ind]: lims[j_ind + 1], :]
 
                 dpi = subsample.shape[0]
                 print("DPI, Output Shape:", dpi, rgb_output.shape)
