@@ -220,7 +220,7 @@ def single_frame(num, nframes, size, rank, comm):
 
         # Compute the number of images to split full projection into
         img_size = rgb_output.shape[0]
-        lims = np.linspace(0, img_size, int(img_size / 2**15) + 1)
+        lims = np.linspace(0, img_size, int(img_size / 2**15) + 1, dtype=int)
 
         for i_ind in lims[:-1]:
             for j_ind in lims[:-1]:
