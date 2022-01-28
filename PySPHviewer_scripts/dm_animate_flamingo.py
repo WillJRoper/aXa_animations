@@ -219,15 +219,22 @@ def single_frame(num, nframes, size, rank, comm):
         #             cv2.cvtColor(rgb_output, cv2.COLOR_RGBA2BGR))
 
         # Compute the number of images to split full projection into
-        img_size = rgb_output.shape[0]
-        lims = np.linspace(0, img_size, int(img_size / 2**14) + 1, dtype=int)
+        img_size_i = rgb_output.shape[0]
+        img_size_j = rgb_output.shape[1]
+        ilims = np.linspace(0, img_size_i, int(img_size_i / 2**14) + 1,
+                            dtype=int)
+        jlims = np.linspace(0, img_size_j, int(img_size_j / 2 ** 14) + 1,
+                            dtype=int)
 
-        for i_ind in lims[:-1]:
-            for j_ind in lims[:-1]:
+        for i_ind in range(ilims[:-1].size):
+            for j_ind in range(jlims[:-1].size):
+
+                print(i_ind, j_ind, ilims[i_ind], jlims[j_ind],
+                      ilims[i_ind + 1], jlims[j_ind + 1])
 
                 # Get the subsample image
-                subsample = rgb_output[lims[i_ind]: lims[i_ind + 1],
-                            lims[j_ind]: lims[j_ind + 1], :]
+                subsample = rgb_output[ilims[i_ind]: ilims[i_ind + 1],
+                            jlims[j_ind]: jlims[j_ind + 1], :]
 
                 dpi = subsample.shape[0]
                 print("DPI, Output Shape:", dpi, rgb_output.shape)
