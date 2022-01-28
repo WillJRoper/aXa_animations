@@ -241,7 +241,7 @@ def single_frame(num, nframes, size, rank, comm):
 
                 plt.margins(0, 0)
 
-                fig.savefig('../plots/Ani/DM/Flamingo_DM_%d_%d%d.tiff'
+                fig.savefig('../plots/Ani/DM/Flamingo_DM_%s_%d%d.tiff'
                             % (frame, i_ind, j_ind),
                             bbox_inches='tight',
                             pad_inches=0)
