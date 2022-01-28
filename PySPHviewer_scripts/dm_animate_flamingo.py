@@ -207,7 +207,7 @@ def single_frame(num, nframes, size, rank, comm):
 
         norm = LogNorm(vmin=vmin, vmax=vmax, clip=True)
 
-        rgb_output = np.int8(cmap(norm(final_img)))
+        rgb_output = cmap(norm(final_img))
 
         print(rgb_output.shape, rgb_output.dtype,
               rgb_output.min(), rgb_output.max())
@@ -220,13 +220,13 @@ def single_frame(num, nframes, size, rank, comm):
 
         # Compute the number of images to split full projection into
         img_size = rgb_output.shape[0]
-        lims = np.linspace(0, img_size, int(img_size / 2**15) + 1, dtype=int)
+        lims = np.linspace(0, img_size, int(img_size / 2**14) + 1, dtype=int)
 
         for i_ind in lims[:-1]:
             for j_ind in lims[:-1]:
 
                 # Get the subsample image
-                subsample = final_img[lims[i_ind]: lims[i_ind + 1],
+                subsample = rgb_output[lims[i_ind]: lims[i_ind + 1],
                             lims[j_ind]: lims[j_ind + 1], :]
 
                 dpi = subsample.shape[0]
