@@ -91,7 +91,7 @@ def make_spline_img_3d(part_pos, Ndim, i, j, k, tree, ls, smooth,
     pos = np.zeros_like(part_pos)
     pos[:, 0] = part_pos[:, i]
     pos[:, 1] = part_pos[:, j]
-    pos[:, 2] = part_pos[:, k]
+    pos[:, 2] = 0
 
     # Initialise the image array
     smooth_img = np.zeros((Ndim[0], Ndim[1], Ndim[2]), dtype=np.float32)

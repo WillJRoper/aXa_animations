@@ -59,7 +59,8 @@ def single_frame(num, nframes, size, rank, comm):
     tot_mass = nparts * pmass
 
     # Define the simulation's "resolution"
-    pix_res = hdf["/PartType1/Softenings"][0] * mod
+    soft = hdf["/PartType1/Softenings"][0]
+    pix_res = soft * mod
 
     # Define padding
     pad_pix = 20
@@ -73,6 +74,11 @@ def single_frame(num, nframes, size, rank, comm):
     res = (npix_per_cell_with_pad[0], npix_per_cell_with_pad[1])
     full_image_res = (int(ncells**(1/3) * npix_per_cell[0]) + pad_pix,
                       int(ncells**(1/3) * npix_per_cell[1]) + pad_pix)
+
+    # Define (half) the kth dimension of spline smoothing array in Mpc
+    k_dim = soft * 6.
+    k_res = int(np.ceil(k_dim / pix_res))
+    k_dim = k_res * pix_res
 
     # Set up the final image for each rank
     rank_final_img = np.zeros(full_image_res, dtype=np.float32)
@@ -124,14 +130,15 @@ def single_frame(num, nframes, size, rank, comm):
 
     # Define range and extent for the images
     imgrange = ((-(pad_mpc / 2), cell_width + (pad_mpc / 2)),
-                (-(pad_mpc / 2), cell_width + (pad_mpc / 2)))
+                (-(pad_mpc / 2), cell_width + (pad_mpc / 2)),
+                (-k_dim / 2, k_dim / 2))
     imgextent = [-(pad_mpc / 2), cell_width + (pad_mpc / 2),
                  -(pad_mpc / 2), cell_width + (pad_mpc / 2)]
 
     # Define x and y positions of pixels
     X, Y, Z = np.meshgrid(np.linspace(imgrange[0][0], imgrange[0][1], res[0]),
                           np.linspace(imgrange[1][0], imgrange[1][1], res[1]),
-                          np.linspace(imgrange[1][0], imgrange[1][1], res[1]))
+                          np.linspace(imgrange[2][0], imgrange[2][1], k_res))
 
     # Define pixel position array for the KDTree
     pix_pos = np.zeros((X.size, 3))
