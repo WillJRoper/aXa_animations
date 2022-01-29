@@ -97,9 +97,9 @@ def make_spline_img_3d(part_pos, Ndim, i, j, k, tree, ls, smooth,
     smooth_img = np.zeros((Ndim[0], Ndim[1], Ndim[2]), dtype=np.float32)
 
     # Define x and y positions of pixels
-    X, Y, Z = np.meshgrid(np.arange(0, Ndim, 1),
-                          np.arange(0, Ndim, 1),
-                          np.arange(0, Ndim, 1))
+    X, Y, Z = np.meshgrid(np.arange(0, Ndim[0], 1),
+                          np.arange(0, Ndim[1], 1),
+                          np.arange(0, Ndim[2], 1))
 
     # Define pixel position array for the KDTree
     pix_pos = np.zeros((X.size, 3), dtype=int)
