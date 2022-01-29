@@ -1,5 +1,5 @@
 #!/bin/bash -l
-#SBATCH --ntasks 512 # The number of cores you need...
+#SBATCH --ntasks 256 # The number of cores you need...
 #SBATCH --array=5-20%4
 #SBATCH --cpus-per-task=8
 #SBATCH -J FLAMINGO-ANI #Give it something meaningful.
