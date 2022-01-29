@@ -3,6 +3,7 @@ import scipy.ndimage as ndimage
 
 
 def quartic_spline(q):
+
     k3 = 7 / (478 * np.pi)
 
     w = np.zeros_like(q)
@@ -81,6 +82,54 @@ def make_spline_img(part_pos, Ndim, w, h, ls, smooth_low, smooth_high,
         n += 1
 
     return smooth_img
+
+
+def make_spline_img_3d(part_pos, Ndim, i, j, k, tree, ls, smooth,
+                       spline_func=quartic_spline, spline_cut_off=5/2):
+
+    # Define 2D projected particle position array
+    pos = np.zeros_like(part_pos)
+    pos[:, 0] = part_pos[:, i]
+    pos[:, 1] = part_pos[:, j]
+    pos[:, 2] = part_pos[:, k]
+
+    # Initialise the image array
+    smooth_img = np.zeros((Ndim[0], Ndim[1], Ndim[2]), dtype=np.float32)
+
+    # Define x and y positions of pixels
+    X, Y, Z = np.meshgrid(np.arange(0, Ndim, 1),
+                          np.arange(0, Ndim, 1),
+                          np.arange(0, Ndim, 1))
+
+    # Define pixel position array for the KDTree
+    pix_pos = np.zeros((X.size, 3), dtype=int)
+    pix_pos[:, 0] = X.ravel()
+    pix_pos[:, 1] = Y.ravel()
+    pix_pos[:, 2] = Z.ravel()
+
+    for ipos, l, sml in zip(pos, ls, smooth):
+
+        # Query the tree for this particle
+        dist, inds = tree.query(ipos, k=pos.shape[0],
+                                distance_upper_bound=spline_cut_off * sml)
+
+        if type(dist) is float:
+            continue
+
+        okinds = dist < spline_cut_off * sml
+        dist = dist[okinds]
+        inds = inds[okinds]
+
+        # Get the kernel
+        w = spline_func(dist / sml)
+
+        # Place the kernel for this particle within the img
+        kernel = w / sml ** 3
+        norm_kernel = kernel / np.sum(kernel)
+        smooth_img[pix_pos[inds, 0], pix_pos[inds, 1], pix_pos[
+            inds, 2]] += l * norm_kernel
+
+    return np.sum(smooth_img, axis=-1)
 
 
 def make_spline_img_cart_gas(part_pos, Ndim, w, h, ls, smooth, my_cent,
