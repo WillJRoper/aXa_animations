@@ -187,8 +187,8 @@ def single_frame(num, nframes, size, rank, comm):
                                + cam_sep[2] ** 2)
 
             # Get images
-            img = make_spline_img_3d(poss, res, i=0, j=1, k=2,
-                                     tree=tree, ls=masses, smooth=hsmls)
+            img = make_spline_img_3d(poss, res, pad_pix, masses,
+                                     hsmls, pix_res)
 
             ilow = i * res[0] - (i * pad_pix)
             jlow = j * res[1] - (j * pad_pix)

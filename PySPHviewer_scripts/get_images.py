@@ -84,50 +84,46 @@ def make_spline_img(part_pos, Ndim, w, h, ls, smooth_low, smooth_high,
     return smooth_img
 
 
-def make_spline_img_3d(part_pos, Ndim, i, j, k, tree, ls, smooth,
+def make_spline_img_3d(part_pos, Ndim, pad_pix, ls, smooth, pix_res,
                        spline_func=quartic_spline, spline_cut_off=5/2):
 
-    # Define 2D projected particle position array
-    pos = np.zeros_like(part_pos)
-    pos[:, 0] = part_pos[:, i]
-    pos[:, 1] = part_pos[:, j]
-    pos[:, 2] = 0
-
     # Initialise the image array
-    smooth_img = np.zeros((Ndim[0], Ndim[1], Ndim[2]), dtype=np.float32)
+    smooth_img = np.zeros((Ndim[0], Ndim[1], Ndim[2]))
 
-    # Define x and y positions of pixels
-    X, Y, Z = np.meshgrid(np.arange(0, Ndim[0], 1),
-                          np.arange(0, Ndim[1], 1),
-                          np.arange(0, Ndim[2], 1))
+    # Compute pixel width
+    pix_width = pix_res
+    max_sml = np.max(smooth)
 
-    # Define pixel position array for the KDTree
-    pix_pos = np.zeros((X.size, 3), dtype=int)
-    pix_pos[:, 0] = X.ravel()
-    pix_pos[:, 1] = Y.ravel()
-    pix_pos[:, 2] = Z.ravel()
+    ilow = int(-(max_sml * 1.5 * spline_cut_off) / pix_width)
+    ihigh = int(max_sml * 1.5 * spline_cut_off / pix_width)
+    jlow = int(-(max_sml * 1.5 * spline_cut_off) / pix_width)
+    jhigh = int(max_sml * 1.5 * spline_cut_off / pix_width)
+    klow = 0
+    khigh = Ndim[2]
 
-    for ipos, l, sml in zip(pos, ls, smooth):
+    ipix_range = np.arange(ilow, ihigh + 1, 1, dtype=int)
+    jpix_range = np.arange(jlow, jhigh + 1, 1, dtype=int)
+    kpix_range = np.arange(klow, khigh, 1, dtype=int)
 
-        # Query the tree for this particle
-        dist, inds = tree.query(ipos, k=pos.shape[0],
-                                distance_upper_bound=spline_cut_off * sml)
+    ii, jj, kk = np.meshgrid(ipix_range, jpix_range, kpix_range)
 
-        if type(dist) is float:
-            continue
+    dists = np.sqrt(ii ** 2 + jj ** 2 + kk ** 2) * pix_width
 
-        okinds = dist < spline_cut_off * sml
-        dist = dist[okinds]
-        inds = inds[okinds]
+    for ipos, l, sml, in zip(part_pos, ls, smooth):
 
         # Get the kernel
-        w = spline_func(dist / sml)
+        w = spline_func(dists / sml)
 
         # Place the kernel for this particle within the img
         kernel = w / sml ** 3
         norm_kernel = kernel / np.sum(kernel)
-        smooth_img[pix_pos[inds, 0], pix_pos[inds, 1], pix_pos[
-            inds, 2]] += l * norm_kernel
+
+        i_low = int((ipos[1] - (max_sml * 1.5 * spline_cut_off) + ((pad_pix // 2) * pix_width)) / pix_width)
+        j_low = int((ipos01] - (max_sml * 1.5 * spline_cut_off) + ((pad_pix // 2) * pix_width)) / pix_width)
+        i_high = i_low + norm_kernel.shape[1]
+        j_high = j_low + norm_kernel.shape[0]
+
+        smooth_img[i_low: i_high, j_low: j_high, klow: khigh] += l * norm_kernel
 
     return np.sum(smooth_img, axis=-1)
 
