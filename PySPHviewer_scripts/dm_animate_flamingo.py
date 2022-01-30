@@ -135,22 +135,6 @@ def single_frame(num, nframes, size, rank, comm):
     imgextent = [-(pad_mpc / 2), cell_width + (pad_mpc / 2),
                  -(pad_mpc / 2), cell_width + (pad_mpc / 2)]
 
-    # Define x and y positions of pixels
-    X, Y, Z = np.meshgrid(np.linspace(imgrange[0][0], imgrange[0][1], res[0]),
-                          np.linspace(imgrange[1][0], imgrange[1][1], res[1]),
-                          np.linspace(imgrange[2][0], imgrange[2][1], k_res))
-
-    # Define pixel position array for the KDTree
-    pix_pos = np.zeros((X.size, 3))
-    pix_pos[:, 0] = X.ravel()
-    pix_pos[:, 1] = Y.ravel()
-    pix_pos[:, 2] = Z.ravel()
-
-    # Build KDTree
-    tree = cKDTree(pix_pos)
-
-    print("Pixel tree built")
-
     for i, j, my_cell in zip(my_i_s, my_j_s, my_cells):
 
         # Retrieve the offset and counts
