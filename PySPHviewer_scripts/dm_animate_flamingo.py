@@ -174,8 +174,13 @@ def single_frame(num, nframes, size, rank, comm):
                     my_offset:my_offset + my_count] * mod
 
             # Remove edge case particles outside the bounds
-            okinds = np.logical_and(poss < cell_width[0] + pad_mpc / 2,
-                                    poss > - pad_mpc / 2)
+            xokinds = np.logical_and(poss[:, 0] < cell_width[0] + pad_mpc / 2,
+                                     poss[:, 0] > - pad_mpc / 2)
+            yokinds = np.logical_and(poss[:, 1] < cell_width[1] + pad_mpc / 2,
+                                     poss[:, 1] > - pad_mpc / 2)
+            zokinds = np.logical_and(poss[:, 2] < cell_width[2] + pad_mpc / 2,
+                                     poss[:, 2] > - pad_mpc / 2)
+            okinds = np.logical_and(xokinds, np.logical_and(yokinds, zokinds))
             poss = poss[okinds]
             masses = masses[okinds]
             hsmls = hsmls[okinds]
