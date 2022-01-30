@@ -157,16 +157,12 @@ def single_frame(num, nframes, size, rank, comm):
             hsmls = hdf["/PartType1/Softenings"][
                     my_offset:my_offset + my_count] * mod
 
-            print(np.min(poss, axis=0), np.max(poss, axis=0), cell_width, pad_mpc)
-
             # Remove edge case particles outside the bounds
             xokinds = np.logical_and(poss[:, 0] < cell_width[0] + pad_mpc / 2,
                                      poss[:, 0] > - pad_mpc / 2)
             yokinds = np.logical_and(poss[:, 1] < cell_width[1] + pad_mpc / 2,
                                      poss[:, 1] > - pad_mpc / 2)
-            zokinds = np.logical_and(poss[:, 2] < cell_width[2] + pad_mpc / 2,
-                                     poss[:, 2] > - pad_mpc / 2)
-            okinds = np.logical_and(xokinds, np.logical_and(yokinds, zokinds))
+            okinds = np.logical_and(xokinds, yokinds)
             poss = poss[okinds]
             masses = masses[okinds]
             hsmls = hsmls[okinds]
