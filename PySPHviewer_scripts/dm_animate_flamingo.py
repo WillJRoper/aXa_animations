@@ -157,6 +157,8 @@ def single_frame(num, nframes, size, rank, comm):
             hsmls = hdf["/PartType1/Softenings"][
                     my_offset:my_offset + my_count] * mod
 
+            print(np.min(poss, axis=0), np.max(poss, axis=0), cell_width, pad_mpc)
+
             # Remove edge case particles outside the bounds
             xokinds = np.logical_and(poss[:, 0] < cell_width[0] + pad_mpc / 2,
                                      poss[:, 0] > - pad_mpc / 2)
@@ -176,8 +178,9 @@ def single_frame(num, nframes, size, rank, comm):
                                + cam_sep[2] ** 2)
 
             # Get images
-            img = make_spline_img_3d(poss, res, pad_pix, masses,
-                                     hsmls, pix_res)
+            if poss.shape[0] > 0:
+                img = make_spline_img_3d(poss, res, pad_pix, masses,
+                                         hsmls, pix_res)
 
             ilow = i * res[0] - (i * pad_pix)
             jlow = j * res[1] - (j * pad_pix)
