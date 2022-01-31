@@ -63,11 +63,11 @@ def single_frame(num, nframes, size, rank, comm):
     pix_res = soft * mod
 
     # Define padding
-    pad_pix = 20
+    pad_pix = 12
     pad_mpc = pad_pix * pix_res
 
     # Define (half) the kth dimension of spline smoothing array in Mpc
-    k_dim = soft * 6.
+    k_dim = soft * 10.
     k_res = int(np.ceil(k_dim / pix_res))
     k_dim = k_res * pix_res
 
@@ -108,6 +108,7 @@ def single_frame(num, nframes, size, rank, comm):
     all_cells = []
     i_s = []
     j_s = []
+    k_s = []
     for i in range(cdim[0]):
         for j in range(cdim[1]):
             for k in range(3):
@@ -116,11 +117,13 @@ def single_frame(num, nframes, size, rank, comm):
                 all_cells.append(cell)
                 i_s.append(i)
                 j_s.append(j)
+                k_s.append(k)
 
     rank_cells = np.linspace(0, len(all_cells), size + 1, dtype=int)
     my_cells = all_cells[rank_cells[rank]: rank_cells[rank + 1]]
     my_i_s = i_s[rank_cells[rank]: rank_cells[rank + 1]]
     my_j_s = j_s[rank_cells[rank]: rank_cells[rank + 1]]
+    my_k_s = k_s[rank_cells[rank]: rank_cells[rank + 1]]
 
     print("Rank:", rank)
     print("My Ncells:", len(my_cells))
@@ -132,7 +135,7 @@ def single_frame(num, nframes, size, rank, comm):
     imgextent = [-(pad_mpc / 2), cell_width + (pad_mpc / 2),
                  -(pad_mpc / 2), cell_width + (pad_mpc / 2)]
 
-    for i, j, my_cell in zip(my_i_s, my_j_s, my_cells):
+    for i, j, k, my_cell in zip(my_i_s, my_j_s, my_k_s, my_cells):
 
         # Retrieve the offset and counts
         my_offset = hdf["/Cells/OffsetsInFile/PartType1"][my_cell]
@@ -147,22 +150,19 @@ def single_frame(num, nframes, size, rank, comm):
         if my_count > 0:
 
             # Get particle data
-            poss = hdf["/PartType1/Coordinates"][
-                   my_offset:my_offset + my_count, :] - my_edges + (pad_mpc / 2)
+            ini_poss = hdf["/PartType1/Coordinates"][
+                   my_offset:my_offset + my_count, :]
             masses = hdf["/PartType1/Masses"][
                      my_offset:my_offset + my_count] * 10 ** 10
             hsmls = hdf["/PartType1/Softenings"][
                     my_offset:my_offset + my_count] * mod
 
-            # Remove edge case particles outside the bounds
-            xokinds = np.logical_and(poss[:, 0] < cell_width[0] + pad_mpc / 2,
-                                     poss[:, 0] > - pad_mpc / 2)
-            yokinds = np.logical_and(poss[:, 1] < cell_width[1] + pad_mpc / 2,
-                                     poss[:, 1] > - pad_mpc / 2)
-            okinds = np.logical_and(xokinds, yokinds)
-            poss = poss[okinds]
-            masses = masses[okinds]
-            hsmls = hsmls[okinds]
+            # Wrap particles over boundaries
+            ini_poss[ini_poss > boxsize] -= boxsize
+            ini_poss[ini_poss < 0] += boxsize
+
+            # Shift particle positions to this cell with pad region
+            poss = ini_poss - my_edges + (pad_mpc / 2)
 
             # Compute camera radial distance to cell
             cam_sep = cam_pos - my_cent - true_cent
@@ -184,10 +184,10 @@ def single_frame(num, nframes, size, rank, comm):
                 jhigh = jlow + dimens[1]
 
                 # Shift the grid coordinates to account for the padding region
-                ilow -= pad_pix
-                jlow -= pad_pix
-                ihigh -= pad_pix
-                jhigh -= pad_pix
+                ilow -= (pad_pix // 2)
+                jlow -= (pad_pix // 2)
+                ihigh -= (pad_pix // 2)
+                jhigh -= (pad_pix // 2)
 
                 # If we are not at the edges we don't need any wrapping
                 # and can just assign the grid at once
@@ -196,12 +196,6 @@ def single_frame(num, nframes, size, rank, comm):
                     rank_final_img[ilow: ihigh, jlow: jhigh] = img
 
                 else:  # we must wrap
-
-                    # Only need to shift half the pad region
-                    ilow += (pad_pix // 2)
-                    jlow += (pad_pix // 2)
-                    ihigh += (pad_pix // 2)
-                    jhigh += (pad_pix // 2)
 
                     # Define indices ranges
                     irange = np.arange(ilow, ihigh, 1, dtype=int)
