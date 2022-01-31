@@ -151,7 +151,7 @@ def single_frame(num, nframes, size, rank, comm):
 
             # Get particle data
             poss = hdf["/PartType1/Coordinates"][
-                   my_offset:my_offset + my_count, :] - my_edges - (pad_mpc / 2)
+                   my_offset:my_offset + my_count, :] - my_edges + (pad_mpc / 2)
             masses = hdf["/PartType1/Masses"][
                      my_offset:my_offset + my_count] * 10 ** 10
             hsmls = hdf["/PartType1/Softenings"][
@@ -175,7 +175,6 @@ def single_frame(num, nframes, size, rank, comm):
 
             # Get images
             if poss.shape[0] > 0:
-                print(pad_mpc)
                 img = make_spline_img_3d(poss, res, pad_mpc, masses,
                                          hsmls, pix_res)
 
