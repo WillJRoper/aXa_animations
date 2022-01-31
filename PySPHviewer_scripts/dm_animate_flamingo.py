@@ -191,8 +191,8 @@ def single_frame(num, nframes, size, rank, comm):
 
                 # If we are not at the edges we don't need any wrapping
                 # and can just assign the grid at once
-                if (i != 0 and i != cdim[0]
-                        and j != 0 and j != cdim[1]):
+                if (i != 0 and i < cdim[0] - 1
+                        and j != 0 and j < cdim[0] - 1):
                     rank_final_img[ilow: ihigh, jlow: jhigh] = img
 
                 else:  # we must wrap
