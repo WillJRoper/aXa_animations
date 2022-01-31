@@ -98,8 +98,8 @@ def make_spline_img_3d(part_pos, Ndim, pad_mpc, ls, smooth, pix_width,
     ihigh = int(kernel_rad / pix_width)
     jlow = int(-kernel_rad / pix_width)
     jhigh = int(kernel_rad / pix_width)
-    klow = int(-kernel_rad / pix_width)
-    khigh = int(kernel_rad / pix_width)
+    klow = -Ndim[2] // 2
+    khigh = Ndim[2] // 2
 
     ipix_range = np.arange(ilow, ihigh + 1, 1, dtype=int)
     jpix_range = np.arange(jlow, jhigh + 1, 1, dtype=int)
