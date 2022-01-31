@@ -82,7 +82,7 @@ def single_frame(num, nframes, size, rank, comm):
 
     mean_den = tot_mass / boxsize ** 3
 
-    vmax, vmin = 5000 * mean_den, mean_den
+    vmax, vmin = 5000 * mean_den, 0.1 * mean_den
 
     cmap = cmr.eclipse
 
@@ -184,10 +184,10 @@ def single_frame(num, nframes, size, rank, comm):
                 jhigh = jlow + dimens[1]
 
                 # Shift the grid coordinates to account for the padding region
-                ilow -= (pad_pix // 2)
-                jlow -= (pad_pix // 2)
-                ihigh -= (pad_pix // 2)
-                jhigh -= (pad_pix // 2)
+                ilow -= pad_pix
+                jlow -= pad_pix
+                ihigh -= pad_pix
+                jhigh -= pad_pix
 
                 # If we are not at the edges we don't need any wrapping
                 # and can just assign the grid at once
@@ -196,6 +196,12 @@ def single_frame(num, nframes, size, rank, comm):
                     rank_final_img[ilow: ihigh, jlow: jhigh] = img
 
                 else:  # we must wrap
+
+                    # Only need to shift half the pad region
+                    ilow += (pad_pix // 2)
+                    jlow += (pad_pix // 2)
+                    ihigh += (pad_pix // 2)
+                    jhigh += (pad_pix // 2)
 
                     # Define indices ranges
                     irange = np.arange(ilow, ihigh, 1, dtype=int)
