@@ -123,7 +123,7 @@ def make_spline_img_3d(part_pos, Ndim, pad_mpc, ls, smooth, pix_res,
         i_high = i_low + norm_kernel.shape[1]
         j_high = j_low + norm_kernel.shape[0]
 
-        print(i_low, i_high, j_low, j_high, norm_kernel.shape, pad_pix // 2)
+        print(i_low, i_high, j_low, j_high, norm_kernel.shape, pad_mpc // 2)
 
         smooth_img[i_low: i_high, j_low: j_high, :] += l * norm_kernel
 
