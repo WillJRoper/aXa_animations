@@ -175,8 +175,8 @@ def single_frame(num, nframes, size, rank, comm):
                 img = make_spline_img_3d(poss, res, pad_mpc, masses,
                                          hsmls, pix_res)
 
-                ilow = int((my_edges[1] + (pad_mpc / 2)) / pix_res)
-                jlow = int((my_edges[0] + (pad_mpc / 2)) / pix_res)
+                ilow = int((my_edges[1]) / pix_res)
+                jlow = int((my_edges[0]) / pix_res)
 
                 dimens = img.shape
 
