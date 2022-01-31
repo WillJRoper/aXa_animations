@@ -98,7 +98,7 @@ def make_spline_img_3d(part_pos, Ndim, pad_pix, ls, smooth, pix_res,
     ihigh = int(max_sml * 1.5 * spline_cut_off / pix_width)
     jlow = int(-(max_sml * 1.5 * spline_cut_off) / pix_width)
     jhigh = int(max_sml * 1.5 * spline_cut_off / pix_width)
-    klow = - Ndim[2] // 2
+    klow = -Ndim[2] // 2
     khigh = Ndim[2] // 2
 
     ipix_range = np.arange(ilow, ihigh + 1, 1, dtype=int)
@@ -119,11 +119,11 @@ def make_spline_img_3d(part_pos, Ndim, pad_pix, ls, smooth, pix_res,
         norm_kernel = kernel / np.sum(kernel)
 
         i_low = int((ipos[1] - (max_sml * 1.5 * spline_cut_off)) / pix_width) + (pad_pix // 2)
-        j_low = int((ipos[1] - (max_sml * 1.5 * spline_cut_off)) / pix_width) + (pad_pix // 2)
+        j_low = int((ipos[0] - (max_sml * 1.5 * spline_cut_off)) / pix_width) + (pad_pix // 2)
         i_high = i_low + norm_kernel.shape[1]
         j_high = j_low + norm_kernel.shape[0]
 
-        print(i_low, i_high, j_low, j_high)
+        print(i_low, i_high, j_low, j_high, norm_kernel.shape)
 
         smooth_img[i_low: i_high, j_low: j_high, :] += l * norm_kernel
 
