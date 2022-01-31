@@ -74,8 +74,8 @@ def single_frame(num, nframes, size, rank, comm):
     npix_per_cell = np.int32(cell_width / pix_res)
     npix_per_cell_with_pad = npix_per_cell + pad_pix
     res = (npix_per_cell_with_pad[0], npix_per_cell_with_pad[1], k_res)
-    full_image_res = (int(ncells**(1/3) * npix_per_cell[0]) + pad_pix,
-                      int(ncells**(1/3) * npix_per_cell[1]) + pad_pix)
+    full_image_res = (int(ncells**(1/3) * npix_per_cell[0]),
+                      int(ncells**(1/3) * npix_per_cell[1]))
 
     # Set up the final image for each rank
     rank_final_img = np.zeros(full_image_res, dtype=np.float32)
@@ -174,16 +174,40 @@ def single_frame(num, nframes, size, rank, comm):
             if poss.shape[0] > 0:
                 img = make_spline_img_3d(poss, res, pad_mpc, masses,
                                          hsmls, pix_res)
-
-                ilow = int((my_edges[1]) / pix_res)
-                jlow = int((my_edges[0]) / pix_res)
-
+                
                 dimens = img.shape
 
-                ihigh = ilow + dimens[1]
-                jhigh = jlow + dimens[0]
+                # Get the indices for this cell edge
+                ilow = int(my_edges[0] / pix_res)
+                jlow = int(my_edges[1] / pix_res)
+                klow = int(my_edges[2] / pix_res)
+                ihigh = ilow + dimens[0]
+                jhigh = jlow + dimens[1]
+                khigh = jlow + dimens[2]
 
-                rank_final_img[ilow: ihigh, jlow: jhigh] += img
+                # Shift the grid coordinates to account for the padding region
+                ilow -= (pad_pix // 2)
+                jlow -= (pad_pix // 2)
+                ihigh -= (pad_pix // 2)
+                jhigh -= (pad_pix // 2)
+
+                # If we are not at the edges we don't need any wrapping
+                # and can just assign the grid at once
+                if (i != 0 and i != cdim[0]
+                        and j != 0 and j != cdim[1]):
+                    rank_final_img[ilow: ihigh, jlow: jhigh] = img
+
+                else:  # we must wrap
+
+                    # Define indices ranges
+                    irange = np.arange(ilow, ihigh, 1, dtype=int)
+                    jrange = np.arange(jlow, jhigh, 1, dtype=int)
+
+                    # To allow for wrapping we need to assign pix by pix ( :( )
+                    for i_img, i_full in enumerate(irange):
+                        for j_img, j_full in enumerate(jrange):
+                            rank_final_img[i_full % rank_final_img.shape[0],
+                                           j_full % rank_final_img.shape[1]] = img[i_img, j_img]
 
     hdf.close()
 
@@ -230,9 +254,6 @@ def single_frame(num, nframes, size, rank, comm):
 
         for i_ind in range(ilims[:-1].size):
             for j_ind in range(jlims[:-1].size):
-
-                print(i_ind, j_ind, ilims[i_ind], jlims[j_ind],
-                      ilims[i_ind + 1], jlims[j_ind + 1])
 
                 # Get the subsample image
                 subsample = rgb_output[ilims[i_ind]: ilims[i_ind + 1],
