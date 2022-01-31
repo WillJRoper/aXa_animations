@@ -180,10 +180,8 @@ def single_frame(num, nframes, size, rank, comm):
                 # Get the indices for this cell edge
                 ilow = int(my_edges[0] / pix_res)
                 jlow = int(my_edges[1] / pix_res)
-                klow = int(my_edges[2] / pix_res)
                 ihigh = ilow + dimens[0]
                 jhigh = jlow + dimens[1]
-                khigh = jlow + dimens[2]
 
                 # Shift the grid coordinates to account for the padding region
                 ilow -= (pad_pix // 2)
