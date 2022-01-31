@@ -84,7 +84,7 @@ def make_spline_img(part_pos, Ndim, w, h, ls, smooth_low, smooth_high,
     return smooth_img
 
 
-def make_spline_img_3d(part_pos, Ndim, pad_pix, ls, smooth, pix_res,
+def make_spline_img_3d(part_pos, Ndim, pad_mpc, ls, smooth, pix_res,
                        spline_func=quartic_spline, spline_cut_off=5/2):
 
     # Initialise the image array
@@ -118,8 +118,8 @@ def make_spline_img_3d(part_pos, Ndim, pad_pix, ls, smooth, pix_res,
         kernel = w / sml ** 3
         norm_kernel = kernel / np.sum(kernel)
 
-        i_low = int((ipos[1] - (max_sml * 1.5 * spline_cut_off)) / pix_width) + (pad_pix // 2)
-        j_low = int((ipos[0] - (max_sml * 1.5 * spline_cut_off)) / pix_width) + (pad_pix // 2)
+        i_low = int((ipos[1] - (max_sml * 1.5 * spline_cut_off) + (pad_mpc // 2)) / pix_width)
+        j_low = int((ipos[0] - (max_sml * 1.5 * spline_cut_off) + (pad_mpc // 2)) / pix_width)
         i_high = i_low + norm_kernel.shape[1]
         j_high = j_low + norm_kernel.shape[0]
 

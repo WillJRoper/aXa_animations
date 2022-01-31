@@ -175,7 +175,7 @@ def single_frame(num, nframes, size, rank, comm):
 
             # Get images
             if poss.shape[0] > 0:
-                img = make_spline_img_3d(poss, res, pad_pix, masses,
+                img = make_spline_img_3d(poss, res, pad_mpc, masses,
                                          hsmls, pix_res)
 
             ilow = i * res[0] - (i * pad_pix)
