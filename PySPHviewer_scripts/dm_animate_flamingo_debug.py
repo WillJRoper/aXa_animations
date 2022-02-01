@@ -162,8 +162,6 @@ def single_frame(num, nframes, size, rank, comm):
             # Shift particle positions to this cell with pad region
             poss = ini_poss - my_edges + (pad_mpc / 2)
 
-            print(cell_width, np.min(poss, axis=0), np.max(poss, axis=0))
-
             # Compute camera radial distance to cell
             cam_sep = cam_pos - my_cent - true_cent
             cam_dist = np.sqrt(cam_sep[0] ** 2
@@ -229,6 +227,7 @@ def single_frame(num, nframes, size, rank, comm):
 
             final_img += sparse_rank_img.toarray()
 
+        print(final_img.min(), final_img.max())
         norm = LogNorm(vmin=vmin, vmax=vmax, clip=True)
 
         rgb_output = cmap(norm(final_img))
@@ -242,7 +241,7 @@ def single_frame(num, nframes, size, rank, comm):
         # cv2.imwrite('../plots/Ani/DM/Flamingo_DM_' + frame + '.jp2',
         #             cv2.cvtColor(rgb_output, cv2.COLOR_RGBA2BGR))
 
-        if rgb_output.shape[0] > 2**14:
+        if rgb_output.shape[0] > 2**15:
 
             # Compute the number of images to split full projection into
             img_size_i = rgb_output.shape[0]
@@ -287,6 +286,8 @@ def single_frame(num, nframes, size, rank, comm):
             print("DPI, Output Shape:", dpi, rgb_output.shape)
             fig = plt.figure(figsize=(1, 1), dpi=dpi)
             ax = fig.add_subplot(111)
+
+            print(np.min(rgb_output), np.max(rgb_output))
 
             ax.imshow(rgb_output, origin='lower')
             ax.tick_params(axis='both', left=False, top=False, right=False,
