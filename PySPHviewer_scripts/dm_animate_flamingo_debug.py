@@ -62,7 +62,7 @@ def single_frame(num, nframes, size, rank, comm):
     pix_res = soft * mod
 
     # Define padding
-    pad_pix = 12
+    pad_pix = 20
     pad_mpc = pad_pix * pix_res
 
     # Define (half) the kth dimension of spline smoothing array in Mpc
