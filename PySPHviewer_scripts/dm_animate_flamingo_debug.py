@@ -36,9 +36,7 @@ def single_frame(num, nframes, size, rank, comm):
     snap = snaps[num]
 
     # Define path
-    path = "/cosma8/data/dp004/jlvc76/FLAMINGO/ScienceRuns/L2800N5040/" \
-           "HYDRO_FIDUCIAL/snapshots/flamingo_" + snap \
-           + "/flamingo_" + snap + ".hdf5"
+    path = "/cosma/home/dp004/dc-rope1/SWIFT/DMO_1380_data/ani_hydro_1379.hdf5"
 
     frame = "%05d" % num
 
@@ -164,6 +162,8 @@ def single_frame(num, nframes, size, rank, comm):
             # Shift particle positions to this cell with pad region
             poss = ini_poss - my_edges + (pad_mpc / 2)
 
+            print(cell_width, np.min(poss, axis=0), np.max(poss, axis=0))
+
             # Compute camera radial distance to cell
             cam_sep = cam_pos - my_cent - true_cent
             cam_dist = np.sqrt(cam_sep[0] ** 2
@@ -274,7 +274,7 @@ def single_frame(num, nframes, size, rank, comm):
 
                     plt.margins(0, 0)
 
-                    fig.savefig('../plots/Ani/DM/Flamingo_DM_%s_%d%d.tiff'
+                    fig.savefig('../plots/Ani/DM/Debug_DM_%s_%d%d.tiff'
                                 % (frame, i_ind, j_ind),
                                 bbox_inches='tight',
                                 pad_inches=0)
@@ -295,8 +295,8 @@ def single_frame(num, nframes, size, rank, comm):
 
             plt.margins(0, 0)
 
-            fig.savefig('../plots/Ani/DM/Flamingo_DM_%s_%d%d.tiff'
-                        % (frame, i_ind, j_ind),
+            fig.savefig('../plots/Ani/DM/Debug_DM_%s.tiff'
+                        % frame,
                         bbox_inches='tight',
                         pad_inches=0)
 
