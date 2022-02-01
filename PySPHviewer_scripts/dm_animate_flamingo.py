@@ -169,7 +169,7 @@ def single_frame(num, nframes, size, rank, comm):
             okinds = np.logical_and(xokinds, yokinds)
             poss = poss[okinds, :]
             masses = masses[okinds]
-            hsmls = hsmls[okins]
+            hsmls = hsmls[okinds]
 
             # Compute camera radial distance to cell
             cam_sep = cam_pos - my_cent - true_cent
