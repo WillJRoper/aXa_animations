@@ -47,6 +47,7 @@ def single_frame(num, nframes, size, rank, comm):
 
     # Resolution modification for debugging
     mod = 1
+    smooth_mod = 2
 
     # Get metadata
     boxsize = hdf["Header"].attrs["BoxSize"][0]
@@ -63,7 +64,7 @@ def single_frame(num, nframes, size, rank, comm):
     pix_res = soft * mod
 
     # Define padding
-    pad_pix = 12
+    pad_pix = 24
     pad_mpc = pad_pix * pix_res
 
     # Define (half) the kth dimension of spline smoothing array in Mpc
@@ -155,7 +156,7 @@ def single_frame(num, nframes, size, rank, comm):
             masses = hdf["/PartType1/Masses"][
                      my_offset:my_offset + my_count] * 10 ** 10
             hsmls = hdf["/PartType1/Softenings"][
-                    my_offset:my_offset + my_count] * mod
+                    my_offset:my_offset + my_count] * smooth_mod
 
             # Wrap particles over boundaries
             ini_poss[ini_poss > boxsize / 2] -= boxsize
@@ -178,22 +179,16 @@ def single_frame(num, nframes, size, rank, comm):
                 dimens = img.shape
 
                 # Get the indices for this cell edge
-                ilow = int(my_edges[0] / pix_res)
-                jlow = int(my_edges[1] / pix_res)
+                ilow = int((my_edges[0] - (pad_mpc / 2)) / pix_res)
+                jlow = int((my_edges[1] - (pad_mpc / 2)) / pix_res)
                 ihigh = ilow + dimens[0]
                 jhigh = jlow + dimens[1]
-
-                # Shift the grid coordinates to account for the padding region
-                ilow -= (pad_pix // 2)
-                jlow -= (pad_pix // 2)
-                ihigh -= (pad_pix // 2)
-                jhigh -= (pad_pix // 2)
 
                 # If we are not at the edges we don't need any wrapping
                 # and can just assign the grid at once
                 if (i != 0 and i < cdim[0] - 1
                         and j != 0 and j < cdim[0] - 1):
-                    rank_final_img[ilow: ihigh, jlow: jhigh] = img
+                    rank_final_img[ilow: ihigh, jlow: jhigh] += img
 
                 else:  # we must wrap
 
@@ -205,7 +200,7 @@ def single_frame(num, nframes, size, rank, comm):
                     for i_img, i_full in enumerate(irange):
                         for j_img, j_full in enumerate(jrange):
                             rank_final_img[i_full % rank_final_img.shape[0],
-                                           j_full % rank_final_img.shape[1]] = img[i_img, j_img]
+                                           j_full % rank_final_img.shape[1]] += img[i_img, j_img]
 
     hdf.close()
 
