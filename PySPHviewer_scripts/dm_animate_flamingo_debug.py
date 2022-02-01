@@ -45,6 +45,7 @@ def single_frame(num, nframes, size, rank, comm):
 
     # Resolution modification for debugging
     mod = 1
+    smooth_mod = 1
 
     # Get metadata
     boxsize = hdf["Header"].attrs["BoxSize"][0]
@@ -65,7 +66,7 @@ def single_frame(num, nframes, size, rank, comm):
     pad_mpc = pad_pix * pix_res
 
     # Define (half) the kth dimension of spline smoothing array in Mpc
-    k_dim = soft * 10.
+    k_dim = soft * 10. * smooth_mod
     k_res = int(np.ceil(k_dim / pix_res))
     k_dim = k_res * pix_res
 
@@ -154,7 +155,7 @@ def single_frame(num, nframes, size, rank, comm):
             masses = hdf["/PartType1/Masses"][
                      my_offset:my_offset + my_count] * 10 ** 10
             hsmls = hdf["/PartType1/Softenings"][
-                    my_offset:my_offset + my_count] * 2
+                    my_offset:my_offset + my_count] * smooth_mod
 
             # Wrap particles over boundaries
             ini_poss[ini_poss > boxsize / 2] -= boxsize
