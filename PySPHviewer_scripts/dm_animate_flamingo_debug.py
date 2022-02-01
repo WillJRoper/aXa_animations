@@ -184,10 +184,12 @@ def single_frame(num, nframes, size, rank, comm):
                 jhigh = jlow + dimens[1]
 
                 # Shift the grid coordinates to account for the padding region
-                ilow -= (pad_pix // 2) - 1
-                jlow -= (pad_pix // 2) - 1
-                ihigh -= (pad_pix // 2) - 1
-                jhigh -= (pad_pix // 2) - 1
+                ilow -= pad_pix
+                jlow -= pad_pix
+                ihigh -= pad_pix
+                jhigh -= pad_pix
+
+                print(i, j, ilow, ihigh, jlow, jhigh)
 
                 # If we are not at the edges we don't need any wrapping
                 # and can just assign the grid at once
