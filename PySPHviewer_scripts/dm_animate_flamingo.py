@@ -273,13 +273,14 @@ def single_frame(num, nframes, size, rank, comm):
                                    bottom=False, labelleft=False,
                                    labeltop=False, labelright=False,
                                    labelbottom=False)
+                    ax.axis('off')
 
                     plt.margins(0, 0)
 
                     fig.savefig('../plots/Ani/DM/Flamingo_DM_%s_%d%d.tiff'
                                 % (frame, i_ind, j_ind),
                                 bbox_inches='tight',
-                                pad_inches=0)
+                                pad_inches=0, transparent=True)
 
                     plt.close(fig)
 
@@ -294,13 +295,14 @@ def single_frame(num, nframes, size, rank, comm):
             ax.tick_params(axis='both', left=False, top=False, right=False,
                            bottom=False, labelleft=False,
                            labeltop=False, labelright=False, labelbottom=False)
+            ax.axis('off')
 
             plt.margins(0, 0)
 
             fig.savefig('../plots/Ani/DM/Flamingo_DM_%s.tiff'
                         % frame,
                         bbox_inches='tight',
-                        pad_inches=0)
+                        pad_inches=0, transparent=True)
 
             plt.close(fig)
 

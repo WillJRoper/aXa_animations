@@ -7,7 +7,7 @@
 #SBATCH -e logs/output_flamingo_ani.%J.%A.%a.err
 #SBATCH -p cosma8
 #SBATCH -A dp004
-#SBATCH -t 03:00:00
+#SBATCH -t 05:00:00
 
 # Run the job from the following directory - change this to point to your own personal space on /lustre
 cd /cosma/home/dp004/dc-rope1/cosma7/Animations/codes/aXa_animations/PySPHviewer_scripts
