@@ -47,7 +47,7 @@ def single_frame(num, nframes, size, rank, comm):
 
     # Resolution modification for debugging
     mod = 1
-    smooth_mod = 2
+    smooth_mod = 3
 
     # Get metadata
     boxsize = hdf["Header"].attrs["BoxSize"][0]
@@ -68,7 +68,7 @@ def single_frame(num, nframes, size, rank, comm):
     pad_mpc = pad_pix * pix_res
 
     # Define (half) the kth dimension of spline smoothing array in Mpc
-    k_dim = soft * 10.
+    k_dim = soft * 10. * smooth_mod
     k_res = int(np.ceil(k_dim / pix_res))
     k_dim = k_res * pix_res
 
@@ -83,7 +83,7 @@ def single_frame(num, nframes, size, rank, comm):
 
     mean_den = tot_mass / boxsize ** 3
 
-    vmax, vmin = 5000 * mean_den, 0.1 * mean_den
+    vmax, vmin = 5000 * mean_den, 0.01 * mean_den
 
     cmap = cmr.eclipse
 
@@ -230,6 +230,7 @@ def single_frame(num, nframes, size, rank, comm):
 
             final_img += sparse_rank_img.toarray()
 
+        print("Maximum", np.log10(final_img.max()))
         norm = LogNorm(vmin=vmin, vmax=vmax, clip=True)
 
         rgb_output = cmap(norm(final_img))
@@ -296,8 +297,8 @@ def single_frame(num, nframes, size, rank, comm):
 
             plt.margins(0, 0)
 
-            fig.savefig('../plots/Ani/DM/Flamingo_DM_%s_%d%d.tiff'
-                        % (frame, i_ind, j_ind),
+            fig.savefig('../plots/Ani/DM/Flamingo_DM_%s.tiff'
+                        % frame,
                         bbox_inches='tight',
                         pad_inches=0)
 

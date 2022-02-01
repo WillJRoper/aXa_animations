@@ -3,7 +3,7 @@ import matplotlib as ml
 
 ml.use('Agg')
 import numpy as np
-from get_images import make_spline_img_cart_gas
+from get_images import make_spline_img_3d
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize, LogNorm
 from astropy.cosmology import Planck13 as cosmo
@@ -16,8 +16,7 @@ import os
 import mpi4py
 from mpi4py import MPI
 import scipy.sparse as sp
-import cv2
-from PIL import Image
+from scipy.spatial import cKDTree
 
 mpi4py.rc.recv_mprobe = False
 
@@ -48,6 +47,7 @@ def single_frame(num, nframes, size, rank, comm):
 
     # Resolution modification for debugging
     mod = 1
+    smooth_mod = 3
 
     # Get metadata
     boxsize = hdf["Header"].attrs["BoxSize"][0]
@@ -60,26 +60,30 @@ def single_frame(num, nframes, size, rank, comm):
     tot_mass = nparts * pmass
 
     # Define the simulation's "resolution"
-    pix_res = hdf["/PartType1/Softenings"][0] * mod
+    soft = hdf["/PartType1/Softenings"][0]
+    pix_res = soft * mod
 
-    npix_per_cell = np.int32(np.floor(cell_width / pix_res))
-    npix_per_cell_with_pad = npix_per_cell + 200
-    for i in range(3):
-        if npix_per_cell_with_pad[i] % 2 != 0:
-            npix_per_cell_with_pad[i] += 1
-    res = (npix_per_cell_with_pad[0], npix_per_cell_with_pad[1])
-    full_image_res = ((int(ncells**(1/3) * npix_per_cell[0]) + 500),
-                      (int(ncells**(1/3) * npix_per_cell[1]) + 500))
+    # Define padding
+    pad_pix = 24
+    pad_mpc = pad_pix * pix_res
+
+    # Define (half) the kth dimension of spline smoothing array in Mpc
+    k_dim = soft * 10. * smooth_mod
+    k_res = int(np.ceil(k_dim / pix_res))
+    k_dim = k_res * pix_res
+
+    npix_per_cell = np.int32(cell_width / pix_res)
+    npix_per_cell_with_pad = npix_per_cell + pad_pix
+    res = (npix_per_cell_with_pad[0], npix_per_cell_with_pad[1], k_res)
+    full_image_res = (int(ncells**(1/3) * npix_per_cell[0]),
+                      int(ncells**(1/3) * npix_per_cell[1]))
 
     # Set up the final image for each rank
     rank_final_img = np.zeros(full_image_res, dtype=np.float32)
 
-    # Define width and height
-    w, h = 2 * cell_width[1], 2 * cell_width[0]
-
     mean_den = tot_mass / boxsize ** 3
 
-    vmax, vmin = 5000 * mean_den, mean_den
+    vmax, vmin = 5000 * mean_den, 0.1 * mean_den
 
     cmap = cmr.eclipse
 
@@ -91,8 +95,7 @@ def single_frame(num, nframes, size, rank, comm):
         print("Cell width:", cell_width)
         print("Cell Pixel resolution:", np.int32(np.floor(cell_width[0]
                                                           / pix_res)))
-        print("Cell Pixel resolution (with padding):",
-              res)
+        print("Cell Pixel resolution (with padding):", res)
         print("Full image resolution:", full_image_res)
         print("Vmin - Vmax:", np.log10(vmin), "-", np.log10(vmax))
 
@@ -106,6 +109,7 @@ def single_frame(num, nframes, size, rank, comm):
     all_cells = []
     i_s = []
     j_s = []
+    k_s = []
     for i in range(cdim[0]):
         for j in range(cdim[1]):
             for k in range(3):
@@ -114,35 +118,58 @@ def single_frame(num, nframes, size, rank, comm):
                 all_cells.append(cell)
                 i_s.append(i)
                 j_s.append(j)
+                k_s.append(k)
 
     rank_cells = np.linspace(0, len(all_cells), size + 1, dtype=int)
     my_cells = all_cells[rank_cells[rank]: rank_cells[rank + 1]]
     my_i_s = i_s[rank_cells[rank]: rank_cells[rank + 1]]
     my_j_s = j_s[rank_cells[rank]: rank_cells[rank + 1]]
+    my_k_s = k_s[rank_cells[rank]: rank_cells[rank + 1]]
 
     print("Rank:", rank)
     print("My Ncells:", len(my_cells))
 
-    for i, j, my_cell in zip(my_i_s, my_j_s, my_cells):
+    # Define range and extent for the images
+    imgrange = ((-(pad_mpc / 2), cell_width + (pad_mpc / 2)),
+                (-(pad_mpc / 2), cell_width + (pad_mpc / 2)),
+                (-k_dim / 2, k_dim / 2))
+    imgextent = [-(pad_mpc / 2), cell_width + (pad_mpc / 2),
+                 -(pad_mpc / 2), cell_width + (pad_mpc / 2)]
+
+    for i, j, k, my_cell in zip(my_i_s, my_j_s, my_k_s, my_cells):
 
         # Retrieve the offset and counts
         my_offset = hdf["/Cells/OffsetsInFile/PartType1"][my_cell]
         my_count = hdf["/Cells/Counts/PartType1"][my_cell]
         my_cent = hdf["/Cells/Centres"][my_cell, :]
 
+        # Define the edges of this cell with pad region
+        my_edges = np.array([(i * cell_width[0]),
+                             (j * cell_width[1]),
+                             (k * cell_width[2])])
+
         if my_count > 0:
 
-            poss = hdf["/PartType0/Coordinates"][
+            # Get particle data
+            ini_poss = hdf["/PartType1/Coordinates"][
                    my_offset:my_offset + my_count, :]
-            masses = hdf["/PartType0/Masses"][
+            masses = hdf["/PartType1/Masses"][
                      my_offset:my_offset + my_count] * 10 ** 10
-            poss -= my_cent
-
-            poss[poss > boxsize / 2] -= boxsize
-            poss[poss < -boxsize / 2] += boxsize
-
             hsmls = hdf["/PartType1/Softenings"][
-                    my_offset:my_offset + my_count] * mod
+                    my_offset:my_offset + my_count] * smooth_mod
+
+            # Shift particle positions to this cell with pad region
+            poss = ini_poss - my_edges + (pad_mpc / 2)
+
+            # Remove particles too far from the cell
+            xokinds = np.logical_and(poss[:, 0] < cell_width[0] + (pad_mpc / 2),
+                                     poss[:, 0] > - (pad_mpc / 2))
+            yokinds = np.logical_and(poss[:, 1] < cell_width[1] + (pad_mpc / 2),
+                                     poss[:, 1] > - (pad_mpc / 2))
+            okinds = np.logical_and(xokinds, yokinds)
+            poss = poss[okinds, :]
+            masses = masses[okinds]
+            hsmls = hsmls[okinds]
 
             # Compute camera radial distance to cell
             cam_sep = cam_pos - my_cent - true_cent
@@ -151,37 +178,35 @@ def single_frame(num, nframes, size, rank, comm):
                                + cam_sep[2] ** 2)
 
             # Get images
-            img = make_spline_img_cart_gas(poss, res, w, h, masses,
-                                           hsmls, my_cent)
+            if poss.shape[0] > 0:
+                img = make_spline_img_3d(poss, res, pad_mpc, masses,
+                                         hsmls, pix_res)
+                
+                dimens = img.shape
 
-            ilow = i * npix_per_cell[1]
-            jlow = j * npix_per_cell[0]
+                # Get the indices for this cell edge
+                ilow = int((my_edges[0] - (pad_mpc / 2)) / pix_res)
+                jlow = int((my_edges[1] - (pad_mpc / 2)) / pix_res)
+                ihigh = ilow + dimens[0]
+                jhigh = jlow + dimens[1]
 
-            dimens = img.shape
+                # If we are not at the edges we don't need any wrapping
+                # and can just assign the grid at once
+                if (i != 0 and i < cdim[0] - 1
+                        and j != 0 and j < cdim[0] - 1):
+                    rank_final_img[ilow: ihigh, jlow: jhigh] += img
 
-            ihigh = ilow + dimens[0]
-            jhigh = jlow + dimens[1]
+                else:  # we must wrap
 
-            if ilow < 0:
-                img = img[100:, :]
-                ilow = 0
-                print("ilow<0", ilow, img.shape)
-            if jlow < 0:
-                img = img[:, 100:]
-                jlow = 0
-                print("jlow<0", jlow, img.shape)
-            if ihigh >= full_image_res[1]:
-                img = img[:res[1] - 100, :]
-                print("ihigh>size", ihigh, img.shape)
-                ihigh = full_image_res[1] - 1
-                print("ihigh>size", ihigh, img.shape)
-            if jhigh >= full_image_res[0]:
-                img = img[:, :res[0] - 100]
-                print("jhigh>size", jhigh, img.shape)
-                jhigh = full_image_res[0] - 1
-                print("jhigh>size", jhigh, img.shape)
+                    # Define indices ranges
+                    irange = np.arange(ilow, ihigh, 1, dtype=int)
+                    jrange = np.arange(jlow, jhigh, 1, dtype=int)
 
-            rank_final_img[ilow: ihigh, jlow: jhigh] += img
+                    # To allow for wrapping we need to assign pix by pix ( :( )
+                    for i_img, i_full in enumerate(irange):
+                        for j_img, j_full in enumerate(jrange):
+                            rank_final_img[i_full % rank_final_img.shape[0],
+                                           j_full % rank_final_img.shape[1]] += img[i_img, j_img]
 
     hdf.close()
 
@@ -205,9 +230,10 @@ def single_frame(num, nframes, size, rank, comm):
 
             final_img += sparse_rank_img.toarray()
 
+        print("Maximum", np.log10(final_img.max()))
         norm = LogNorm(vmin=vmin, vmax=vmax, clip=True)
 
-        rgb_output = np.int8(cmap(norm(final_img)))
+        rgb_output = cmap(norm(final_img))
 
         print(rgb_output.shape, rgb_output.dtype,
               rgb_output.min(), rgb_output.max())
@@ -218,34 +244,65 @@ def single_frame(num, nframes, size, rank, comm):
         # cv2.imwrite('../plots/Ani/DM/Flamingo_DM_' + frame + '.jp2',
         #             cv2.cvtColor(rgb_output, cv2.COLOR_RGBA2BGR))
 
-        # Compute the number of images to split full projection into
-        img_size = rgb_output.shape[0]
-        lims = np.linspace(0, img_size, int(img_size / 2**15) + 1, dtype=int)
+        if rgb_output.shape[0] > 2**14:
 
-        for i_ind in lims[:-1]:
-            for j_ind in lims[:-1]:
+            # Compute the number of images to split full projection into
+            img_size_i = rgb_output.shape[0]
+            img_size_j = rgb_output.shape[1]
+            ilims = np.linspace(0, img_size_i, int(img_size_i / 2**13.5) + 1,
+                                dtype=int)
+            jlims = np.linspace(0, img_size_j, int(img_size_j / 2 ** 13.5) + 1,
+                                dtype=int)
 
-                # Get the subsample image
-                subsample = final_img[lims[i_ind]: lims[i_ind + 1], lims[j_ind]: lims[j_ind + 1], :]
+            for i_ind in range(ilims[:-1].size):
+                for j_ind in range(jlims[:-1].size):
 
-                dpi = subsample.shape[0]
-                print("DPI, Output Shape:", dpi, rgb_output.shape)
-                fig = plt.figure(figsize=(1, 1), dpi=dpi)
-                ax = fig.add_subplot(111)
+                    # Get the subsample image
+                    subsample = rgb_output[ilims[i_ind]: ilims[i_ind + 1],
+                                jlims[j_ind]: jlims[j_ind + 1], :]
 
-                ax.imshow(subsample, origin='lower')
-                ax.tick_params(axis='both', left=False, top=False, right=False,
-                               bottom=False, labelleft=False,
-                               labeltop=False, labelright=False, labelbottom=False)
+                    dpi = subsample.shape[0]
+                    print("DPI, Output Shape:", dpi, subsample.shape,
+                          rgb_output.shape)
+                    fig = plt.figure(figsize=(1, 1), dpi=dpi)
+                    ax = fig.add_subplot(111)
 
-                plt.margins(0, 0)
+                    ax.imshow(subsample, origin='lower')
+                    ax.tick_params(axis='both', left=False, top=False,
+                                   right=False,
+                                   bottom=False, labelleft=False,
+                                   labeltop=False, labelright=False,
+                                   labelbottom=False)
 
-                fig.savefig('../plots/Ani/DM/Flamingo_DM_%d_%d%d.tiff'
-                            % (frame, i_ind, j_ind),
-                            bbox_inches='tight',
-                            pad_inches=0)
+                    plt.margins(0, 0)
 
-                plt.close(fig)
+                    fig.savefig('../plots/Ani/DM/Flamingo_DM_%s_%d%d.tiff'
+                                % (frame, i_ind, j_ind),
+                                bbox_inches='tight',
+                                pad_inches=0)
+
+                    plt.close(fig)
+
+        else:
+
+            dpi = rgb_output.shape[0]
+            print("DPI, Output Shape:", dpi, rgb_output.shape)
+            fig = plt.figure(figsize=(1, 1), dpi=dpi)
+            ax = fig.add_subplot(111)
+
+            ax.imshow(rgb_output, origin='lower')
+            ax.tick_params(axis='both', left=False, top=False, right=False,
+                           bottom=False, labelleft=False,
+                           labeltop=False, labelright=False, labelbottom=False)
+
+            plt.margins(0, 0)
+
+            fig.savefig('../plots/Ani/DM/Flamingo_DM_%s.tiff'
+                        % frame,
+                        bbox_inches='tight',
+                        pad_inches=0)
+
+            plt.close(fig)
 
 
 nframes = 1000
