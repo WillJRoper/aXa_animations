@@ -154,7 +154,7 @@ def single_frame(num, nframes, size, rank, comm):
             masses = hdf["/PartType1/Masses"][
                      my_offset:my_offset + my_count] * 10 ** 10
             hsmls = hdf["/PartType1/Softenings"][
-                    my_offset:my_offset + my_count] * mod
+                    my_offset:my_offset + my_count] * 2
 
             # Wrap particles over boundaries
             ini_poss[ini_poss > boxsize / 2] -= boxsize
@@ -183,10 +183,10 @@ def single_frame(num, nframes, size, rank, comm):
                 jhigh = jlow + dimens[1]
 
                 # Shift the grid coordinates to account for the padding region
-                ilow -= (pad_pix // 2)
-                jlow -= (pad_pix // 2)
-                ihigh -= (pad_pix // 2)
-                jhigh -= (pad_pix // 2)
+                ilow -= (pad_pix // 2) - 1
+                jlow -= (pad_pix // 2) - 1
+                ihigh -= (pad_pix // 2) - 1
+                jhigh -= (pad_pix // 2) - 1
 
                 # If we are not at the edges we don't need any wrapping
                 # and can just assign the grid at once
