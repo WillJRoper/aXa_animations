@@ -227,7 +227,7 @@ def single_frame(num, nframes, size, rank, comm):
 
             final_img += sparse_rank_img.toarray()
 
-        print(final_img.min(), final_img.max())
+        print(np.log10(final_img.min()), np.log10(final_img.max()))
         norm = LogNorm(vmin=vmin, vmax=vmax, clip=True)
 
         rgb_output = cmap(norm(final_img))
