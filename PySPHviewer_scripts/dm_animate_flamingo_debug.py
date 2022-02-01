@@ -45,7 +45,7 @@ def single_frame(num, nframes, size, rank, comm):
 
     # Resolution modification for debugging
     mod = 1
-    smooth_mod = 1
+    smooth_mod = 2
 
     # Get metadata
     boxsize = hdf["Header"].attrs["BoxSize"][0]
