@@ -178,8 +178,8 @@ def single_frame(num, nframes, size, rank, comm):
                 dimens = img.shape
 
                 # Get the indices for this cell edge
-                ilow = int(my_edges[0] / pix_res)
-                jlow = int(my_edges[1] / pix_res)
+                ilow = int((my_edges[0] - (pad_mpc / 2)) / pix_res)
+                jlow = int((my_edges[1] - (pad_mpc / 2))  / pix_res)
                 ihigh = ilow + dimens[0]
                 jhigh = jlow + dimens[1]
 
