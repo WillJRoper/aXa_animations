@@ -179,15 +179,9 @@ def single_frame(num, nframes, size, rank, comm):
 
                 # Get the indices for this cell edge
                 ilow = int((my_edges[0] - (pad_mpc / 2)) / pix_res)
-                jlow = int((my_edges[1] - (pad_mpc / 2))  / pix_res)
+                jlow = int((my_edges[1] - (pad_mpc / 2)) / pix_res)
                 ihigh = ilow + dimens[0]
                 jhigh = jlow + dimens[1]
-
-                # Shift the grid coordinates to account for the padding region
-                ilow -= pad_pix
-                jlow -= pad_pix
-                ihigh -= pad_pix
-                jhigh -= pad_pix
 
                 print(i, j, ilow, ihigh, jlow, jhigh)
 
@@ -195,7 +189,7 @@ def single_frame(num, nframes, size, rank, comm):
                 # and can just assign the grid at once
                 if (i != 0 and i < cdim[0] - 1
                         and j != 0 and j < cdim[0] - 1):
-                    rank_final_img[ilow: ihigh, jlow: jhigh] = img
+                    rank_final_img[ilow: ihigh, jlow: jhigh] += img
 
                 else:  # we must wrap
 
@@ -207,7 +201,7 @@ def single_frame(num, nframes, size, rank, comm):
                     for i_img, i_full in enumerate(irange):
                         for j_img, j_full in enumerate(jrange):
                             rank_final_img[i_full % rank_final_img.shape[0],
-                                           j_full % rank_final_img.shape[1]] = img[i_img, j_img]
+                                           j_full % rank_final_img.shape[1]] += img[i_img, j_img]
 
     hdf.close()
 
