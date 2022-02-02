@@ -83,7 +83,7 @@ def single_frame(num, nframes, size, rank, comm):
 
     mean_den = tot_mass / boxsize ** 3
 
-    vmax, vmin = 1600 * mean_den, 0.01 * mean_den
+    vmax, vmin = 10.2, 5
 
     cmap = cmr.eclipse
 
@@ -230,7 +230,8 @@ def single_frame(num, nframes, size, rank, comm):
 
             final_img += sparse_rank_img.toarray()
 
-        print("Maximum", np.log10(final_img.max()))
+        print("Maximum", np.log10(final_img[final_img >0].min()),
+              np.log10(final_img.max()))
         norm = LogNorm(vmin=vmin, vmax=vmax, clip=True)
 
         rgb_output = cmap(norm(final_img))
@@ -249,9 +250,9 @@ def single_frame(num, nframes, size, rank, comm):
             # Compute the number of images to split full projection into
             img_size_i = rgb_output.shape[0]
             img_size_j = rgb_output.shape[1]
-            ilims = np.linspace(0, img_size_i, int(img_size_i / 2**13.5) + 1,
+            ilims = np.linspace(0, img_size_i, int(img_size_i / 2**13) + 1,
                                 dtype=int)
-            jlims = np.linspace(0, img_size_j, int(img_size_j / 2 ** 13.5) + 1,
+            jlims = np.linspace(0, img_size_j, int(img_size_j / 2 ** 13) + 1,
                                 dtype=int)
 
             for i_ind in range(ilims[:-1].size):
