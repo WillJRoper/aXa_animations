@@ -83,7 +83,7 @@ def single_frame(num, nframes, size, rank, comm):
 
     mean_den = tot_mass / boxsize ** 3
 
-    vmax, vmin = 5000 * mean_den, 0.01 * mean_den
+    vmax, vmin = 1600 * mean_den, 0.01 * mean_den
 
     cmap = cmr.eclipse
 
