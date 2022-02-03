@@ -47,13 +47,12 @@ def single_frame(num, nframes, size, rank, comm):
 
     # Resolution modification for debugging
     mod = 1
-    smooth_mod = 3
 
     # Get metadata
     boxsize = hdf["Header"].attrs["BoxSize"][0]
     z = hdf["Header"].attrs["Redshift"]
     nparts = hdf["Header"].attrs["NumPart_Total"][1]
-    pmass = hdf["/PartType1/Masses"][0] * 10 ** 10
+    pmass = hdf["/PartType0/Masses"][0] * 10 ** 10
     cdim = hdf["Cells/Meta-data"].attrs["dimension"]
     ncells = hdf["/Cells/Meta-data"].attrs["nr_cells"]
     cell_width = hdf["Cells/Meta-data"].attrs["size"]
@@ -68,7 +67,7 @@ def single_frame(num, nframes, size, rank, comm):
     pad_mpc = pad_pix * pix_res
 
     # Define (half) the kth dimension of spline smoothing array in Mpc
-    k_dim = soft * 10. * smooth_mod
+    k_dim = soft * 20
     k_res = int(np.ceil(k_dim / pix_res))
     k_dim = k_res * pix_res
 
@@ -83,9 +82,9 @@ def single_frame(num, nframes, size, rank, comm):
 
     mean_den = tot_mass / boxsize ** 3
 
-    vmax, vmin = 5000 * mean_den, 0.1 * mean_den
+    vmax, vmin = 10**8, 10**1
 
-    cmap = cmr.eclipse
+    cmap = plt.get_cmap('magma')
 
     if rank == 0:
         print("Boxsize:", boxsize)
@@ -139,8 +138,8 @@ def single_frame(num, nframes, size, rank, comm):
     for i, j, k, my_cell in zip(my_i_s, my_j_s, my_k_s, my_cells):
 
         # Retrieve the offset and counts
-        my_offset = hdf["/Cells/OffsetsInFile/PartType1"][my_cell]
-        my_count = hdf["/Cells/Counts/PartType1"][my_cell]
+        my_offset = hdf["/Cells/OffsetsInFile/PartType0"][my_cell]
+        my_count = hdf["/Cells/Counts/PartType0"][my_cell]
         my_cent = hdf["/Cells/Centres"][my_cell, :]
 
         # Define the edges of this cell with pad region
@@ -151,12 +150,14 @@ def single_frame(num, nframes, size, rank, comm):
         if my_count > 0:
 
             # Get particle data
-            ini_poss = hdf["/PartType1/Coordinates"][
+            ini_poss = hdf["/PartType0/Coordinates"][
                    my_offset:my_offset + my_count, :]
-            masses = hdf["/PartType1/Masses"][
+            masses = hdf["/PartType0/Masses"][
                      my_offset:my_offset + my_count] * 10 ** 10
-            hsmls = hdf["/PartType1/Softenings"][
-                    my_offset:my_offset + my_count] * smooth_mod
+            temps = hdf["PartType0/Temperatures"][
+                     my_offset:my_offset + my_count]
+            hsmls = hdf["/PartType0/SmoothingLength"][
+                    my_offset:my_offset + my_count]
 
             # Shift particle positions to this cell with pad region
             poss = ini_poss - my_edges + (pad_mpc / 2)
@@ -169,6 +170,7 @@ def single_frame(num, nframes, size, rank, comm):
             okinds = np.logical_and(xokinds, yokinds)
             poss = poss[okinds, :]
             masses = masses[okinds]
+            temps = masses[okinds]
             hsmls = hsmls[okinds]
 
             # Compute camera radial distance to cell
@@ -179,8 +181,12 @@ def single_frame(num, nframes, size, rank, comm):
 
             # Get images
             if poss.shape[0] > 0:
-                img = make_spline_img_3d(poss, res, pad_mpc, masses,
+                mimg = make_spline_img_3d(poss, res, pad_mpc, masses,
                                          hsmls, pix_res)
+                tmimg = make_spline_img_3d(poss, res, pad_mpc, temps * masses,
+                                         hsmls, pix_res)
+
+                img = tmimg / mimg
                 
                 dimens = img.shape
 
@@ -230,7 +236,8 @@ def single_frame(num, nframes, size, rank, comm):
 
             final_img += sparse_rank_img.toarray()
 
-        print("Maximum", np.log10(final_img.max()))
+        print("Minimum/Maximum", np.log10(final_img[final_img >0].min()),
+              np.log10(final_img.max()))
         norm = LogNorm(vmin=vmin, vmax=vmax, clip=True)
 
         rgb_output = cmap(norm(final_img))
@@ -249,9 +256,9 @@ def single_frame(num, nframes, size, rank, comm):
             # Compute the number of images to split full projection into
             img_size_i = rgb_output.shape[0]
             img_size_j = rgb_output.shape[1]
-            ilims = np.linspace(0, img_size_i, int(img_size_i / 2**13.5) + 1,
+            ilims = np.linspace(0, img_size_i, int(img_size_i / 2**13) + 1,
                                 dtype=int)
-            jlims = np.linspace(0, img_size_j, int(img_size_j / 2 ** 13.5) + 1,
+            jlims = np.linspace(0, img_size_j, int(img_size_j / 2 ** 13) + 1,
                                 dtype=int)
 
             for i_ind in range(ilims[:-1].size):
@@ -277,7 +284,7 @@ def single_frame(num, nframes, size, rank, comm):
 
                     plt.margins(0, 0)
 
-                    fig.savefig('../plots/Ani/DM/Flamingo_DM_%s_%d%d.tiff'
+                    fig.savefig('../plots/Ani/Gas_Temp/Flamingo_Gas_Temp_%s_%d_%d.tiff'
                                 % (frame, i_ind, j_ind),
                                 bbox_inches='tight',
                                 pad_inches=0, transparent=True)
@@ -299,7 +306,7 @@ def single_frame(num, nframes, size, rank, comm):
 
             plt.margins(0, 0)
 
-            fig.savefig('../plots/Ani/DM/Flamingo_DM_%s.tiff'
+            fig.savefig('../plots/Ani/Gas_Temp/Flamingo_Gas_Temp_%s.tiff'
                         % frame,
                         bbox_inches='tight',
                         pad_inches=0, transparent=True)
@@ -308,13 +315,5 @@ def single_frame(num, nframes, size, rank, comm):
 
 
 nframes = 1000
-if int(sys.argv[2]) > 0:
-    frame = "%05d" % int(sys.argv[1])
-    if os.path.isfile('../plots/Ani/DM/Flamingo_DM_' + frame + '.png'):
-        print("File exists")
-    else:
-        single_frame(int(sys.argv[1]), nframes=nframes,
-                     size=size, rank=rank, comm=comm)
-else:
-    single_frame(int(sys.argv[1]), nframes=nframes,
-                 size=size, rank=rank, comm=comm)
+single_frame(int(sys.argv[1]), nframes=nframes,
+             size=size, rank=rank, comm=comm)
