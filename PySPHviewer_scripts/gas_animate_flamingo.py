@@ -65,7 +65,7 @@ def single_frame(num, nframes, size, rank, comm):
     npix_per_cell = np.int32(cell_width / pix_res)
 
     # Define padding
-    pad_pix = npix_per_cell
+    pad_pix = npix_per_cell[0]
     pad_mpc = pad_pix * pix_res
 
     # Define (half) the kth dimension of spline smoothing array in Mpc
@@ -164,9 +164,9 @@ def single_frame(num, nframes, size, rank, comm):
             poss = ini_poss - my_edges + (pad_mpc / 2)
 
             # Remove particles too far from the cell
-            xokinds = np.logical_and(poss[:, 0] < cell_width[0] + (pad_mpc / 2),
+            xokinds = np.logical_and(poss[:, 0] < (cell_width[0] + (pad_mpc / 2)),
                                      poss[:, 0] > - (pad_mpc / 2))
-            yokinds = np.logical_and(poss[:, 1] < cell_width[1] + (pad_mpc / 2),
+            yokinds = np.logical_and(poss[:, 1] < (cell_width[1] + (pad_mpc / 2)),
                                      poss[:, 1] > - (pad_mpc / 2))
             okinds = np.logical_and(xokinds, yokinds)
             poss = poss[okinds, :]
