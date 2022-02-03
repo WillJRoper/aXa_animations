@@ -83,7 +83,7 @@ def single_frame(num, nframes, size, rank, comm):
 
     mean_den = tot_mass / boxsize ** 3
 
-    vmax, vmin = 10**10.2, 10**5
+    vmax, vmin = 10**10.2, 10**6.5
 
     cmap = cmr.eclipse
 
@@ -278,7 +278,7 @@ def single_frame(num, nframes, size, rank, comm):
 
                     plt.margins(0, 0)
 
-                    fig.savefig('../plots/Ani/DM/Flamingo_DM_%s_%d%d.tiff'
+                    fig.savefig('../plots/Ani/DM/Flamingo_DM_%s_%d_%d.tiff'
                                 % (frame, i_ind, j_ind),
                                 bbox_inches='tight',
                                 pad_inches=0, transparent=True)
