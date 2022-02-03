@@ -58,7 +58,7 @@ def single_frame(num, nframes, size, rank, comm):
     cell_width = hdf["Cells/Meta-data"].attrs["size"]
     tot_mass = nparts * pmass
 
-    print(hdf["/PartType0/SmoothingLengths"].max())
+    print(hdf["/PartType0/SmoothingLengths"][...].max())
 
     # Define the simulation's "resolution"
     soft = hdf["/PartType1/Softenings"][0]
