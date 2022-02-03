@@ -62,16 +62,17 @@ def single_frame(num, nframes, size, rank, comm):
     soft = hdf["/PartType1/Softenings"][0]
     pix_res = soft * mod
 
+    npix_per_cell = np.int32(cell_width / pix_res)
+
     # Define padding
-    pad_pix = 24
+    pad_pix = npix_per_cell
     pad_mpc = pad_pix * pix_res
 
     # Define (half) the kth dimension of spline smoothing array in Mpc
-    k_dim = soft * 20
+    k_dim = soft * npix_per_cell * 1.5
     k_res = int(np.ceil(k_dim / pix_res))
     k_dim = k_res * pix_res
 
-    npix_per_cell = np.int32(cell_width / pix_res)
     npix_per_cell_with_pad = npix_per_cell + pad_pix
     res = (npix_per_cell_with_pad[0], npix_per_cell_with_pad[1], k_res)
     full_image_res = (int(ncells**(1/3) * npix_per_cell[0]),
