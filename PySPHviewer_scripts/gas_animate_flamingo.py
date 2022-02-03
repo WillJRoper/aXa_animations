@@ -69,7 +69,7 @@ def single_frame(num, nframes, size, rank, comm):
     pad_mpc = pad_pix * pix_res
 
     # Define (half) the kth dimension of spline smoothing array in Mpc
-    k_dim = soft * npix_per_cell[2] * 1.5
+    k_dim = soft * npix_per_cell[2] / 2
     k_res = int(np.ceil(k_dim / pix_res))
     k_dim = k_res * pix_res
 
