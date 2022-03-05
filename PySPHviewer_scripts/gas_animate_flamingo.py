@@ -246,12 +246,6 @@ def single_frame(num, nframes, size, rank, comm):
         print(rgb_output.shape, rgb_output.dtype,
               rgb_output.min(), rgb_output.max())
 
-        # im = Image.fromarray(rgb_output, "RGBA")
-        # im.save('../plots/Ani/DM/Flamingo_DM_' + frame + '.tiff')
-
-        # cv2.imwrite('../plots/Ani/DM/Flamingo_DM_' + frame + '.jp2',
-        #             cv2.cvtColor(rgb_output, cv2.COLOR_RGBA2BGR))
-
         if rgb_output.shape[0] > 2**14:
 
             # Compute the number of images to split full projection into
@@ -285,7 +279,7 @@ def single_frame(num, nframes, size, rank, comm):
 
                     plt.margins(0, 0)
 
-                    fig.savefig('../plots/Ani/Gas_Temp/Flamingo_Gas_Temp_%s_%d_%d.tiff'
+                    fig.savefig('../plots/Flamingo/Flamingo_Gas_Temp_%s_%d_%d.tiff'
                                 % (frame, i_ind, j_ind),
                                 bbox_inches='tight',
                                 pad_inches=0, transparent=True)
@@ -307,7 +301,7 @@ def single_frame(num, nframes, size, rank, comm):
 
             plt.margins(0, 0)
 
-            fig.savefig('../plots/Ani/Gas_Temp/Flamingo_Gas_Temp_%s.tiff'
+            fig.savefig('../plots/Flamingo/Flamingo_Gas_Temp_%s.tiff'
                         % frame,
                         bbox_inches='tight',
                         pad_inches=0, transparent=True)
