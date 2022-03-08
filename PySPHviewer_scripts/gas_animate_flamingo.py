@@ -36,7 +36,7 @@ def single_frame(num, nframes, size, rank, comm):
     snap = snaps[num]
 
     # Define path
-    path = "/cosma8/data/dp004/jlvc76/FLAMINGO/ScienceRuns/L2800N5040/" \
+    path = "/cosma8/data/dp004/flamingo/Runs/L2800N5040/" \
            "HYDRO_FIDUCIAL/snapshots/flamingo_" + snap \
            + "/flamingo_" + snap + ".hdf5"
 
