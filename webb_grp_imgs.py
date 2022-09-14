@@ -110,8 +110,8 @@ def flux(tag, Masses, Ages, Metallicities, MetSurfaceDensities, gasMetallicities
     for f in filters:
         print("Computing fluxes for %s" % f)
         # --- calculate rest-frame flux of each object in nJy
-        Fnu = models.generate_Fnu_array(model, Masses, Ages, Metallicities,
-                                        tauVs_ISM, tauVs_BC, F, f,
+        Fnu = models.generate_Fnu_array(model, F, f, Masses, Ages,
+                                        Metallicities, tauVs_ISM, tauVs_BC,
                                         fesc=fesc, log10t_BC=log10t_BC)
 
         Fnus[f] = Fnu
