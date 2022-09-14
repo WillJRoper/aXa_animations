@@ -201,7 +201,6 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
                           oversample=oversample)
 
         # Convolve the PSF and include this particle in the image
-        print(img.shape, psf[0].data.shape)
         img += signal.fftconvolve(img, psf[0].data, mode="same")
 
     return img
@@ -261,17 +260,18 @@ arc_res = 0.031 / oversample
 kpc_res = arc_res / arcsec_per_kpc_proper
 npix = int(np.ceil(width * 10 ** 3 / kpc_res))
 
-print("Image resolution is %d" % npix)
+if rank == 0:
+    print("Image resolution is %d" % npix)
 
 # Define the true image size in Mpc
 width_mpc = kpc_res * npix / 10 ** 3
 width_arc = arc_res * npix
 half_width = width_mpc / 2
 
-print("Image FOV is (%.2f, %.2f) arcseconds/(%.2f, %.2f) pMpc"
-      % (width_arc, width_arc, width_mpc, width_mpc))
-print(S_coords)
-print(half_width)
+if rank == 0:
+    print("Image FOV is (%.2f, %.2f) arcseconds/(%.2f, %.2f) pMpc"
+          % (width_arc, width_arc, width_mpc, width_mpc))
+
 # Excise the region to make an image of
 okinds = np.logical_and(np.abs(S_coords[:, 0]) < half_width,
                         np.abs(S_coords[:, 1]) < half_width)
@@ -284,7 +284,8 @@ S_los = S_los[okinds]
 S_sml = S_sml[okinds]
 S_coords = S_coords[okinds, :]
 
-print("There are %d particles in the FOV" % S_mass.size)
+if rank == 0:
+    print("There are %d particles in the FOV" % S_mass.size)
 
 # Shift positions such that they are positive
 S_coords += half_width
@@ -317,8 +318,6 @@ pix_pos[:, 2] = Z.ravel()
 
 # Build KDTree
 tree = cKDTree(pix_pos)
-
-print("Pixel tree built")
 
 # Create dictionary to store each filter's image
 mono_imgs = {}
