@@ -17,6 +17,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 os.environ['FLARE'] = '/cosma7/data/dp004/dc-wilk2/flare'
+os.environ["WEBBPSF_PATH"] = "cosma8/data/dp004/dc-rope1/cosma8/Visualisation/webbpsf-data"
 
 matplotlib.use('Agg')
 warnings.filterwarnings('ignore')
