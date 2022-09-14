@@ -54,8 +54,7 @@ def flux(Masses, Ages, Metallicities, MetSurfaceDensities, gasMetallicities,
          filters=flare.filters.NIRCam_W, Type='Total', log10t_BC=7.):
 
     # Load the kernel
-    kinp = np.load('/cosma/home/dp004/dc-rope1/cosma7/FLARES/'
-                   'flares/los_extinction/kernel_sph-anarchy.npz',
+    kinp = np.load('/cosma7/data/dp004/dc-payy1/my_files/los/kernel_sph-anarchy.npz',
                    allow_pickle=True)
     lkernel = kinp['kernel']
     header = kinp['header']
@@ -111,6 +110,7 @@ def flux(Masses, Ages, Metallicities, MetSurfaceDensities, gasMetallicities,
 
     # --- calculate rest-frame Luminosity. In units of erg/s/Hz
     for f in filters:
+        print("Computing fluxes for %s" % f)
         # --- calculate rest-frame flux of each object in nJy
         Fnu = models.generate_Fnu_array(model, Masses, Ages, Metallicities,
                                         tauVs_ISM, tauVs_BC, F, f,
