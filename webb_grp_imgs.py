@@ -221,7 +221,8 @@ hdf = h5py.File(master_base, "r")
 hf = hdf[reg]
 
 # Get the required data
-gal_smass = hf[snap + '/Galaxy'].get('Mstar')
+gal_smass = np.array(hf[snap + '/Galaxy'].get('M500'),
+                     dtype=np.float64)
 cops = np.array(hf[snap + '/Galaxy'].get("COP"),
                 dtype=np.float64)
 S_mass_ini = np.array(hf[snap + '/Particle'].get('S_MassInitial'),
