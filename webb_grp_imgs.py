@@ -361,7 +361,7 @@ ax.tick_params(axis='both', left=False, top=False, right=False,
 
 plt.margins(0, 0)
 
-fig.savefig('../plots/Webb_reg-%s_snap-%s.png' % (reg, snap),
+fig.savefig('../Visualisation/plots/Webb_reg-%s_snap-%s.png' % (reg, snap),
             bbox_inches='tight',
             pad_inches=0)
 
