@@ -47,7 +47,7 @@ def DTM_fit(Z, Age):
     return DTM
 
 
-def flux(Masses, Ages, Metallicities, MetSurfaceDensities, gasMetallicities,
+def flux(tag, Masses, Ages, Metallicities, MetSurfaceDensities, gasMetallicities,
          kappa=0.0795, BC_fac=1, IMF='Chabrier_300',
          filters=flare.filters.NIRCam_W, Type='Total', log10t_BC=7.):
 
@@ -294,7 +294,7 @@ filters = ["JWST.NIRCAM" + f for f in ["F090W", "F150W", "F200W",
                                        "F277W", "F356W", "F444W"]]
 
 # Get fluxes
-fluxes = flux(S_mass_ini, S_age, S_Z, S_los, G_Z, filters=filters)
+fluxes = flux(snap, S_mass_ini, S_age, S_Z, S_los, G_Z, filters=filters)
 
 # Define range and extent for the images in arc seconds
 imgrange = ((0, width_arc), (0, width_arc))
