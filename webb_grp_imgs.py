@@ -25,7 +25,7 @@ mpi4py.rc.recv_mprobe = False
 
 # Initializations and preliminaries
 comm = MPI.COMM_WORLD  # get MPI communicator object
-size = comm.size  # total number of processes
+nranks = comm.size  # total number of processes
 rank = comm.rank  # rank of this process
 
 sns.set_context("paper")
@@ -153,8 +153,13 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
     if f in ["F277W", "F356W", "F444W"]:
         oversample *= 2
 
+    # Split particles over ranks
+    rank_bins = np.linspace(0, pos.shape[0], nranks + 1, dtype=int)
+
     # Loop over particles
-    for ipos, l, sml in zip(pos, ls, smooth):
+    for ipos, l, sml in zip(pos[rank_bins[rank]: rank_bins[rank + 1], :],
+                            ls[rank_bins[rank]: rank_bins[rank + 1]],
+                            smooth[rank_bins[rank]: rank_bins[rank + 1]]):
 
         # Create an empty image for this particle
         smooth_img = np.zeros((Ndim, Ndim, Ndim), dtype=np.float32)
@@ -183,13 +188,9 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
         temp_img = np.sum(smooth_img, axis=-1)
 
         # Calculate the r and theta for this particle
-        print(ipos)
         ipos -= cent
-        print(ipos)
         r = np.sqrt(ipos[0] ** 2 + ipos[1] ** 2)
         theta = (np.rad2deg(np.arctan(ipos[1] / ipos[2])) + 360) % 360
-
-        print(r, theta)
 
         # Get PSF for this filter
         nc = webbpsf.NIRCam()
@@ -369,7 +370,40 @@ ax.tick_params(axis='both', left=False, top=False, right=False,
 
 plt.margins(0, 0)
 
-fig.savefig('../Visualisation/plots/Webb_reg-%s_snap-%s.png' % (reg, snap),
+fig.savefig('../Visualisation/plots/Webb_reg-%s_snap-%s_rank%d.png'
+            % (reg, snap, rank),
+            bbox_inches='tight',
+            pad_inches=0)
+
+plt.close(fig)
+
+# Save the array
+np.save("Webb_reg-%s_snap-%s_rank%d.npy" % (reg, snap, rank), rgb_img)
+
+if rank == 0:
+
+    # Initialise the image array
+    img = np.zeros((npix, npix, 3), dtype=np.float32)
+
+    # Combine rank images together
+    for r in range(nranks):
+        rank_img = np.load("Webb_reg-%s_snap-%s_rank%d.npy" % (reg, snap, r))
+        img += rank_img
+
+# Set up figure
+dpi = img.shape[0]
+fig = plt.figure(figsize=(1, 1), dpi=dpi)
+ax = fig.add_subplot(111)
+
+ax.imshow(img, extent=imgextent, origin='lower')
+ax.tick_params(axis='both', left=False, top=False, right=False,
+               bottom=False, labelleft=False,
+               labeltop=False, labelright=False, labelbottom=False)
+
+plt.margins(0, 0)
+
+fig.savefig('../Visualisation/plots/Webb_reg-%s_snap-%s.png'
+            % (reg, snap),
             bbox_inches='tight',
             pad_inches=0)
 
