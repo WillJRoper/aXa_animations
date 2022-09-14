@@ -369,7 +369,7 @@ ax.tick_params(axis='both', left=False, top=False, right=False,
 
 plt.margins(0, 0)
 
-fig.savefig('../Visualisation/plots/TempWebb_reg-%s_snap-%s_rank%d.png'
+fig.savefig('plots/TempWebb_reg-%s_snap-%s_rank%d.png'
             % (reg, snap, rank),
             bbox_inches='tight',
             pad_inches=0)
@@ -377,7 +377,7 @@ fig.savefig('../Visualisation/plots/TempWebb_reg-%s_snap-%s_rank%d.png'
 plt.close(fig)
 
 # Save the array
-np.save("Webb_reg-%s_snap-%s_rank%d.npy" % (reg, snap, rank), rgb_img)
+np.save("data/Webb_reg-%s_snap-%s_rank%d.npy" % (reg, snap, rank), rgb_img)
 
 if rank == 0:
 
@@ -386,24 +386,25 @@ if rank == 0:
 
     # Combine rank images together
     for r in range(nranks):
-        rank_img = np.load("Webb_reg-%s_snap-%s_rank%d.npy" % (reg, snap, r))
+        rank_img = np.load(
+            "data/Webb_reg-%s_snap-%s_rank%d.npy" % (reg, snap, r))
         img += rank_img
 
-# Set up figure
-dpi = img.shape[0]
-fig = plt.figure(figsize=(1, 1), dpi=dpi)
-ax = fig.add_subplot(111)
+    # Set up figure
+    dpi = img.shape[0]
+    fig = plt.figure(figsize=(1, 1), dpi=dpi)
+    ax = fig.add_subplot(111)
 
-ax.imshow(img, extent=imgextent, origin='lower')
-ax.tick_params(axis='both', left=False, top=False, right=False,
-               bottom=False, labelleft=False,
-               labeltop=False, labelright=False, labelbottom=False)
+    ax.imshow(img, extent=imgextent, origin='lower')
+    ax.tick_params(axis='both', left=False, top=False, right=False,
+                   bottom=False, labelleft=False,
+                   labeltop=False, labelright=False, labelbottom=False)
 
-plt.margins(0, 0)
+    plt.margins(0, 0)
 
-fig.savefig('../Visualisation/plots/Webb_reg-%s_snap-%s.png'
-            % (reg, snap),
-            bbox_inches='tight',
-            pad_inches=0)
+    fig.savefig('plots/Webb_reg-%s_snap-%s.png'
+                % (reg, snap),
+                bbox_inches='tight',
+                pad_inches=0)
 
-plt.close(fig)
+    plt.close(fig)
