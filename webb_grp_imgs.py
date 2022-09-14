@@ -264,7 +264,8 @@ half_width = width_mpc / 2
 
 print("Image FOV is (%.2f, %.2f) arcseconds/(%.2f, %.2f) pMpc"
       % (width_arc, width_arc, width_mpc, width_mpc))
-
+print(S_coords)
+print(half_width)
 # Excise the region to make an image of
 okinds = np.logical_and(np.abs(S_coords[:, 0]) < half_width,
                         np.abs(S_coords[:, 1]) < half_width)
