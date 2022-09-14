@@ -1,6 +1,4 @@
-import flare.filters
 from synthobs.sed import models
-import webbpsf
 from mpi4py import MPI
 import mpi4py
 from scipy.spatial import cKDTree
@@ -8,16 +6,16 @@ from scipy import signal
 import h5py
 from astropy.cosmology import Planck13 as cosmo
 import seaborn as sns
-import flare
-import os
 import warnings
-
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 
-os.environ['FLARE'] = '/cosma7/data/dp004/dc-wilk2/flare'
-os.environ["WEBBPSF_PATH"] = "cosma8/data/dp004/dc-rope1/cosma8/Visualisation/webbpsf-data"
+# The above has to be imported first
+import webbpsf
+import flare
+import flare.filters
 
 matplotlib.use('Agg')
 warnings.filterwarnings('ignore')
