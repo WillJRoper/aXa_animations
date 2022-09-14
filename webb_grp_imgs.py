@@ -299,13 +299,15 @@ imgrange = ((0, width_arc), (0, width_arc))
 imgextent = [0, width_arc, 0, width_arc]
 
 # Define x and y positions of pixels
-X, Y = np.meshgrid(np.linspace(imgrange[0][0], imgrange[0][1], npix),
-                   np.linspace(imgrange[1][0], imgrange[1][1], npix))
+X, Y, Z = np.meshgrid(np.linspace(imgrange[0][0], imgrange[0][1], res),
+                      np.linspace(imgrange[1][0], imgrange[1][1], res),
+                      np.linspace(imgrange[1][0], imgrange[1][1], res))
 
 # Define pixel position array for the KDTree
-pix_pos = np.zeros((X.size, 2))
+pix_pos = np.zeros((X.size, 3))
 pix_pos[:, 0] = X.ravel()
 pix_pos[:, 1] = Y.ravel()
+pix_pos[:, 2] = Z.ravel()
 
 # Build KDTree
 tree = cKDTree(pix_pos)
