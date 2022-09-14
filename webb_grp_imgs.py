@@ -184,7 +184,7 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
 
         # Calculate the r and theta for this particle
         print(ipos)
-        ipos -= target
+        ipos -= cent
         print(ipos)
         r = np.sqrt(ipos[0] ** 2 + ipos[1] ** 2)
         theta = (np.rad2deg(np.arctan(ipos[1] / ipos[2])) + 360) % 360
