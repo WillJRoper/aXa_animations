@@ -369,7 +369,7 @@ ax.tick_params(axis='both', left=False, top=False, right=False,
 
 plt.margins(0, 0)
 
-fig.savefig('../Visualisation/plots/Webb_reg-%s_snap-%s_rank%d.png'
+fig.savefig('../Visualisation/plots/TempWebb_reg-%s_snap-%s_rank%d.png'
             % (reg, snap, rank),
             bbox_inches='tight',
             pad_inches=0)
