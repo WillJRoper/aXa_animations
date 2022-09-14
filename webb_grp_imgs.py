@@ -290,8 +290,8 @@ S_coords *= 10 ** 3 * arcsec_per_kpc_proper
 target_arc = target * 10 ** 3 * arcsec_per_kpc_proper
 
 # Set up filters
-filters = ["JWST.NIRCAM" + f for f in ["F090W", "F150W", "F200W",
-                                       "F277W", "F356W", "F444W"]]
+filters = ["JWST.NIRCAM." + f for f in ["F090W", "F150W", "F200W",
+                                        "F277W", "F356W", "F444W"]]
 
 # Get fluxes
 fluxes = flux(snap, S_mass_ini, S_age, S_Z, S_los, G_Z, filters=filters)
