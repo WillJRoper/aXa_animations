@@ -290,7 +290,7 @@ S_coords += half_width
 
 # Convert coordinates into arcseconds
 S_coords *= 10 ** 3 * arcsec_per_kpc_proper
-target_arc = half_width * 10 ** 3 * arcsec_per_kpc_proper
+target_arc = width_arc
 
 # Set up filters
 filters = ["JWST.NIRCAM." + f for f in ["F090W", "F150W", "F200W",
