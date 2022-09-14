@@ -249,7 +249,7 @@ target = cops[ind, :]
 S_coords -= target
 
 # Define the initial image size in Mpc
-width = 0.0001
+width = 0.03
 
 # Get the conversion between arcseconds and pkpc at this redshift
 arcsec_per_kpc_proper = cosmo.arcsec_per_kpc_proper(z).value
