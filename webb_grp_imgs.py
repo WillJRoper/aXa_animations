@@ -198,8 +198,8 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
                           oversample=oversample)
 
         # Convolve the PSF and include this particle in the image
-        print(img.shape, psf.shape)
-        img += signal.fftconvolve(img, psf, mode="same")
+        print(img.shape, psf[0].data.shape)
+        img += signal.fftconvolve(img, psf[0].data, mode="same")
 
     return img
 
