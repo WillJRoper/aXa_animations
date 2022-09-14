@@ -198,6 +198,7 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
                           oversample=oversample)
 
         # Convolve the PSF and include this particle in the image
+        print(img.shape, psf.shape)
         img += signal.fftconvolve(img, psf, mode="same")
 
     return img
@@ -287,7 +288,7 @@ S_coords += half_width
 
 # Convert coordinates into arcseconds
 S_coords *= 10 ** 3 * arcsec_per_kpc_proper
-target_arc = target * 10 ** 3 * arcsec_per_kpc_proper
+target_arc = half_width * 10 ** 3 * arcsec_per_kpc_proper
 
 # Set up filters
 filters = ["JWST.NIRCAM." + f for f in ["F090W", "F150W", "F200W",
