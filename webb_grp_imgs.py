@@ -277,6 +277,8 @@ S_los = S_los[okinds]
 S_sml = S_sml[okinds]
 S_coords = S_coords[okinds, :]
 
+print("There are %d particles in the FOV" % S_mass.size)
+
 # Shift positions such that they are positive
 S_coords += half_width
 
