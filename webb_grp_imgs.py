@@ -116,11 +116,6 @@ def flux(tag, Masses, Ages, Metallicities, MetSurfaceDensities, gasMetallicities
 
         Fnus[f] = Fnu
 
-    Fnus["coords"] = S_coords
-    Fnus["smls"] = S_sml
-    Fnus["begin"] = begin
-    Fnus["end"] = end
-
     return Fnus
 
 
