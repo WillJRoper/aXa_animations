@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
+
 # The above has to be imported first
 import webbpsf
 import flare
@@ -192,8 +193,9 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
         nc = webbpsf.NIRCam()
         nc.options['source_offset_r'] = r
         nc.options['source_offset_theta'] = theta
+        nc.filter = f
         psf = nc.calc_psf(fov_arcsec=fov_arcsec,
-                          filter=f, oversample=oversample)
+                          oversample=oversample)
 
         # Convolve the PSF and include this particle in the image
         img += signal.fftconvolve(img, psf, mode="same")
