@@ -341,6 +341,7 @@ def make_image(reg, snap, width_mpc, width_arc, half_width, npix, oversample,
     dpi = rgb_img.shape[0]
     fig = plt.figure(figsize=(1, 1), dpi=dpi)
     ax = fig.add_subplot(111)
+    ax.grid(False)
 
     ax.imshow(rgb_img, extent=imgextent, origin='lower')
     ax.tick_params(axis='both', left=False, top=False, right=False,
@@ -418,6 +419,7 @@ if rank == 0:
     dpi = img.shape[0]
     fig = plt.figure(figsize=(1, 1), dpi=dpi)
     ax = fig.add_subplot(111)
+    ax.grid(False)
 
     ax.imshow(img, extent=imgextent, origin='lower')
     ax.tick_params(axis='both', left=False, top=False, right=False,
