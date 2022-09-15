@@ -325,7 +325,7 @@ def make_image(reg, snap, width_mpc, width_arc, half_width, npix, oversample,
         # Get filter code
         fcode = f.split(".")[-1]
 
-        print(fluxes[f].min(), fluxes[f].max())
+        print(fluxes[f].min(), fluxes[f].max(), np.mean(fluxes[f]))
 
         mono_imgs[f] = make_spline_img_3d(S_coords, npix, tree, fluxes[f],
                                           S_sml, fcode,
