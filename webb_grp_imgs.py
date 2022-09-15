@@ -138,7 +138,7 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
                        spline_cut_off=1):
 
     # Initialise the image array
-    img = np.zeros((Ndim, Ndim), dtype=np.float32)
+    img = np.zeros((Ndim, Ndim), dtype=np.float64)
 
     # Define x and y positions of pixels
     X, Y, Z = np.meshgrid(np.arange(0, Ndim, 1),
@@ -167,7 +167,7 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
                             smooth[rank_bins[rank]: rank_bins[rank + 1]]):
 
         # Create an empty image for this particle
-        smooth_img = np.zeros((Ndim, Ndim, Ndim), dtype=np.float32)
+        smooth_img = np.zeros((Ndim, Ndim, Ndim), dtype=np.float64)
 
         # Query the tree for this particle
         dist, inds = tree.query(ipos, k=pos.shape[0],
@@ -324,8 +324,6 @@ def make_image(reg, snap, width_mpc, width_arc, half_width, npix, oversample,
 
         # Get filter code
         fcode = f.split(".")[-1]
-
-        print(fluxes[f].min(), fluxes[f].max(), np.mean(fluxes[f]))
 
         mono_imgs[f] = make_spline_img_3d(S_coords, npix, tree, fluxes[f],
                                           S_sml, fcode,
