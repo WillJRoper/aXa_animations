@@ -227,7 +227,7 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
         # Convolve the PSF and include this particle in the image
         img += signal.fftconvolve(temp_img, psf[0].data, mode="same")
 
-    print(f, img.min(), img.max())
+    print("Rank %d" % rank, f, "done")
 
     return img
 
@@ -399,7 +399,7 @@ snap = '010_z005p000'
 z = float(snap.split("z")[-1].replace("p", "."))
 
 # Define the initial image size in Mpc
-width = 0.03
+width = 0.5
 
 # Get the conversion between arcseconds and pkpc at this redshift
 arcsec_per_kpc_proper = cosmo.arcsec_per_kpc_proper(z).value
