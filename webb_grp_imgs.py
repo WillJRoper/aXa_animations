@@ -8,6 +8,7 @@ from astropy.cosmology import Planck13 as cosmo
 import seaborn as sns
 import warnings
 import matplotlib
+from matplotlib.colors import LogNorm
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -421,7 +422,7 @@ if rank == 0:
     ax = fig.add_subplot(111)
     ax.grid(False)
 
-    ax.imshow(img, extent=imgextent, origin='lower')
+    ax.imshow(img, extent=imgextent, origin='lower', norm=LogNorm())
     ax.tick_params(axis='both', left=False, top=False, right=False,
                    bottom=False, labelleft=False,
                    labeltop=False, labelright=False, labelbottom=False)
