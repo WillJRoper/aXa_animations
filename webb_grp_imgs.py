@@ -164,13 +164,13 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
     # Create a dictionary to cache psfs
     psfs = {}
 
+    # Create an empty 3D image
+    smooth_img = np.zeros((Ndim, Ndim, Ndim), dtype=np.float64)
+
     # Loop over particles
     for ipos, l, sml in zip(pos[rank_bins[rank]: rank_bins[rank + 1], :],
                             ls[rank_bins[rank]: rank_bins[rank + 1]],
                             smooth[rank_bins[rank]: rank_bins[rank + 1]]):
-
-        # Create an empty image for this particle
-        smooth_img = np.zeros((Ndim, Ndim, Ndim), dtype=np.float64)
 
         # Query the tree for this particle
         dist, inds = tree.query(ipos, k=nmax ** 3,
@@ -194,36 +194,36 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
 
         # Create 2D image
         temp_img = np.sum(smooth_img, axis=-1)
+        smooth_img[:, :, :] = 0.
 
-        # # Get central pixel indices
-        # cent_ind = inds[np.argmin(dist)]
-        # i, j = pix_pos[cent_ind, 0], pix_pos[cent_ind, 1]
+        # Get central pixel indices
+        cent_ind = inds[np.argmin(dist)]
+        i, j = pix_pos[cent_ind, 0], pix_pos[cent_ind, 1]
 
-        # # Get cached psf
-        # if (i, j) in psfs:
-        #     psf = psfs[(i, j)]
-        # else:
+        # Get cached psf
+        if (i, j) in psfs:
+            psf = psfs[(i, j)]
+        else:
 
-        #     # Calculate the r and theta for this particle
-        #     ipos -= cent
-        #     r = np.sqrt(ipos[0] ** 2 + ipos[1] ** 2)
-        #     theta = (np.rad2deg(np.arctan(ipos[1] / ipos[2])) + 360) % 360
+            # Calculate the r and theta for this particle
+            ipos -= cent
+            r = np.sqrt(ipos[0] ** 2 + ipos[1] ** 2)
+            theta = (np.rad2deg(np.arctan(ipos[1] / ipos[2])) + 360) % 360
 
-        #     # Get PSF for this filter
-        #     nc = webbpsf.NIRCam()
-        #     nc.options['source_offset_r'] = r
-        #     nc.options['source_offset_theta'] = theta
-        #     nc.filter = f
-        #     psf = nc.calc_psf(fov_arcsec=fov_arcsec,
-        #                       oversample=oversample)
+            # Get PSF for this filter
+            nc = webbpsf.NIRCam()
+            nc.options['source_offset_r'] = r
+            nc.options['source_offset_theta'] = theta
+            nc.filter = f
+            psf = nc.calc_psf(fov_arcsec=fov_arcsec,
+                              oversample=oversample)
 
-        #     # Cache this psf
-        #     psfs[(i, j)] = psf
+            # Cache this psf
+            psfs[(i, j)] = psf
 
-        img += temp_img
-
-        # # Convolve the PSF and include this particle in the image
-        # img += signal.fftconvolve(img, psf[0].data, mode="same")
+        # Convolve the PSF and include this particle in the image
+        img += signal.fftconvolve(temp_img, psf[0].data, mode="same")
+        print(f, img.min(), img.max())
 
     print(f, img.min(), img.max())
 
@@ -397,7 +397,7 @@ snap = '010_z005p000'
 z = float(snap.split("z")[-1].replace("p", "."))
 
 # Define the initial image size in Mpc
-width = 0.25
+width = 0.015
 
 # Get the conversion between arcseconds and pkpc at this redshift
 arcsec_per_kpc_proper = cosmo.arcsec_per_kpc_proper(z).value
