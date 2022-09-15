@@ -143,10 +143,10 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
     ready = 1
     run = 2
 
-    if rank == 0:
+    # Set up particle pointer
+    n = 0
 
-        # Set up particle pointer
-        n = 0
+    if rank == 0:
 
         # Set up the number of processes running
         remaining = comm.Get_size() - 1
@@ -206,7 +206,7 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
         while True:
 
             # Signify this rank is ready
-            comm.send(n, dest=0, tag=ready)
+            comm.send(None, dest=0, tag=ready)
 
             # Wait for the particle
             n = comm.recv(source=0, tag=MPI.ANY_TAG)
