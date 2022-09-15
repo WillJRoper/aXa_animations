@@ -156,6 +156,10 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
             s = MPI.Status()
             comm.Probe(status=s)
 
+            # Report progress
+            if n % 1000 == 0:
+                print(n)
+
             # make sure we post the right kind of message
             if s.tag == ready:
                 if n < pos.shape[0]:
