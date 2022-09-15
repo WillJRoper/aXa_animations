@@ -443,10 +443,10 @@ if rank == 0:
         img += rank_img
 
     # Normalise image between 0 and 1
-    norm = Normalize(vmin=np.percentile(img, 16), vmax=np.percentile(img, 95),
+    norm = Normalize(vmin=np.percentile(img, 16), vmax=np.percentile(img, 99),
                      clip=True)
     img = norm(img).data
-    print(img.min(), img.max())
+    print(img.min(), img.max(), np.percentile(img, 16), np.percentile(img, 99))
 
     # Set up figure
     dpi = img.shape[0]
