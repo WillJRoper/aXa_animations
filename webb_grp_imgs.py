@@ -29,6 +29,7 @@ mpi4py.rc.recv_mprobe = False
 comm = MPI.COMM_WORLD  # get MPI communicator object
 nranks = comm.size  # total number of processes
 rank = comm.rank  # rank of this process
+status = MPI.Status()   # get MPI status object
 
 sns.set_context("paper")
 sns.set_style('whitegrid')
@@ -137,97 +138,141 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
                        fov_arcsec, cent, arc_res, spline_func=cubic_spline,
                        spline_cut_off=1):
 
-    # Initialise the image array
-    img = np.zeros((Ndim, Ndim), dtype=np.float64)
+    # Set up tags
+    finish = 0
+    ready = 1
+    run = 2
 
-    # Define x and y positions of pixels
-    X, Y, Z = np.meshgrid(np.arange(0, Ndim, 1),
-                          np.arange(0, Ndim, 1),
-                          np.arange(0, Ndim, 1))
+    if rank == 0:
 
-    # Define pixel position array for the KDTree
-    pix_pos = np.zeros((X.size, 3), dtype=int)
-    pix_pos[:, 0] = X.ravel()
-    pix_pos[:, 1] = Y.ravel()
-    pix_pos[:, 2] = Z.ravel()
+        # Set up particle pointer
+        n = 0
 
-    # Handle oversample for long wavelength channel
-    if f in ["F277W", "F356W", "F444W"]:
-        oversample *= 2
+        # Set up the number of processes running
+        remaining = comm.Get_size() - 1
 
-    # Split particles over ranks
-    rank_bins = np.linspace(0, pos.shape[0], nranks + 1, dtype=int)
+        while remaining > 0:
 
-    # Compute the maximum of pixels necessary to be returned
-    nmax = int(np.ceil(spline_cut_off * np.max(smooth) / arc_res)) + 2
+            s = MPI.Status()
+            comm.Probe(status=s)
 
-    # Create a dictionary to cache psfs
-    psfs = {}
+            # make sure we post the right kind of message
+            if s.tag == ready:
+                if n < pos.shape[0]:
+                    comm.send(n, dest=s.source, tag=run)
+                    n += 1
+                else:
+                    comm.send(None, dest=s.source, tag=finish)
 
-    # Create an empty 3D image
-    smooth_img = np.zeros((Ndim, Ndim, Ndim), dtype=np.float64)
+        print(f, "done")
 
-    # Loop over particles
-    for ipos, l, sml in zip(pos[rank_bins[rank]: rank_bins[rank + 1], :],
-                            ls[rank_bins[rank]: rank_bins[rank + 1]],
-                            smooth[rank_bins[rank]: rank_bins[rank + 1]]):
+    else:
 
-        # Query the tree for this particle
-        dist, inds = tree.query(ipos, k=nmax ** 3,
-                                distance_upper_bound=spline_cut_off * sml)
+        # Initialise the image array
+        img = np.zeros((Ndim, Ndim), dtype=np.float64)
 
-        if type(dist) is float:
-            continue
+        # Define x and y positions of pixels
+        X, Y, Z = np.meshgrid(np.arange(0, Ndim, 1),
+                              np.arange(0, Ndim, 1),
+                              np.arange(0, Ndim, 1))
 
-        okinds = dist < spline_cut_off * sml
-        dist = dist[okinds]
-        inds = inds[okinds]
+        # Define pixel position array for the KDTree
+        pix_pos = np.zeros((X.size, 3), dtype=int)
+        pix_pos[:, 0] = X.ravel()
+        pix_pos[:, 1] = Y.ravel()
+        pix_pos[:, 2] = Z.ravel()
 
-        if len(dist) < 1:
-            continue
+        # Handle oversample for long wavelength channel
+        if f in ["F277W", "F356W", "F444W"]:
+            oversample *= 2
 
-        # Get the kernel
-        w = spline_func(dist / sml)
+        # Split particles over ranks
+        rank_bins = np.linspace(0, pos.shape[0], nranks + 1, dtype=int)
 
-        # Place the kernel for this particle within the img
-        kernel = w / sml ** 3
-        norm_kernel = kernel / np.sum(kernel)
-        smooth_img[pix_pos[inds, 0], pix_pos[inds, 1], pix_pos[
-            inds, 2]] += l * norm_kernel
+        # Compute the maximum of pixels necessary to be returned
+        nmax = int(np.ceil(spline_cut_off * np.max(smooth) / arc_res)) + 2
 
-        # Create 2D image
-        temp_img = np.sum(smooth_img, axis=-1)
-        smooth_img[:, :, :] = 0.
+        # Create a dictionary to cache psfs
+        psfs = {}
 
-        # Get central pixel indices
-        cent_ind = inds[np.argmin(dist)]
-        i, j = pix_pos[cent_ind, 0], pix_pos[cent_ind, 1]
+        # Create an empty 3D image
+        smooth_img = np.zeros((Ndim, Ndim, Ndim), dtype=np.float64)
 
-        # Get cached psf
-        if (i, j) in psfs:
-            psf = psfs[(i, j)]
-        else:
+        # Loop until all particles are done
+        while True:
 
-            # Calculate the r and theta for this particle
-            ipos -= cent
-            r = np.sqrt(ipos[0] ** 2 + ipos[1] ** 2)
-            theta = (np.rad2deg(np.arctan(ipos[1] / ipos[2])) + 360) % 360
+            # Signify this rank is ready
+            comm.send(n, dest=0, tag=ready)
 
-            # Get PSF for this filter
-            nc = webbpsf.NIRCam()
-            nc.options['source_offset_r'] = r
-            nc.options['source_offset_theta'] = theta
-            nc.filter = f
-            psf = nc.calc_psf(fov_arcsec=fov_arcsec,
-                              oversample=oversample)
+            # Wait for the particle
+            n = comm.recv(source=0, tag=MPI.ANY_TAG)
 
-            # Cache this psf
-            psfs[(i, j)] = psf
+            # Exit if we are finished
+            if n is None:
+                break
 
-        # Convolve the PSF and include this particle in the image
-        img += signal.fftconvolve(temp_img, psf[0].data, mode="same")
+            # Get this particle's data
+            ipos = pos[n, :]
+            l = ls[n]
+            sml = smooth[n]
 
-    print("Rank %d" % rank, f, "done")
+            # Compute the maximum of pixels necessary to be returned
+            nmax = int(np.ceil(spline_cut_off * sml / arc_res)) + 2
+
+            # Query the tree for this particle
+            dist, inds = tree.query(ipos, k=nmax ** 3,
+                                    distance_upper_bound=spline_cut_off * sml)
+
+            if type(dist) is float:
+                continue
+
+            okinds = dist < spline_cut_off * sml
+            dist = dist[okinds]
+            inds = inds[okinds]
+
+            if len(dist) < 1:
+                continue
+
+            # Get the kernel
+            w = spline_func(dist / sml)
+
+            # Place the kernel for this particle within the img
+            kernel = w / sml ** 3
+            norm_kernel = kernel / np.sum(kernel)
+            smooth_img[pix_pos[inds, 0], pix_pos[inds, 1], pix_pos[
+                inds, 2]] += l * norm_kernel
+
+            # Create 2D image
+            temp_img = np.sum(smooth_img, axis=-1)
+            smooth_img[:, :, :] = 0.
+
+            # Get central pixel indices
+            cent_ind = inds[np.argmin(dist)]
+            i, j = pix_pos[cent_ind, 0], pix_pos[cent_ind, 1]
+
+            # Get cached psf
+            if (i, j) in psfs:
+                psf = psfs[(i, j)]
+            else:
+
+                # Calculate the r and theta for this particle
+                ipos -= cent
+                r = np.sqrt(ipos[0] ** 2 + ipos[1] ** 2)
+                theta = (np.rad2deg(np.arctan(ipos[1] / ipos[2])) + 360) % 360
+
+                # Get PSF for this filter
+                nc = webbpsf.NIRCam()
+                nc.options['source_offset_r'] = r
+                nc.options['source_offset_theta'] = theta
+                nc.filter = f
+                psf = nc.calc_psf(fov_arcsec=fov_arcsec,
+                                  oversample=oversample)
+
+                # Cache this psf
+                psfs[(i, j)] = psf
+
+            # Convolve the PSF and include this particle in the image
+            img += signal.fftconvolve(temp_img, psf[0].data, mode="same")
 
     return img
 
