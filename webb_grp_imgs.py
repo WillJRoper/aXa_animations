@@ -209,7 +209,7 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
 
 
 def make_image(reg, snap, width_mpc, width_arc, half_width, npix, oversample,
-               arc_res, kpc_res, arcsec_per_kpc_proper):
+               arc_res, kpc_res, arcsec_per_kpc_proper, rank_plot=False):
 
     # Set up FLARES regions
     master_base = "/cosma7/data/dp004/dc-payy1/my_files/flares_pipeline/data/flares.hdf5"
@@ -338,25 +338,26 @@ def make_image(reg, snap, width_mpc, width_arc, half_width, npix, oversample,
         # Assign the image
         rgb_img[:, :, rgb] += mono_imgs[f]
 
-    # Set up figure
-    dpi = rgb_img.shape[0]
-    fig = plt.figure(figsize=(1, 1), dpi=dpi)
-    ax = fig.add_subplot(111)
-    ax.grid(False)
+    if rank_plot:
+        # Set up figure
+        dpi = rgb_img.shape[0]
+        fig = plt.figure(figsize=(1, 1), dpi=dpi)
+        ax = fig.add_subplot(111)
+        ax.grid(False)
 
-    ax.imshow(rgb_img, extent=imgextent, origin='lower')
-    ax.tick_params(axis='both', left=False, top=False, right=False,
-                   bottom=False, labelleft=False,
-                   labeltop=False, labelright=False, labelbottom=False)
+        ax.imshow(rgb_img, extent=imgextent, origin='lower')
+        ax.tick_params(axis='both', left=False, top=False, right=False,
+                       bottom=False, labelleft=False,
+                       labeltop=False, labelright=False, labelbottom=False)
 
-    plt.margins(0, 0)
+        plt.margins(0, 0)
 
-    fig.savefig('plots/TempWebb_reg-%s_snap-%s_rank%d.png'
-                % (reg, snap, rank),
-                bbox_inches='tight',
-                pad_inches=0)
+        fig.savefig('plots/TempWebb_reg-%s_snap-%s_rank%d.png'
+                    % (reg, snap, rank),
+                    bbox_inches='tight',
+                    pad_inches=0)
 
-    plt.close(fig)
+        plt.close(fig)
 
     # Save the array
     np.save("data/Webb_reg-%s_snap-%s_rank%d.npy" % (reg, snap, rank), rgb_img)
@@ -414,6 +415,7 @@ if rank == 0:
     for r, f in enumerate(files):
         print("Combinging image from rank %d" % r)
         rank_img = np.load(f)
+        print(rank_img.min(), rank_img.max())
         img += rank_img
 
     # Set up figure
