@@ -8,7 +8,7 @@ from astropy.cosmology import Planck13 as cosmo
 import seaborn as sns
 import warnings
 import matplotlib
-from matplotlib.colors import LogNorm
+from matplotlib.colors import LogNorm, Normalize
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -441,6 +441,10 @@ if rank == 0:
         rank_img = np.load(f)
         print(rank_img.min(), rank_img.max())
         img += rank_img
+
+    # Normalise image between 0 and 1
+    norm = Normalize()
+    img = norm(img).data
 
     # Set up figure
     dpi = img.shape[0]
