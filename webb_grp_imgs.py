@@ -159,7 +159,7 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
     rank_bins = np.linspace(0, pos.shape[0], nranks + 1, dtype=int)
 
     # Compute the maximum of pixels necessary to be returned
-    nmax = int(np.ceil(np.max(smooth) / arc_res)) + 1
+    nmax = int(np.ceil(spline_cut_off * np.max(smooth) / arc_res)) + 1
 
     # Create a dictionary to cache psfs
     psfs = {}
@@ -183,8 +183,6 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
         dist = dist[okinds]
         inds = inds[okinds]
 
-        print(len(dist))
-
         # Get the kernel
         w = spline_func(dist / sml)
 
@@ -194,8 +192,12 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
         smooth_img[pix_pos[inds, 0], pix_pos[inds, 1], pix_pos[
             inds, 2]] += l * norm_kernel
 
+        print(smooth_img.max())
+
         # Create 2D image
         temp_img = np.sum(smooth_img, axis=-1)
+
+        print("temp", temp_img.max())
 
         # # Get central pixel indices
         # cent_ind = inds[np.argmin(dist)]
