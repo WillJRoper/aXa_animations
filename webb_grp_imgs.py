@@ -443,15 +443,14 @@ if rank == 0:
         img += rank_img
 
     # Normalise image between 0 and 1
-    plow, phigh = 18, 99.9
+    plow, phigh = 32, 99.5
     norm = Normalize(vmin=np.percentile(img, plow),
                      vmax=np.percentile(img, phigh),
                      clip=True)
     print(img.min(), img.max(), np.percentile(img, plow),
           np.percentile(img, phigh))
     img = norm(img).data
-    print(img.min(), img.max(), np.percentile(img, plow),
-          np.percentile(img, phigh))
+    print(img.min(), img.max())
 
     # Set up figure
     dpi = img.shape[0]
