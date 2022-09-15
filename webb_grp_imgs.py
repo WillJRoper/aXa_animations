@@ -173,12 +173,16 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
         dist, inds = tree.query(ipos, k=pos.shape[0],
                                 distance_upper_bound=spline_cut_off * sml)
 
+        print(len(dist))
+
         if type(dist) is float:
             continue
 
         okinds = dist < spline_cut_off * sml
         dist = dist[okinds]
         inds = inds[okinds]
+
+        print(len(dist))
 
         # Get the kernel
         w = spline_func(dist / sml)
