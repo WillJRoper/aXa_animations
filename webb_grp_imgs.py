@@ -206,47 +206,164 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
     return img
 
 
-# Set up FLARES regions
-master_base = "/cosma7/data/dp004/dc-payy1/my_files/flares_pipeline/data/flares.hdf5"
+def make_image(reg, snap, width_mpc, width_arc, half_width, npix, oversample,
+               arc_res, kpc_res, arcsec_per_kpc_proper):
+
+    # Set up FLARES regions
+    master_base = "/cosma7/data/dp004/dc-payy1/my_files/flares_pipeline/data/flares.hdf5"
+
+    # Get redshift
+    z = float(snap.split("z")[-1].replace("p", "."))
+
+    # Open the master file
+    hdf = h5py.File(master_base, "r")
+    hf = hdf[reg]
+
+    # Get the required data
+    gal_smass = np.array(hf[snap + '/Galaxy'].get('M500'),
+                         dtype=np.float64)
+    cops = np.array(hf[snap + '/Galaxy'].get("COP"),
+                    dtype=np.float64).T / (1 + z)
+    S_mass_ini = np.array(hf[snap + '/Particle'].get('S_MassInitial'),
+                          dtype=np.float64) * 10 ** 10
+    S_mass = np.array(hf[snap + '/Particle'].get('S_Mass'),
+                      dtype=np.float64) * 10 ** 10
+    S_Z = np.array(hf[snap + '/Particle'].get('S_Z_smooth'),
+                   dtype=np.float64)
+    S_age = np.array(hf[snap + '/Particle'].get('S_Age'),
+                     dtype=np.float64) * 1e3
+    S_los = np.array(hf[snap + '/Particle'].get('S_los'),
+                     dtype=np.float64)
+    G_Z = np.array(hf[snap + '/Particle'].get('G_Z_smooth'),
+                   dtype=np.float64)
+    S_sml = np.array(hf[snap + '/Particle'].get('S_sml'),
+                     dtype=np.float64)
+    S_coords = np.array(hf[snap + '/Particle'].get('S_Coordinates'),
+                        dtype=np.float64).T / (1 + z)
+    hdf.close()
+
+    # Get the main target position
+    ind = np.argmax(gal_smass)
+    target = cops[ind, :]
+
+    # Center positions
+    S_coords -= target
+
+    # Excise the region to make an image of
+    okinds = np.logical_and(np.abs(S_coords[:, 0]) < half_width,
+                            np.abs(S_coords[:, 1]) < half_width)
+    okinds = np.logical_and(okinds, np.abs(S_coords[:, 2]) < half_width)
+    S_mass_ini = S_mass_ini[okinds]
+    S_mass = S_mass[okinds]
+    S_Z = S_Z[okinds]
+    S_age = S_age[okinds]
+    S_los = S_los[okinds]
+    S_sml = S_sml[okinds]
+    S_coords = S_coords[okinds, :]
+
+    if rank == 0:
+        print("There are %d particles in the FOV" % S_mass.size)
+
+    # Shift positions such that they are positive
+    S_coords += half_width
+
+    # Convert coordinates into arcseconds
+    S_coords *= 10 ** 3 * arcsec_per_kpc_proper
+    target_arc = width_arc / 2
+
+    # Set up filters
+    filters = ["JWST.NIRCAM." + f for f in ["F090W", "F150W", "F200W",
+                                            "F277W", "F356W", "F444W"]]
+
+    # Get fluxes
+    fluxes = flux(snap, S_mass_ini, S_age, S_Z, S_los, G_Z, filters=filters)
+
+    # Define range and extent for the images in arc seconds
+    imgrange = ((0, width_arc), (0, width_arc))
+    imgextent = [0, width_arc, 0, width_arc]
+
+    # Define x and y positions of pixels
+    X, Y, Z = np.meshgrid(np.linspace(imgrange[0][0], imgrange[0][1], npix),
+                          np.linspace(imgrange[1][0], imgrange[1][1], npix),
+                          np.linspace(imgrange[1][0], imgrange[1][1], npix))
+
+    # Define pixel position array for the KDTree
+    pix_pos = np.zeros((X.size, 3))
+    pix_pos[:, 0] = X.ravel()
+    pix_pos[:, 1] = Y.ravel()
+    pix_pos[:, 2] = Z.ravel()
+
+    # Build KDTree
+    tree = cKDTree(pix_pos)
+
+    # Create dictionary to store each filter's image
+    mono_imgs = {}
+
+    # Loop over filters creating images
+    for f in filters:
+
+        # Get filter code
+        fcode = f.split(".")[-1]
+
+        mono_imgs[f] = make_spline_img_3d(S_coords, npix, tree, fluxes[f],
+                                          S_sml, fcode,
+                                          oversample, width_arc,
+                                          target_arc)
+
+        if rank == 0:
+            print("Completed Image for %s", fcode)
+
+    # Set up RGB image
+    rgb_img = np.zeros((npix, npix, 3))
+
+    # Populate RGB image
+    for f in filters:
+
+        # Get filter code
+        fcode = f.split(".")[-1]
+
+        # Get color for filter
+        if fcode in ["F356W", "F444W"]:
+            rgb = 0
+        elif fcode in ["F200W", "F277W"]:
+            rgb = 1
+        elif fcode in ["F090W", "F150W"]:
+            rgb = 2
+        else:
+            print("Failed to assign color for filter %s EXITING..." % fcode)
+            break
+
+        # Assign the image
+        rgb_img[:, :, rgb] += mono_imgs[f]
+
+    # Set up figure
+    dpi = rgb_img.shape[0]
+    fig = plt.figure(figsize=(1, 1), dpi=dpi)
+    ax = fig.add_subplot(111)
+
+    ax.imshow(rgb_img, extent=imgextent, origin='lower')
+    ax.tick_params(axis='both', left=False, top=False, right=False,
+                   bottom=False, labelleft=False,
+                   labeltop=False, labelright=False, labelbottom=False)
+
+    plt.margins(0, 0)
+
+    fig.savefig('plots/TempWebb_reg-%s_snap-%s_rank%d.png'
+                % (reg, snap, rank),
+                bbox_inches='tight',
+                pad_inches=0)
+
+    plt.close(fig)
+
+    # Save the array
+    np.save("data/Webb_reg-%s_snap-%s_rank%d.npy" % (reg, snap, rank), rgb_img)
+
+    comm.Barrier()
+
+
+# Define region and snapshot
 reg = "00"
 snap = '010_z005p000'
-
-# Get redshift
-z = float(snap.split("z")[-1].replace("p", "."))
-
-# Open the master file
-hdf = h5py.File(master_base, "r")
-hf = hdf[reg]
-
-# Get the required data
-gal_smass = np.array(hf[snap + '/Galaxy'].get('M500'),
-                     dtype=np.float64)
-cops = np.array(hf[snap + '/Galaxy'].get("COP"),
-                dtype=np.float64).T / (1 + z)
-S_mass_ini = np.array(hf[snap + '/Particle'].get('S_MassInitial'),
-                      dtype=np.float64) * 10 ** 10
-S_mass = np.array(hf[snap + '/Particle'].get('S_Mass'),
-                  dtype=np.float64) * 10 ** 10
-S_Z = np.array(hf[snap + '/Particle'].get('S_Z_smooth'),
-               dtype=np.float64)
-S_age = np.array(hf[snap + '/Particle'].get('S_Age'),
-                 dtype=np.float64) * 1e3
-S_los = np.array(hf[snap + '/Particle'].get('S_los'),
-                 dtype=np.float64)
-G_Z = np.array(hf[snap + '/Particle'].get('G_Z_smooth'),
-               dtype=np.float64)
-S_sml = np.array(hf[snap + '/Particle'].get('S_sml'),
-                 dtype=np.float64)
-S_coords = np.array(hf[snap + '/Particle'].get('S_Coordinates'),
-                    dtype=np.float64).T / (1 + z)
-hdf.close()
-
-# Get the main target position
-ind = np.argmax(gal_smass)
-target = cops[ind, :]
-
-# Center positions
-S_coords -= target
 
 # Define the initial image size in Mpc
 width = 0.03
@@ -272,112 +389,9 @@ if rank == 0:
     print("Image FOV is (%.2f, %.2f) arcseconds/(%.2f, %.2f) pMpc"
           % (width_arc, width_arc, width_mpc, width_mpc))
 
-# Excise the region to make an image of
-okinds = np.logical_and(np.abs(S_coords[:, 0]) < half_width,
-                        np.abs(S_coords[:, 1]) < half_width)
-okinds = np.logical_and(okinds, np.abs(S_coords[:, 2]) < half_width)
-S_mass_ini = S_mass_ini[okinds]
-S_mass = S_mass[okinds]
-S_Z = S_Z[okinds]
-S_age = S_age[okinds]
-S_los = S_los[okinds]
-S_sml = S_sml[okinds]
-S_coords = S_coords[okinds, :]
-
-if rank == 0:
-    print("There are %d particles in the FOV" % S_mass.size)
-
-# Shift positions such that they are positive
-S_coords += half_width
-
-# Convert coordinates into arcseconds
-S_coords *= 10 ** 3 * arcsec_per_kpc_proper
-target_arc = width_arc / 2
-
-# Set up filters
-filters = ["JWST.NIRCAM." + f for f in ["F090W", "F150W", "F200W",
-                                        "F277W", "F356W", "F444W"]]
-
-# Get fluxes
-fluxes = flux(snap, S_mass_ini, S_age, S_Z, S_los, G_Z, filters=filters)
-
-# Define range and extent for the images in arc seconds
-imgrange = ((0, width_arc), (0, width_arc))
-imgextent = [0, width_arc, 0, width_arc]
-
-# Define x and y positions of pixels
-X, Y, Z = np.meshgrid(np.linspace(imgrange[0][0], imgrange[0][1], npix),
-                      np.linspace(imgrange[1][0], imgrange[1][1], npix),
-                      np.linspace(imgrange[1][0], imgrange[1][1], npix))
-
-# Define pixel position array for the KDTree
-pix_pos = np.zeros((X.size, 3))
-pix_pos[:, 0] = X.ravel()
-pix_pos[:, 1] = Y.ravel()
-pix_pos[:, 2] = Z.ravel()
-
-# Build KDTree
-tree = cKDTree(pix_pos)
-
-# Create dictionary to store each filter's image
-mono_imgs = {}
-
-# Loop over filters creating images
-for f in filters:
-
-    # Get filter code
-    fcode = f.split(".")[-1]
-
-    mono_imgs[f] = make_spline_img_3d(S_coords, npix, tree, fluxes[f],
-                                      S_sml, fcode,
-                                      oversample, width_arc,
-                                      target_arc)
-
-# Set up RGB image
-rgb_img = np.zeros((npix, npix, 3))
-
-# Populate RGB image
-for f in filters:
-
-    # Get filter code
-    fcode = f.split(".")[-1]
-
-    # Get color for filter
-    if fcode in ["F356W", "F444W"]:
-        rgb = 0
-    elif fcode in ["F200W", "F277W"]:
-        rgb = 1
-    elif fcode in ["F090W", "F150W"]:
-        rgb = 2
-    else:
-        print("Failed to assign color for filter %s EXITING..." % fcode)
-        break
-
-    # Assign the image
-    rgb_img[:, :, rgb] += mono_imgs[f]
-
-
-# Set up figure
-dpi = rgb_img.shape[0]
-fig = plt.figure(figsize=(1, 1), dpi=dpi)
-ax = fig.add_subplot(111)
-
-ax.imshow(rgb_img, extent=imgextent, origin='lower')
-ax.tick_params(axis='both', left=False, top=False, right=False,
-               bottom=False, labelleft=False,
-               labeltop=False, labelright=False, labelbottom=False)
-
-plt.margins(0, 0)
-
-fig.savefig('plots/TempWebb_reg-%s_snap-%s_rank%d.png'
-            % (reg, snap, rank),
-            bbox_inches='tight',
-            pad_inches=0)
-
-plt.close(fig)
-
-# Save the array
-np.save("data/Webb_reg-%s_snap-%s_rank%d.npy" % (reg, snap, rank), rgb_img)
+if nranks > 1:
+    make_image(reg, snap, width_mpc, width_arc, half_width, npix, oversample,
+               arc_res, kpc_res, arcsec_per_kpc_proper)
 
 if rank == 0:
 
@@ -386,6 +400,7 @@ if rank == 0:
 
     # Combine rank images together
     for r in range(nranks):
+        print("Combinging image from rank %d" % r)
         rank_img = np.load(
             "data/Webb_reg-%s_snap-%s_rank%d.npy" % (reg, snap, r))
         img += rank_img
