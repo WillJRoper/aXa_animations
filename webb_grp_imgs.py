@@ -288,6 +288,7 @@ def make_image(reg, snap, width_mpc, width_arc, half_width, npix, oversample,
 
     # Convert coordinates into arcseconds
     S_coords *= 10 ** 3 * arcsec_per_kpc_proper
+    S_sml *= 10 ** 3 * arcsec_per_kpc_proper
     target_arc = width_arc / 2
 
     # Set up filters
