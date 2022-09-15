@@ -389,6 +389,10 @@ if rank == 0:
     print("Image FOV is (%.2f, %.2f) arcseconds/(%.2f, %.2f) pMpc"
           % (width_arc, width_arc, width_mpc, width_mpc))
 
+# Define range and extent for the images in arc seconds
+imgrange = ((0, width_arc), (0, width_arc))
+imgextent = [0, width_arc, 0, width_arc]
+
 if nranks > 1:
     make_image(reg, snap, width_mpc, width_arc, half_width, npix, oversample,
                arc_res, kpc_res, arcsec_per_kpc_proper)
