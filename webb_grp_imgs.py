@@ -443,7 +443,7 @@ if rank == 0:
         img += rank_img
 
     # Normalise image between 0 and 1
-    plow, phigh = 24, 99.9
+    plow, phigh = 18, 99.9
     norm = Normalize(vmin=np.percentile(img, plow),
                      vmax=np.percentile(img, phigh),
                      clip=True)
