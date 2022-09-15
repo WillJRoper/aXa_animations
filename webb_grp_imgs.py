@@ -11,6 +11,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+import glob
 
 
 # The above has to be imported first
@@ -405,11 +406,12 @@ if rank == 0:
     # Initialise the image array
     img = np.zeros((npix, npix, 3), dtype=np.float32)
 
+    files = glob.glob("data/*.npy")
+
     # Combine rank images together
-    for r in range(nranks):
+    for r, f in enumerate(files):
         print("Combinging image from rank %d" % r)
-        rank_img = np.load(
-            "data/Webb_reg-%s_snap-%s_rank%d.npy" % (reg, snap, r))
+        rank_img = np.load(f)
         img += rank_img
 
     # Set up figure
