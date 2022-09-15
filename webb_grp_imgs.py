@@ -192,33 +192,33 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
         # Create 2D image
         temp_img = np.sum(smooth_img, axis=-1)
 
-        # Get central pixel indices
-        cent_ind = inds[np.argmin(dist)]
-        i, j = pix_pos[cent_ind, 0], pix_pos[cent_ind, 1]
+        # # Get central pixel indices
+        # cent_ind = inds[np.argmin(dist)]
+        # i, j = pix_pos[cent_ind, 0], pix_pos[cent_ind, 1]
 
-        # Get cached psf
-        if (i, j) in psfs:
-            psf = psfs[(i, j)]
-        else:
+        # # Get cached psf
+        # if (i, j) in psfs:
+        #     psf = psfs[(i, j)]
+        # else:
 
-            # Calculate the r and theta for this particle
-            ipos -= cent
-            r = np.sqrt(ipos[0] ** 2 + ipos[1] ** 2)
-            theta = (np.rad2deg(np.arctan(ipos[1] / ipos[2])) + 360) % 360
+        #     # Calculate the r and theta for this particle
+        #     ipos -= cent
+        #     r = np.sqrt(ipos[0] ** 2 + ipos[1] ** 2)
+        #     theta = (np.rad2deg(np.arctan(ipos[1] / ipos[2])) + 360) % 360
 
-            # Get PSF for this filter
-            nc = webbpsf.NIRCam()
-            nc.options['source_offset_r'] = r
-            nc.options['source_offset_theta'] = theta
-            nc.filter = f
-            psf = nc.calc_psf(fov_arcsec=fov_arcsec,
-                              oversample=oversample)
+        #     # Get PSF for this filter
+        #     nc = webbpsf.NIRCam()
+        #     nc.options['source_offset_r'] = r
+        #     nc.options['source_offset_theta'] = theta
+        #     nc.filter = f
+        #     psf = nc.calc_psf(fov_arcsec=fov_arcsec,
+        #                       oversample=oversample)
 
-            # Cache this psf
-            psfs[(i, j)] = psf
+        #     # Cache this psf
+        #     psfs[(i, j)] = psf
 
-        # Convolve the PSF and include this particle in the image
-        img += signal.fftconvolve(img, psf[0].data, mode="same")
+        # # Convolve the PSF and include this particle in the image
+        # img += signal.fftconvolve(img, psf[0].data, mode="same")
 
     print(f, img.min(), img.max())
 
