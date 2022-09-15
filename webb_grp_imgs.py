@@ -291,8 +291,6 @@ def make_image(reg, snap, width_mpc, width_arc, half_width, npix, oversample,
     S_sml *= 10 ** 3 * arcsec_per_kpc_proper
     target_arc = width_arc / 2
 
-    print(S_sml.min(), S_sml.max(), S_coords.min(), S_coords.max())
-
     # Set up filters
     filters = ["JWST.NIRCAM." + f for f in ["F090W", "F150W", "F200W",
                                             "F277W", "F356W", "F444W"]]
@@ -326,6 +324,8 @@ def make_image(reg, snap, width_mpc, width_arc, half_width, npix, oversample,
 
         # Get filter code
         fcode = f.split(".")[-1]
+
+        print(fluxes[f].min(), fluxes[f].max())
 
         mono_imgs[f] = make_spline_img_3d(S_coords, npix, tree, fluxes[f],
                                           S_sml, fcode,
