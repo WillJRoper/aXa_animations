@@ -291,6 +291,8 @@ def make_image(reg, snap, width_mpc, width_arc, half_width, npix, oversample,
     S_sml *= 10 ** 3 * arcsec_per_kpc_proper
     target_arc = width_arc / 2
 
+    print(S_sml.min(), S_sml.max(), S_coords.min(), S_coords.max())
+
     # Set up filters
     filters = ["JWST.NIRCAM." + f for f in ["F090W", "F150W", "F200W",
                                             "F277W", "F356W", "F444W"]]
@@ -331,7 +333,7 @@ def make_image(reg, snap, width_mpc, width_arc, half_width, npix, oversample,
                                           target_arc)
 
         if rank == 0:
-            print("Completed Image for %s", fcode)
+            print("Completed Image for %s" % fcode)
 
     # Set up RGB image
     rgb_img = np.zeros((npix, npix, 3))
