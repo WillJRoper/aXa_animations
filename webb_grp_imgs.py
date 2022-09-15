@@ -448,13 +448,13 @@ snap = '010_z005p000'
 z = float(snap.split("z")[-1].replace("p", "."))
 
 # Define the initial image size in Mpc
-width = 0.5
+width = 0.03
 
 # Get the conversion between arcseconds and pkpc at this redshift
 arcsec_per_kpc_proper = cosmo.arcsec_per_kpc_proper(z).value
 
 # Set up image resolution
-oversample = 1
+oversample = 2
 arc_res = 0.031 / oversample
 kpc_res = arc_res / arcsec_per_kpc_proper
 npix = int(np.ceil(width * 10 ** 3 / kpc_res))
