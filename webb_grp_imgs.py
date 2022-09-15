@@ -396,7 +396,7 @@ snap = '010_z005p000'
 z = float(snap.split("z")[-1].replace("p", "."))
 
 # Define the initial image size in Mpc
-width = 0.015
+width = 0.03
 
 # Get the conversion between arcseconds and pkpc at this redshift
 arcsec_per_kpc_proper = cosmo.arcsec_per_kpc_proper(z).value
