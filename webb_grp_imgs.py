@@ -443,7 +443,7 @@ if rank == 0:
         img += rank_img
 
     # Normalise image between 0 and 1
-    norm = Normalize()
+    norm = Normalize(vmin=np.percentile(img, 32), vmax=np.percentile(img, 95))
     img = norm(img).data
 
     # Set up figure
