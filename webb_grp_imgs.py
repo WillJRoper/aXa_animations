@@ -134,7 +134,7 @@ def cubic_spline(q):
 
 
 def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
-                       fov_arcsec, cent, spline_func=cubic_spline,
+                       fov_arcsec, cent, arc_res, spline_func=cubic_spline,
                        spline_cut_off=1):
 
     # Initialise the image array
@@ -158,6 +158,9 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
     # Split particles over ranks
     rank_bins = np.linspace(0, pos.shape[0], nranks + 1, dtype=int)
 
+    # Compute the maximum of pixels necessary to be returned
+    nmax = int(np.ceil(np.max(smooth) / arc_res)) + 1
+
     # Create a dictionary to cache psfs
     psfs = {}
 
@@ -170,10 +173,8 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
         smooth_img = np.zeros((Ndim, Ndim, Ndim), dtype=np.float64)
 
         # Query the tree for this particle
-        dist, inds = tree.query(ipos, k=pos.shape[0],
+        dist, inds = tree.query(ipos, k=nmax ** 3,
                                 distance_upper_bound=spline_cut_off * sml)
-
-        print(len(dist))
 
         if type(dist) is float:
             continue
@@ -332,7 +333,7 @@ def make_image(reg, snap, width_mpc, width_arc, half_width, npix, oversample,
         mono_imgs[f] = make_spline_img_3d(S_coords, npix, tree, fluxes[f],
                                           S_sml, fcode,
                                           oversample, width_arc,
-                                          target_arc)
+                                          target_arc, arc_res)
 
         if rank == 0:
             print("Completed Image for %s" % fcode)
