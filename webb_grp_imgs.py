@@ -74,7 +74,7 @@ def flux(tag, Masses, Ages, Metallicities, MetSurfaceDensities, gasMetallicities
     z = float(tag[5:].replace('p', '.'))
     F = flare.filters.add_filters(filters, new_lam=model.lam * (1. + z))
 
-    # --- create new Fnu grid for each filter. In units of nJy/M_sol
+    # Create new Fnu grid for each filter. In units of nJy/M_sol
     model.create_Fnu_grid(F, z, cosmo)
 
     Mage = np.nansum(Masses * Ages) / np.nansum(Masses)
@@ -83,7 +83,7 @@ def flux(tag, Masses, Ages, Metallicities, MetSurfaceDensities, gasMetallicities
     MetSurfaceDensities = DTM_fit(Z, Mage) * MetSurfaceDensities
 
     if Type == 'Total':
-        # --- calculate V-band (550nm) optical depth for each star particle
+        # Calculate V-band (550nm) optical depth for each star particle
         tauVs_ISM = kappa * MetSurfaceDensities
         tauVs_BC = BC_fac * (Metallicities / 0.01)
         fesc = 0.0
@@ -109,10 +109,10 @@ def flux(tag, Masses, Ages, Metallicities, MetSurfaceDensities, gasMetallicities
         fesc = None
         ValueError(F"Undefined Type {Type}")
 
-    # --- calculate rest-frame Luminosity. In units of erg/s/Hz
+    # Calculate rest-frame Luminosity. In units of erg/s/Hz
     for f in filters:
         print("Computing fluxes for %s" % f)
-        # --- calculate rest-frame flux of each object in nJy
+        # Calculate rest-frame flux of each object in nJy
         Fnu = models.generate_Fnu_array(model, F, f, Masses, Ages,
                                         Metallicities, tauVs_ISM, tauVs_BC,
                                         fesc=fesc, log10t_BC=log10t_BC)
@@ -159,7 +159,7 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
     rank_bins = np.linspace(0, pos.shape[0], nranks + 1, dtype=int)
 
     # Compute the maximum of pixels necessary to be returned
-    nmax = int(np.ceil(spline_cut_off * np.max(smooth) / arc_res)) + 1
+    nmax = int(np.ceil(spline_cut_off * np.max(smooth) / arc_res)) + 2
 
     # Create a dictionary to cache psfs
     psfs = {}
@@ -405,7 +405,7 @@ width = 0.03
 arcsec_per_kpc_proper = cosmo.arcsec_per_kpc_proper(z).value
 
 # Set up image resolution
-oversample = 2
+oversample = 1
 arc_res = 0.031 / oversample
 kpc_res = arc_res / arcsec_per_kpc_proper
 npix = int(np.ceil(width * 10 ** 3 / kpc_res))
