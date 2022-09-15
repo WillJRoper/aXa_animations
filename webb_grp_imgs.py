@@ -365,6 +365,9 @@ def make_image(reg, snap, width_mpc, width_arc, half_width, npix, oversample,
 reg = "00"
 snap = '010_z005p000'
 
+# Get redshift
+z = float(snap.split("z")[-1].replace("p", "."))
+
 # Define the initial image size in Mpc
 width = 0.03
 
