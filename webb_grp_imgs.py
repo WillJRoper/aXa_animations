@@ -183,10 +183,9 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
         temp_img = np.zeros((Ndim, Ndim), dtype=np.float64)
 
         # Define x and y positions of pixels
-        X, Y, Z = np.meshgrid(np.arange(0, Ndim, 1),
-                              np.arange(0, Ndim, 1),
-                              np.arange(0, Ndim, 1),
-                              dtype=np.int16)
+        X, Y, Z = np.meshgrid(np.arange(0, Ndim, 1, dtype=np.int16),
+                              np.arange(0, Ndim, 1, dtype=np.int16),
+                              np.arange(0, Ndim, 1, dtype=np.int16))
 
         # Define pixel position array for the KDTree
         pix_pos = np.zeros((X.size, 3), dtype=int)
