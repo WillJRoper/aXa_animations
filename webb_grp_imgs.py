@@ -176,10 +176,13 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
         # Initialise the image array
         img = np.zeros((Ndim, Ndim), dtype=np.float64)
 
+        # Compute the maximum of pixels necessary to be returned
+        nmax = int(np.ceil(spline_cut_off * np.max(smooth) / arc_res)) + 2
+
         # Define x and y positions of pixels
         X, Y, Z = np.meshgrid(np.arange(0, Ndim, 1),
                               np.arange(0, Ndim, 1),
-                              np.arange(0, Ndim, 1))
+                              np.arange(0, nmax, 1))
 
         # Define pixel position array for the KDTree
         pix_pos = np.zeros((X.size, 3), dtype=int)
@@ -194,14 +197,11 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
         # Split particles over ranks
         rank_bins = np.linspace(0, pos.shape[0], nranks + 1, dtype=int)
 
-        # Compute the maximum of pixels necessary to be returned
-        nmax = int(np.ceil(spline_cut_off * np.max(smooth) / arc_res)) + 2
-
         # Create a dictionary to cache psfs
         psfs = {}
 
         # Create an empty 3D image
-        smooth_img = np.zeros((Ndim, Ndim, Ndim), dtype=np.float64)
+        smooth_img = np.zeros((Ndim, Ndim, nmax), dtype=np.float64)
 
         # Loop until all particles are done
         while True:
@@ -450,7 +450,7 @@ snap = '010_z005p000'
 z = float(snap.split("z")[-1].replace("p", "."))
 
 # Define the initial image size in Mpc
-width = 0.03
+width = 0.5
 
 # Get the conversion between arcseconds and pkpc at this redshift
 arcsec_per_kpc_proper = cosmo.arcsec_per_kpc_proper(z).value
