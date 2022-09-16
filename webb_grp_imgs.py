@@ -149,12 +149,6 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
     # Define MPI message tags
     tags = enum('READY', 'DONE', 'EXIT', 'START')
 
-    # Set up tags
-    finish = 0
-    ready = 1
-    run = 2
-    working = 3
-
     # Set up particle pointer
     n = 0
     step = 100
@@ -183,7 +177,7 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
 
                 # If there are still particles send some
                 if n < pos.shape[0]:
-                    print("Sending %d particles to rank %d" % (step, s.source))
+                    print("Sending %d particles to rank %d" % (step, source))
                     comm.send(n, dest=source, tag=tags.START)
                     n += step
                 else:
