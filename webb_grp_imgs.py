@@ -296,6 +296,9 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
 
         comm.send(None, dest=0, tag=tags.EXIT)
 
+    # Lets let everyone catch up before we continue
+    comm.Barrier()
+
     return img
 
 
