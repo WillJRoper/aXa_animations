@@ -188,7 +188,7 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
                               np.arange(0, Ndim, 1, dtype=np.int16))
 
         # Define pixel position array for the KDTree
-        pix_pos = np.zeros((X.size, 3), dtype=int)
+        pix_pos = np.zeros((X.size, 3), dtype=np.int16)
         pix_pos[:, 0] = X.ravel()
         pix_pos[:, 1] = Y.ravel()
         pix_pos[:, 2] = Z.ravel()
@@ -248,7 +248,7 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
             # Place the kernel for this particle within the img
             kernel = w / sml ** 3
             norm_kernel = kernel / np.sum(kernel)
-            np.add.at(temp_img, pix_pos[inds, :2], l * norm_kernel)
+            np.add.at(temp_img, pix_pos[inds, [0, 1]], l * norm_kernel)
 
             # # Get central pixel indices
             # cent_ind = inds[np.argmin(dist)]
