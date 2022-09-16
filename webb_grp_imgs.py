@@ -35,6 +35,14 @@ sns.set_context("paper")
 sns.set_style('whitegrid')
 
 
+def enum(*sequential, **named):
+    """Handy way to fake an enumerated type in Python
+    http://stackoverflow.com/questions/36932/how-can-i-represent-an-enum-in-python
+    """
+    enums = dict(zip(sequential, range(len(sequential))), **named)
+    return type('Enum', (), enums)
+
+
 def DTM_fit(Z, Age):
     """
     Fit function from L-GALAXIES dust modeling
@@ -138,6 +146,9 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
                        fov_arcsec, cent, arc_res, spline_func=cubic_spline,
                        spline_cut_off=1):
 
+    # Define MPI message tags
+    tags = enum('READY', 'DONE', 'EXIT', 'START')
+
     # Set up tags
     finish = 0
     ready = 1
@@ -153,27 +164,35 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
 
     if rank == 0:
 
-        # Set up the number of processes running
-        remaining = nranks - 1
+        # Master process executes code below
+        num_workers = nranks - 1
+        closed_workers = 0
+        while closed_workers < num_workers:
 
-        while remaining > 0:
-
-            s = MPI.Status()
-            comm.probe(status=s)
+            data = comm.recv(source=MPI.ANY_SOURCE,
+                             tag=MPI.ANY_TAG,
+                             status=status)
+            source = status.Get_source()
+            tag = status.Get_tag()
 
             # Report progress
             if n % 1000 == 0:
                 print(n)
 
-            # make sure we post the right kind of message
-            if s.tag == ready:
+            if tag == tags.READY:
+
+                # If there are still particles send some
                 if n < pos.shape[0]:
                     print("Sending %d particles to rank %d" % (step, s.source))
-                    comm.send(n, dest=s.source, tag=run)
+                    comm.send(n, dest=source, tag=tags.START)
                     n += step
                 else:
-                    comm.send(None, dest=s.source, tag=finish)
-                    remaining -= 1
+                    # There are no particles left so terminate this process
+                    comm.send(None, dest=source, tag=tags.EXIT)
+
+            elif tag == tags.EXIT:
+
+                closed_workers += 1
 
         print(f, "done")
 
@@ -203,85 +222,85 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
         # Loop until all particles are done
         while True:
 
-            # Signify this rank is ready
-            comm.send(None, dest=0, tag=ready)
+            comm.send(None, dest=0, tag=tags.READY)
+            n = comm.recv(source=0, tag=MPI.ANY_TAG, status=status)
+            tag = status.Get_tag()
 
-            # Wait for the particles
-            n = comm.recv(source=0, tag=MPI.ANY_TAG)
-            comm.send(None, dest=0, tag=working)
+            if tag == tags.START:
 
-            # Exit if we are finished
-            if n is None:
+                # Define bounds
+                low = n
+                high = n + step
+                if high > pos.shape[0]:
+                    high = pos.shape[0]
+
+                # Get this particle's data
+                iposs = pos[low: high, :]
+                ls = ls[low: high]
+                smls = smooth[low: high]
+
+                for ipos, l, sml in zip(iposs, ls, smls):
+
+                    # Compute the maximum of pixels necessary to be returned
+                    nmax = int(np.ceil(2 * spline_cut_off * sml / arc_res)) + 2
+
+                    # Query the tree for this particle
+                    dist, inds = tree.query(ipos, k=nmax ** 3,
+                                            distance_upper_bound=spline_cut_off * sml)
+
+                    if type(dist) is float:
+                        continue
+
+                    okinds = dist < spline_cut_off * sml
+                    dist = dist[okinds]
+                    inds = inds[okinds]
+
+                    if len(dist) < 1:
+                        continue
+
+                    # Get the kernel
+                    w = spline_func(dist / sml)
+
+                    # Place the kernel for this particle within the img
+                    kernel = w / sml ** 3
+                    norm_kernel = kernel / np.sum(kernel)
+                    np.add.at(temp_img, (pix_pos[inds, 0], pix_pos[inds, 1]),
+                              l * norm_kernel)
+
+                    # # Get central pixel indices
+                    # cent_ind = inds[np.argmin(dist)]
+                    # i, j = pix_pos[cent_ind, 0], pix_pos[cent_ind, 1]
+
+                    # # Get cached psf
+                    # if (i, j) in psfs:
+                    #     psf = psfs[(i, j)]
+                    # else:
+
+                    #     # Calculate the r and theta for this particle
+                    #     ipos -= cent
+                    #     r = np.sqrt(ipos[0] ** 2 + ipos[1] ** 2)
+                    #     theta = (np.rad2deg(np.arctan(ipos[1] / ipos[2])) + 360) % 360
+
+                    #     # Get PSF for this filter
+                    #     nc = webbpsf.NIRCam()
+                    #     nc.options['source_offset_r'] = r
+                    #     nc.options['source_offset_theta'] = theta
+                    #     nc.filter = f
+                    #     psf = nc.calc_psf(fov_arcsec=fov_arcsec,
+                    #                       oversample=oversample)
+
+                    #     # Cache this psf
+                    #     psfs[(i, j)] = psf
+
+                    # # Convolve the PSF and include this particle in the image
+                    # temp_img = signal.fftconvolve(temp_img, psf[0].data, mode="same")
+                    img += temp_img
+                    temp_img[:, :] = 0.
+
+            elif tag == tags.EXIT:
                 break
 
-            # Define bounds
-            low = n
-            high = n + step
-            if high > pos.shape[0]:
-                high = pos.shape[0]
-
-            # Get this particle's data
-            iposs = pos[low: high, :]
-            ls = ls[low: high]
-            smls = smooth[low: high]
-
-            for ipos, l, sml in zip(iposs, ls, smls):
-
-                # Compute the maximum of pixels necessary to be returned
-                nmax = int(np.ceil(2 * spline_cut_off * sml / arc_res)) + 2
-
-                # Query the tree for this particle
-                dist, inds = tree.query(ipos, k=nmax ** 3,
-                                        distance_upper_bound=spline_cut_off * sml)
-
-                if type(dist) is float:
-                    continue
-
-                okinds = dist < spline_cut_off * sml
-                dist = dist[okinds]
-                inds = inds[okinds]
-
-                if len(dist) < 1:
-                    continue
-
-                # Get the kernel
-                w = spline_func(dist / sml)
-
-                # Place the kernel for this particle within the img
-                kernel = w / sml ** 3
-                norm_kernel = kernel / np.sum(kernel)
-                np.add.at(temp_img, (pix_pos[inds, 0], pix_pos[inds, 1]),
-                          l * norm_kernel)
-
-                # # Get central pixel indices
-                # cent_ind = inds[np.argmin(dist)]
-                # i, j = pix_pos[cent_ind, 0], pix_pos[cent_ind, 1]
-
-                # # Get cached psf
-                # if (i, j) in psfs:
-                #     psf = psfs[(i, j)]
-                # else:
-
-                #     # Calculate the r and theta for this particle
-                #     ipos -= cent
-                #     r = np.sqrt(ipos[0] ** 2 + ipos[1] ** 2)
-                #     theta = (np.rad2deg(np.arctan(ipos[1] / ipos[2])) + 360) % 360
-
-                #     # Get PSF for this filter
-                #     nc = webbpsf.NIRCam()
-                #     nc.options['source_offset_r'] = r
-                #     nc.options['source_offset_theta'] = theta
-                #     nc.filter = f
-                #     psf = nc.calc_psf(fov_arcsec=fov_arcsec,
-                #                       oversample=oversample)
-
-                #     # Cache this psf
-                #     psfs[(i, j)] = psf
-
-                # # Convolve the PSF and include this particle in the image
-                # temp_img = signal.fftconvolve(temp_img, psf[0].data, mode="same")
-                img += temp_img
-                temp_img[:, :] = 0.
+        comm.send(None, dest=0, tag=tags.EXIT)
 
     return img
 
