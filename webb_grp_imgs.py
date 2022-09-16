@@ -235,7 +235,7 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
             # Place the kernel for this particle within the img
             kernel = w / sml ** 3
             norm_kernel = kernel / np.sum(kernel)
-            np.add(temp_img, pix_pos[inds, :], l * norm_kernel)
+            np.add.at(temp_img, pix_pos[inds, :], l * norm_kernel)
 
             # # Get central pixel indices
             # cent_ind = inds[np.argmin(dist)]
