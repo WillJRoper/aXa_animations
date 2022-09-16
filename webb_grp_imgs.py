@@ -219,9 +219,9 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
                 high = pos.shape[0]
 
             # Get this particle's data
-            ipos = pos[n: n + step, :]
-            l = ls[n: n + step]
-            sml = smooth[n: n + step]
+            ipos = pos[low: high, :]
+            l = ls[low: high]
+            sml = smooth[low: high]
 
             # Compute the maximum of pixels necessary to be returned
             try:
