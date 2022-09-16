@@ -142,10 +142,14 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
     finish = 0
     ready = 1
     run = 2
+    working = 3
 
     # Set up particle pointer
     n = 0
     step = 100
+
+    # Initialise the image array
+    img = np.zeros((Ndim, Ndim), dtype=np.float64)
 
     if rank == 0:
 
@@ -175,8 +179,7 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
 
     else:
 
-        # Initialise the image array
-        img = np.zeros((Ndim, Ndim), dtype=np.float64)
+        # Initialise the temporary image array for each particle
         temp_img = np.zeros((Ndim, Ndim), dtype=np.float64)
 
         # Define x and y positions of pixels
@@ -203,6 +206,7 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
 
             # Wait for the particle
             n = comm.recv(source=0, tag=MPI.ANY_TAG)
+            comm.send(None, dest=0, tag=working)
 
             # Exit if we are finished
             if n is None:
