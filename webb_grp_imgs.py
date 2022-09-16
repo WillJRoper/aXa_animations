@@ -204,7 +204,7 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
             # Signify this rank is ready
             comm.send(None, dest=0, tag=ready)
 
-            # Wait for the particle
+            # Wait for the particles
             n = comm.recv(source=0, tag=MPI.ANY_TAG)
             comm.send(None, dest=0, tag=working)
 
