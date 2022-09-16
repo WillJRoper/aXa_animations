@@ -151,7 +151,7 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
 
     # Set up particle pointer
     n = 0
-    step = 100
+    step = 1000
 
     # Initialise the image array
     img = np.zeros((Ndim, Ndim), dtype=np.float64)
@@ -170,7 +170,7 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
             tag = status.Get_tag()
 
             # Report progress
-            if n % 1000 == 0:
+            if n % 10000 == 0:
                 print(n)
 
             if tag == tags.READY:
