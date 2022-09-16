@@ -151,7 +151,7 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
 
     # Set up particle pointer
     n = 0
-    step = 1000
+    step = 100
 
     # Initialise the image array
     img = np.zeros((Ndim, Ndim), dtype=np.float64)
@@ -177,7 +177,6 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
 
                 # If there are still particles send some
                 if n < pos.shape[0]:
-                    print("Sending %d particles to rank %d" % (step, source))
                     comm.send(n, dest=source, tag=tags.START)
                     n += step
                 else:
