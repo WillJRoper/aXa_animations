@@ -227,7 +227,7 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
             try:
                 nmax = int(np.ceil(2 * spline_cut_off * sml / arc_res)) + 2
             except TypeError:
-                print(spline_cut_off, smal, arc_res)
+                print(spline_cut_off, sml, arc_res)
 
             # Query the tree for this particle
             dist, inds = tree.query(ipos, k=nmax ** 3,
