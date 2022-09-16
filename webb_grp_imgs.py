@@ -150,7 +150,7 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
     if rank == 0:
 
         # Set up the number of processes running
-        remaining = comm.Get_size() - 1
+        remaining = nranks - 1
 
         while remaining > 0:
 
@@ -169,6 +169,7 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
                     n += step
                 else:
                     comm.send(None, dest=s.source, tag=finish)
+                    remaining -= 1
 
         print(f, "done")
 
