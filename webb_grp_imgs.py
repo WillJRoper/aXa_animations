@@ -164,8 +164,9 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
             # make sure we post the right kind of message
             if s.tag == ready:
                 if n < pos.shape[0]:
+                    print("Sending %d particles to rank %d" % (step, s.source))
                     comm.send(n, dest=s.source, tag=run)
-                    n += 100
+                    n += step
                 else:
                     comm.send(None, dest=s.source, tag=finish)
 
@@ -175,33 +176,23 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
 
         # Initialise the image array
         img = np.zeros((Ndim, Ndim), dtype=np.float64)
-
-        # Compute the maximum of pixels necessary to be returned
-        nmax = int(np.ceil(spline_cut_off * np.max(smooth) / arc_res)) + 2
+        temp_img = np.zeros((Ndim, Ndim), dtype=np.float64)
 
         # Define x and y positions of pixels
-        X, Y, Z = np.meshgrid(np.arange(0, Ndim, 1),
-                              np.arange(0, Ndim, 1),
-                              np.arange(0, nmax, 1))
+        X, Y = np.meshgrid(np.arange(0, Ndim, 1),
+                           np.arange(0, Ndim, 1))
 
         # Define pixel position array for the KDTree
-        pix_pos = np.zeros((X.size, 3), dtype=int)
+        pix_pos = np.zeros((X.size, 2), dtype=int)
         pix_pos[:, 0] = X.ravel()
         pix_pos[:, 1] = Y.ravel()
-        pix_pos[:, 2] = Z.ravel()
 
         # Handle oversample for long wavelength channel
         if f in ["F277W", "F356W", "F444W"]:
             oversample *= 2
 
-        # Split particles over ranks
-        rank_bins = np.linspace(0, pos.shape[0], nranks + 1, dtype=int)
-
         # Create a dictionary to cache psfs
         psfs = {}
-
-        # Create an empty 3D image
-        smooth_img = np.zeros((Ndim, Ndim, nmax), dtype=np.float64)
 
         # Loop until all particles are done
         while True:
@@ -222,7 +213,7 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
             sml = smooth[n: n + step]
 
             # Compute the maximum of pixels necessary to be returned
-            nmax = int(np.ceil(spline_cut_off * sml / arc_res)) + 2
+            nmax = int(np.ceil(2 * spline_cut_off * sml / arc_res)) + 2
 
             # Query the tree for this particle
             dist, inds = tree.query(ipos, k=nmax ** 3,
@@ -244,12 +235,7 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
             # Place the kernel for this particle within the img
             kernel = w / sml ** 3
             norm_kernel = kernel / np.sum(kernel)
-            smooth_img[pix_pos[inds, 0], pix_pos[inds, 1], pix_pos[
-                inds, 2]] += l * norm_kernel
-
-            # Create 2D image
-            temp_img = np.sum(smooth_img, axis=-1)
-            smooth_img[:, :, :] = 0.
+            np.add(temp_img, pix_pos[inds, :], l * norm_kernel)
 
             # # Get central pixel indices
             # cent_ind = inds[np.argmin(dist)]
@@ -279,6 +265,7 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
             # # Convolve the PSF and include this particle in the image
             # temp_img = signal.fftconvolve(temp_img, psf[0].data, mode="same")
             img += temp_img
+            temp_img[:, :] = 0.
 
     return img
 
