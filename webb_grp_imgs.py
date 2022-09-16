@@ -145,6 +145,7 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
 
     # Set up particle pointer
     n = 0
+    step = 100
 
     if rank == 0:
 
@@ -164,7 +165,7 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
             if s.tag == ready:
                 if n < pos.shape[0]:
                     comm.send(n, dest=s.source, tag=run)
-                    n += 1
+                    n += 100
                 else:
                     comm.send(None, dest=s.source, tag=finish)
 
@@ -216,9 +217,9 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
                 break
 
             # Get this particle's data
-            ipos = pos[n, :]
-            l = ls[n]
-            sml = smooth[n]
+            ipos = pos[n: n + step, :]
+            l = ls[n: n + step]
+            sml = smooth[n: n + step]
 
             # Compute the maximum of pixels necessary to be returned
             nmax = int(np.ceil(spline_cut_off * sml / arc_res)) + 2
@@ -250,33 +251,34 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
             temp_img = np.sum(smooth_img, axis=-1)
             smooth_img[:, :, :] = 0.
 
-            # Get central pixel indices
-            cent_ind = inds[np.argmin(dist)]
-            i, j = pix_pos[cent_ind, 0], pix_pos[cent_ind, 1]
+            # # Get central pixel indices
+            # cent_ind = inds[np.argmin(dist)]
+            # i, j = pix_pos[cent_ind, 0], pix_pos[cent_ind, 1]
 
-            # Get cached psf
-            if (i, j) in psfs:
-                psf = psfs[(i, j)]
-            else:
+            # # Get cached psf
+            # if (i, j) in psfs:
+            #     psf = psfs[(i, j)]
+            # else:
 
-                # Calculate the r and theta for this particle
-                ipos -= cent
-                r = np.sqrt(ipos[0] ** 2 + ipos[1] ** 2)
-                theta = (np.rad2deg(np.arctan(ipos[1] / ipos[2])) + 360) % 360
+            #     # Calculate the r and theta for this particle
+            #     ipos -= cent
+            #     r = np.sqrt(ipos[0] ** 2 + ipos[1] ** 2)
+            #     theta = (np.rad2deg(np.arctan(ipos[1] / ipos[2])) + 360) % 360
 
-                # Get PSF for this filter
-                nc = webbpsf.NIRCam()
-                nc.options['source_offset_r'] = r
-                nc.options['source_offset_theta'] = theta
-                nc.filter = f
-                psf = nc.calc_psf(fov_arcsec=fov_arcsec,
-                                  oversample=oversample)
+            #     # Get PSF for this filter
+            #     nc = webbpsf.NIRCam()
+            #     nc.options['source_offset_r'] = r
+            #     nc.options['source_offset_theta'] = theta
+            #     nc.filter = f
+            #     psf = nc.calc_psf(fov_arcsec=fov_arcsec,
+            #                       oversample=oversample)
 
-                # Cache this psf
-                psfs[(i, j)] = psf
+            #     # Cache this psf
+            #     psfs[(i, j)] = psf
 
-            # Convolve the PSF and include this particle in the image
-            img += signal.fftconvolve(temp_img, psf[0].data, mode="same")
+            # # Convolve the PSF and include this particle in the image
+            # temp_img = signal.fftconvolve(temp_img, psf[0].data, mode="same")
+            img += temp_img
 
     return img
 
