@@ -528,7 +528,7 @@ if rank == 0:
             if f not in path:
                 continue
 
-            print("Combinging image from file %s" % (path, f))
+            print("Combinging image from file %s" % path)
 
             rank_img = np.load(path)
             fimg += rank_img
