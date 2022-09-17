@@ -515,6 +515,9 @@ if rank == 0:
 
         fimg = np.zeros((npix, npix), dtype=np.float32)
 
+        # Get filter code
+        fcode = f.split(".")[-1]
+
         # Combine rank images together
         for r, path in enumerate(files):
 
@@ -528,15 +531,12 @@ if rank == 0:
 
         # Get PSF for this filter
         nc = webbpsf.NIRCam()
-        nc.filter = f
+        nc.filter = fcode
         psf = nc.calc_psf(fov_arcsec=width_arc,
                           oversample=oversample)
 
         # Convolve the PSF and include this particle in the image
         fimg = signal.fftconvolve(fimg, psf[0].data, mode="same")
-
-        # Get filter code
-        fcode = f.split(".")[-1]
 
         # Get color for filter
         if fcode in ["F356W", "F444W"]:
