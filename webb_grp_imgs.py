@@ -249,9 +249,6 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
                     dist = dist[okinds]
                     inds = inds[okinds]
 
-                    if len(dist) < 1:
-                        continue
-
                     # Get the kernel
                     w = spline_func(dist / sml)
 
