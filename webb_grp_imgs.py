@@ -235,7 +235,7 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
                 for ipos, l, sml in zip(iposs, ls, smls):
 
                     # Compute the maximum of pixels necessary to be returned
-                    nmax = int(np.ceil(2 * spline_cut_off * sml / arc_res)) + 2
+                    nmax = 4 * int(np.ceil(2 * spline_cut_off * sml / arc_res))
 
                     # Query the tree for this particle
                     dist, inds = tree.query(ipos, k=nmax ** 3,
@@ -248,6 +248,9 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
                     okinds = dist < spline_cut_off * sml
                     dist = dist[okinds]
                     inds = inds[okinds]
+
+                    if len(dist) < 1:
+                        continue
 
                     # Get the kernel
                     w = spline_func(dist / sml)
