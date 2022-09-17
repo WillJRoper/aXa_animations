@@ -511,13 +511,13 @@ if nranks > 1:
 if rank == 0:
 
     # Initialise the image array
-    img = np.zeros((npix, npix, 3), dtype=np.float32)
+    img = np.zeros((npix, npix, 3), dtype=np.float64)
 
     files = glob.glob("data/*.npy")
 
     for f in filters:
 
-        fimg = np.zeros((npix, npix), dtype=np.float32)
+        fimg = np.zeros((npix, npix), dtype=np.float64)
 
         # Get filter code
         fcode = f.split(".")[-1]
@@ -528,7 +528,7 @@ if rank == 0:
             if f not in path:
                 continue
 
-            print("Combinging image from rank %d for filter %s" % (r, f))
+            print("Combinging image from file %s" % (path, f))
 
             rank_img = np.load(path)
             fimg += rank_img
