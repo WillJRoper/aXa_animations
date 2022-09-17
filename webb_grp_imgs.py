@@ -236,12 +236,14 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
 
                     # How many pixels are we testing?
                     nkernel = len(tree.query_ball_point(ipos,
-                                                        r=spline_cut_off * sml))
+                                                        r=(spline_cut_off
+                                                           * sml)
+                                                        + (0.1 * sml)))
 
                     if nkernel == 0:
                         continue
 
-                    nkernel = (nkernel ** (1 / 3) + 2) ** 3
+                    nkernel = (nkernel ** (1 / 3) + 6) ** 3
 
                     # Query the tree for this particle
                     dist, inds = tree.query(ipos, k=nkernel,
@@ -251,7 +253,7 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
                         dist = np.array([dist, ])
                         inds = np.array([inds, ])
 
-                    okinds = dist < spline_cut_off * sml
+                    okinds = dist < (spline_cut_off * sml)
                     dist = dist[okinds]
                     inds = inds[okinds]
 
