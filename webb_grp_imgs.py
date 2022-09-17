@@ -151,7 +151,7 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
 
     # Set up particle pointer
     n = 0
-    step = 1000
+    step = 100
 
     # Initialise the image array
     img = np.zeros((Ndim, Ndim), dtype=np.float64)
