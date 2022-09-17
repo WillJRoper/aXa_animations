@@ -574,7 +574,7 @@ if rank == 0:
     ax = fig.add_subplot(111)
     ax.grid(False)
 
-    ax.imshow(img, extent=imgextent, origin='lower', norm=LogNorm())
+    ax.imshow(img, extent=imgextent, origin='lower')
     ax.tick_params(axis='both', left=False, top=False, right=False,
                    bottom=False, labelleft=False,
                    labeltop=False, labelright=False, labelbottom=False)
