@@ -262,34 +262,34 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
                               l * norm_kernel)
 
                     # Get central pixel indices
-                    cent_ind = inds[np.argmin(dist)]
-                    i, j = pix_pos[cent_ind, 0], pix_pos[cent_ind, 1]
+                    # cent_ind = inds[np.argmin(dist)]
+                    # i, j = pix_pos[cent_ind, 0], pix_pos[cent_ind, 1]
 
-                    # Get cached psf
-                    if (i, j) in psfs:
-                        psf = psfs[(i, j)]
-                    else:
+                    # # Get cached psf
+                    # if (i, j) in psfs:
+                    #     psf = psfs[(i, j)]
+                    # else:
 
-                        # Calculate the r and theta for this particle
-                        ipos -= cent
-                        r = np.sqrt(ipos[0] ** 2 + ipos[1] ** 2)
-                        theta = (np.rad2deg(np.arctan(ipos[1] / ipos[2]))
-                                 + 360) % 360
+                    #     # Calculate the r and theta for this particle
+                    #     ipos -= cent
+                    #     r = np.sqrt(ipos[0] ** 2 + ipos[1] ** 2)
+                    #     theta = (np.rad2deg(np.arctan(ipos[1] / ipos[2]))
+                    #              + 360) % 360
 
-                        # Get PSF for this filter
-                        nc = webbpsf.NIRCam()
-                        nc.options['source_offset_r'] = r
-                        nc.options['source_offset_theta'] = theta
-                        nc.filter = f
-                        psf = nc.calc_psf(fov_arcsec=fov_arcsec,
-                                          oversample=oversample)
+                    #     # Get PSF for this filter
+                    #     nc = webbpsf.NIRCam()
+                    #     nc.options['source_offset_r'] = r
+                    #     nc.options['source_offset_theta'] = theta
+                    #     nc.filter = f
+                    #     psf = nc.calc_psf(fov_arcsec=fov_arcsec,
+                    #                       oversample=oversample)
 
-                        # Cache this psf
-                        psfs[(i, j)] = psf
+                    #     # Cache this psf
+                    #     psfs[(i, j)] = psf
 
-                    # Convolve the PSF and include this particle in the image
-                    temp_img = signal.fftconvolve(temp_img, psf[0].data,
-                                                  mode="same")
+                    # # Convolve the PSF and include this particle in the image
+                    # temp_img = signal.fftconvolve(temp_img, psf[0].data,
+                    #                               mode="same")
                     img += temp_img
                     temp_img[:, :] = 0.
 
@@ -305,7 +305,8 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
 
 
 def make_image(reg, snap, width_mpc, width_arc, half_width, npix, oversample,
-               arc_res, kpc_res, arcsec_per_kpc_proper, rank_plot=False):
+               arc_res, kpc_res, arcsec_per_kpc_proper, filters,
+               rank_plot=False):
 
     # Set up FLARES regions
     master_base = "/cosma7/data/dp004/dc-payy1/my_files/flares_pipeline/data/flares.hdf5"
@@ -370,10 +371,6 @@ def make_image(reg, snap, width_mpc, width_arc, half_width, npix, oversample,
     S_sml *= 10 ** 3 * arcsec_per_kpc_proper
     target_arc = width_arc / 2
 
-    # Set up filters
-    filters = ["JWST.NIRCAM." + f for f in ["F090W", "F150W", "F200W",
-                                            "F277W", "F356W", "F444W"]]
-
     # Get fluxes
     fluxes = flux(snap, S_mass_ini, S_age, S_Z, S_los, G_Z, filters=filters)
 
@@ -408,6 +405,10 @@ def make_image(reg, snap, width_mpc, width_arc, half_width, npix, oversample,
                                           S_sml, fcode,
                                           oversample, width_arc,
                                           target_arc, arc_res)
+
+        # Save the array
+        np.save("data/Webb_reg-%s_snap-%s_rank%d_filter%s.npy"
+                % (reg, snap, rank, f), mono_imgs[f])
 
         if rank == 0:
             print("Completed Image for %s" % fcode)
@@ -457,9 +458,6 @@ def make_image(reg, snap, width_mpc, width_arc, half_width, npix, oversample,
 
         plt.close(fig)
 
-    # Save the array
-    np.save("data/Webb_reg-%s_snap-%s_rank%d.npy" % (reg, snap, rank), rgb_img)
-
     comm.Barrier()
 
 
@@ -469,6 +467,10 @@ snap = '010_z005p000'
 
 # Get redshift
 z = float(snap.split("z")[-1].replace("p", "."))
+
+# Set up filters
+filters = ["JWST.NIRCAM." + f for f in ["F090W", "F150W", "F200W",
+                                        "F277W", "F356W", "F444W"]]
 
 # Define the initial image size in Mpc
 width = 0.03
@@ -500,7 +502,7 @@ imgextent = [0, width_arc, 0, width_arc]
 
 if nranks > 1:
     make_image(reg, snap, width_mpc, width_arc, half_width, npix, oversample,
-               arc_res, kpc_res, arcsec_per_kpc_proper)
+               arc_res, kpc_res, arcsec_per_kpc_proper, filters)
 
 if rank == 0:
 
@@ -509,12 +511,46 @@ if rank == 0:
 
     files = glob.glob("data/*.npy")
 
-    # Combine rank images together
-    for r, f in enumerate(files):
-        print("Combinging image from rank %d" % r)
-        rank_img = np.load(f)
-        print(rank_img.min(), rank_img.max())
-        img += rank_img
+    for f in filters:
+
+        fimg = np.zeros((npix, npix), dtype=np.float32)
+
+        # Combine rank images together
+        for r, path in enumerate(files):
+
+            if f not in path:
+                continue
+
+            print("Combinging image from rank %d for filter %s" % (r, f))
+
+            rank_img = np.load(path)
+            fimg += rank_img
+
+        # Get PSF for this filter
+        nc = webbpsf.NIRCam()
+        nc.filter = f
+        psf = nc.calc_psf(fov_arcsec=width_arc,
+                          oversample=oversample)
+
+        # Convolve the PSF and include this particle in the image
+        fimg = signal.fftconvolve(fimg, psf[0].data, mode="same")
+
+        # Get filter code
+        fcode = f.split(".")[-1]
+
+        # Get color for filter
+        if fcode in ["F356W", "F444W"]:
+            rgb = 0
+        elif fcode in ["F200W", "F277W"]:
+            rgb = 1
+        elif fcode in ["F090W", "F150W"]:
+            rgb = 2
+        else:
+            print("Failed to assign color for filter %s EXITING..." % fcode)
+            break
+
+        # Assign the image
+        img[:, :, rgb] += fimg
 
     # Normalise image between 0 and 1
     plow, phigh = 16, 99.7
