@@ -229,10 +229,10 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
 
                 # Get this particle's data
                 iposs = pos[low: high, :]
-                ls = ls[low: high]
+                lss = ls[low: high]
                 smls = smooth[low: high]
 
-                for ipos, l, sml in zip(iposs, ls, smls):
+                for ipos, l, sml in zip(iposs, lss, smls):
 
                     # How many pixels are we testing?
                     nkernel = len(tree.query_ball_point(ipos,
