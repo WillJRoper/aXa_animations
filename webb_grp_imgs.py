@@ -238,8 +238,10 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
                     nkernel = len(tree.query_ball_point(ipos,
                                                         r=spline_cut_off * sml))
 
-                    if nkernal == 0:
+                    if nkernel == 0:
                         continue
+
+                    nkernel = (nkernel ** (1 / 3) + 2) ** 3
 
                     # Query the tree for this particle
                     dist, inds = tree.query(ipos, k=nkernel,
