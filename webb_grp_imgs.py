@@ -236,9 +236,7 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
 
                     # How many pixels are we testing?
                     nkernel = len(tree.query_ball_point(ipos,
-                                                        r=(spline_cut_off
-                                                           * sml)
-                                                        + (0.1 * sml)))
+                                                        r=2 * sml))
 
                     if nkernel == 0:
                         continue
@@ -246,8 +244,10 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
                     nkernel = (nkernel ** (1 / 3) + 6) ** 3
 
                     # Query the tree for this particle
-                    dist, inds = tree.query(ipos, k=nkernel,
-                                            distance_upper_bound=spline_cut_off * sml)
+                    dist, inds = tree.query(
+                        ipos, k=nkernel,
+                        distance_upper_bound=(spline_cut_off * sml) + arc_res
+                    )
 
                     if type(dist) is float:
                         dist = np.array([dist, ])
