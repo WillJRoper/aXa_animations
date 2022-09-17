@@ -479,7 +479,7 @@ filters = ["JWST.NIRCAM." + f for f in ["F090W", "F150W", "F200W",
                                         "F277W", "F356W", "F444W"]]
 
 # Define the initial image size in Mpc
-width = 0.03
+width = 0.1
 
 # Get the conversion between arcseconds and pkpc at this redshift
 arcsec_per_kpc_proper = cosmo.arcsec_per_kpc_proper(z).value
