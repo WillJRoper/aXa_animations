@@ -267,7 +267,7 @@ def make_spline_img_3d(pos, Ndim, ls, smooth, f, oversample,
                                 d = np.sqrt(dx * dx + dy * dy + dz * dz)
 
                                 # Store the distance
-                                dist[ii, jj, kk, 0] = d
+                                dist[ii, jj, kk] = d
 
                     # Get the kernel
                     w = spline_func(dist / sml)
