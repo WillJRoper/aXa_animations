@@ -194,10 +194,6 @@ def make_spline_img_3d(pos, Ndim, ls, smooth, oversample,
         # Initialise the temporary image array for each particle
         temp_img = np.zeros((Ndim, Ndim), dtype=np.float64)
 
-        # Handle oversample for long wavelength channel
-        if f in ["F277W", "F356W", "F444W"]:
-            oversample *= 2
-
         # Create a dictionary to cache psfs
         psfs = {}
 
@@ -272,6 +268,10 @@ def make_spline_img_3d(pos, Ndim, ls, smooth, oversample,
                     for f in ls.keys():
                         temp_img[i_low: i_high,
                                  j_low: j_high] = ls[f][low + ind] * sum_kernel
+
+                        # Handle oversample for long wavelength channel
+                        if f in ["F277W", "F356W", "F444W"]:
+                            oversample *= 2
 
                         # Get central pixel indices
                         # cent_ind = inds[np.argmin(dist)]
