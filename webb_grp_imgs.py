@@ -142,9 +142,8 @@ def cubic_spline(q):
     return k * w
 
 
-def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
-                       fov_arcsec, cent, arc_res, zpix,
-                       spline_func=cubic_spline,
+def make_spline_img_3d(pos, Ndim, ls, smooth, f, oversample,
+                       fov_arcsec, cent, arc_res, spline_func=cubic_spline,
                        spline_cut_off=1):
 
     # Define MPI message tags
@@ -195,21 +194,6 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
         # Initialise the temporary image array for each particle
         temp_img = np.zeros((Ndim, Ndim), dtype=np.float64)
 
-        # Define pixel positions in pixel coordinates
-        xs = np.linspace(0, Ndim, npix)
-        ys = np.linspace(0, Ndim, npix)
-        zs = np.linspace(0, Ndim, zpix)
-
-        # Define pixel position array for indexing
-        pix_pos = np.zeros((xs.size * ys.size * zs.size, 3))
-        for x in xs:
-            for y in ys:
-                for z in zs:
-
-                    pix_pos[:, 0] = x
-                    pix_pos[:, 1] = y
-                    pix_pos[:, 2] = z
-
         # Handle oversample for long wavelength channel
         if f in ["F277W", "F356W", "F444W"]:
             oversample *= 2
@@ -239,28 +223,51 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
 
                 for ipos, l, sml in zip(iposs, lss, smls):
 
-                    # How many pixels are we testing?
-                    nkernel = len(tree.query_ball_point(ipos,
-                                                        r=2 * sml))
+                    # How many pixels are in the smoothing length?
+                    n_sml = int(np.ceil(sml / arc_res)) + 1
 
-                    if nkernel == 0:
-                        continue
+                    # Where is this particle in the image?
+                    i = int(np.floor(ipos[0] / arc_res))
+                    j = int(np.floor(ipos[1] / arc_res))
+                    k = int(np.floor(2 * n_sml / 2))
 
-                    nkernel = (nkernel ** (1 / 3) + 6) ** 3
+                    # Define kernel lower edges
+                    i_low = i - n_sml
+                    j_low = j - n_sml
+                    k_low = 0
+                    if i_low < 0:
+                        i_low = 0
+                    if j_low < 0:
+                        j_low = 0
 
-                    # Query the tree for this particle
-                    dist, inds = tree.query(
-                        ipos, k=nkernel,
-                        distance_upper_bound=(spline_cut_off * sml) + arc_res
-                    )
+                    # Define kernel upper edges
+                    i_high = i + n_sml
+                    j_high = j + n_sml
+                    k_high = 2 * n_sml
+                    if i_high > Ndim:
+                        i_low = Ndim
+                    if j_low > Ndim:
+                        j_low = Ndim
 
-                    if type(dist) is float:
-                        dist = np.array([dist, ])
-                        inds = np.array([inds, ])
+                    # Define kernel shape
+                    k_shape = (i_high - i_low,
+                               j_high - j_low,
+                               k_high - k_low)
 
-                    okinds = dist < (spline_cut_off * sml)
-                    dist = dist[okinds]
-                    inds = inds[okinds]
+                    # Create array of pixel positions in the kernel
+                    dist = np.zeros(k_shape)
+                    for ii, iii in enumerate(range(i_low, i_high)):
+                        for jj, jjj in enumerate(range(j_low, j_high)):
+                            for kk, kkk in enumerate(range(k_low, k_high)):
+
+                                # Compute distance
+                                dx = (iii * arc_res) - ipos[0]
+                                dy = (jjj * arc_res) - ipos[1]
+                                dz = (kkk * arc_res) - ipos[2]
+                                d = np.sqrt(dx * dx + dy * dy + dz * dz)
+
+                                # Store the distance
+                                dist[ii, jj, kk, 0] = d
 
                     # Get the kernel
                     w = spline_func(dist / sml)
@@ -268,7 +275,7 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
                     # Place the kernel for this particle within the img
                     kernel = w / sml ** 3
                     norm_kernel = kernel / np.sum(kernel)
-                    np.add.at(temp_img, (pix_pos[inds, 0], pix_pos[inds, 1]),
+                    np.add.at(temp_img, (i_low: i _high, j_low: j_high),
                               l * norm_kernel)
 
                     # Get central pixel indices
@@ -399,24 +406,6 @@ def make_image(reg, snap, width_mpc, width_arc, half_width, npix, oversample,
         print("3D Image shape is (%d, %d, %d)"
               % (npix, npix, z_ax_pix))
 
-    # Define pixel positions in particle coordinates
-    xs = np.linspace(imgrange[0][0], imgrange[0][1], npix)
-    ys = np.linspace(imgrange[1][0], imgrange[1][1], npix)
-    zs = np.linspace(0, max_sml, z_ax_pix)
-
-    # Define pixel position array for the KDTree
-    pix_pos = np.zeros((xs.size * ys.size * zs.size, 3))
-    for x in xs:
-        for y in ys:
-            for z in zs:
-
-                pix_pos[:, 0] = x
-                pix_pos[:, 1] = y
-                pix_pos[:, 2] = z
-
-    # Build KDTree
-    tree = cKDTree(pix_pos)
-
     # Create dictionary to store each filter's image
     mono_imgs = {}
 
@@ -426,10 +415,10 @@ def make_image(reg, snap, width_mpc, width_arc, half_width, npix, oversample,
         # Get filter code
         fcode = f.split(".")[-1]
 
-        mono_imgs[f] = make_spline_img_3d(S_coords, npix, tree, fluxes[f],
+        mono_imgs[f] = make_spline_img_3d(S_coords, npix, fluxes[f],
                                           S_sml, fcode,
                                           oversample, width_arc,
-                                          target_arc, arc_res, z_ax_pix)
+                                          target_arc, arc_res)
 
         # Save the array
         np.save("data/Webb_reg-%s_snap-%s_rank%d_filter%s.npy"
@@ -554,11 +543,17 @@ if rank == 0:
             rank_img = np.load(path)
             fimg += rank_img
 
+        # Handle oversample for long wavelength channel
+        if f in ["F277W", "F356W", "F444W"]:
+            osample = 2 * oversample
+        else:
+            osample = oversample
+
         # Get PSF for this filter
         nc = webbpsf.NIRCam()
         nc.filter = fcode
         psf = nc.calc_psf(fov_arcsec=width_arc,
-                          oversample=oversample)
+                          oversample=osample)
 
         # Convolve the PSF and include this particle in the image
         fimg = signal.fftconvolve(fimg, psf[0].data, mode="same")
