@@ -142,7 +142,7 @@ def cubic_spline(q):
     return k * w
 
 
-def make_spline_img_3d(pos, Ndim, ls, smooth, f, oversample,
+def make_spline_img_3d(pos, Ndim, ls, smooth, oversample,
                        fov_arcsec, cent, arc_res, spline_func=cubic_spline,
                        spline_cut_off=1):
 
@@ -154,7 +154,7 @@ def make_spline_img_3d(pos, Ndim, ls, smooth, f, oversample,
     step = 100
 
     # Initialise the image array
-    img = np.zeros((Ndim, Ndim), dtype=np.float64)
+    img = {f: np.zeros((Ndim, Ndim), dtype=np.float64) for f in ls.keys()}
 
     if rank == 0:
 
@@ -218,10 +218,9 @@ def make_spline_img_3d(pos, Ndim, ls, smooth, f, oversample,
 
                 # Get this particle's data
                 iposs = pos[low: high, :]
-                lss = ls[low: high]
                 smls = smooth[low: high]
 
-                for ipos, l, sml in zip(iposs, lss, smls):
+                for (ind, ipos), sml in zip(enumerate(iposs), smls):
 
                     # How many pixels are in the smoothing length?
                     n_sml = int(np.ceil(sml / arc_res)) + 1
@@ -267,40 +266,44 @@ def make_spline_img_3d(pos, Ndim, ls, smooth, f, oversample,
                     # Place the kernel for this particle within the img
                     kernel = w / sml ** 3
                     norm_kernel = kernel / np.sum(kernel)
-                    summed_kernel = np.sum(norm_kernel, axis=-1)
-                    temp_img[i_low: i_high, j_low: j_high] = l * summed_kernel
+                    sum_kernel = np.sum(norm_kernel, axis=-1)
 
-                    # Get central pixel indices
-                    # cent_ind = inds[np.argmin(dist)]
-                    # i, j = pix_pos[cent_ind, 0], pix_pos[cent_ind, 1]
+                    # Loop over filters applying this
+                    for f in ls.keys():
+                        temp_img[i_low: i_high,
+                                 j_low: j_high] = ls[f][low + ind] * sum_kernel
 
-                    # # Get cached psf
-                    # if (i, j) in psfs:
-                    #     psf = psfs[(i, j)]
-                    # else:
+                        # Get central pixel indices
+                        # cent_ind = inds[np.argmin(dist)]
+                        # i, j = pix_pos[cent_ind, 0], pix_pos[cent_ind, 1]
 
-                    #     # Calculate the r and theta for this particle
-                    #     ipos -= cent
-                    #     r = np.sqrt(ipos[0] ** 2 + ipos[1] ** 2)
-                    #     theta = (np.rad2deg(np.arctan(ipos[1] / ipos[2]))
-                    #              + 360) % 360
+                        # # Get cached psf
+                        # if (i, j) in psfs:
+                        #     psf = psfs[(i, j)]
+                        # else:
 
-                    #     # Get PSF for this filter
-                    #     nc = webbpsf.NIRCam()
-                    #     nc.options['source_offset_r'] = r
-                    #     nc.options['source_offset_theta'] = theta
-                    #     nc.filter = f
-                    #     psf = nc.calc_psf(fov_arcsec=fov_arcsec,
-                    #                       oversample=oversample)
+                        #     # Calculate the r and theta for this particle
+                        #     ipos -= cent
+                        #     r = np.sqrt(ipos[0] ** 2 + ipos[1] ** 2)
+                        #     theta = (np.rad2deg(np.arctan(ipos[1] / ipos[2]))
+                        #              + 360) % 360
 
-                    #     # Cache this psf
-                    #     psfs[(i, j)] = psf
+                        #     # Get PSF for this filter
+                        #     nc = webbpsf.NIRCam()
+                        #     nc.options['source_offset_r'] = r
+                        #     nc.options['source_offset_theta'] = theta
+                        #     nc.filter = f
+                        #     psf = nc.calc_psf(fov_arcsec=fov_arcsec,
+                        #                       oversample=oversample)
 
-                    # # Convolve the PSF and include this particle in the image
-                    # temp_img = signal.fftconvolve(temp_img, psf[0].data,
-                    #                               mode="same")
-                    img += temp_img
-                    temp_img[:, :] = 0.
+                        #     # Cache this psf
+                        #     psfs[(i, j)] = psf
+
+                        # # Convolve the PSF and include this particle in the image
+                        # temp_img = signal.fftconvolve(temp_img, psf[0].data,
+                        #                               mode="same")
+                        img[f] += temp_img
+                        temp_img[:, :] = 0.
 
             elif tag == tags.EXIT:
                 break
@@ -393,23 +396,16 @@ def make_image(reg, snap, width_mpc, width_arc, half_width, npix, oversample,
     z_ax_pix = int(np.ceil(max_sml / arc_res)) + 2
     max_sml = z_ax_pix * arc_res
 
-    if rank == 0:
-        print("3D Image shape is (%d, %d, %d)"
-              % (npix, npix, z_ax_pix))
+    # Create images
+    mono_imgs = make_spline_img_3d(S_coords, npix, fluxes,
+                                   S_sml, oversample, width_arc,
+                                   target_arc, arc_res)
 
-    # Create dictionary to store each filter's image
-    mono_imgs = {}
-
-    # Loop over filters creating images
+    # Loop over filters saving images
     for f in filters:
 
         # Get filter code
         fcode = f.split(".")[-1]
-
-        mono_imgs[f] = make_spline_img_3d(S_coords, npix, fluxes[f],
-                                          S_sml, fcode,
-                                          oversample, width_arc,
-                                          target_arc, arc_res)
 
         # Save the array
         np.save("data/Webb_reg-%s_snap-%s_rank%d_filter%s.npy"
