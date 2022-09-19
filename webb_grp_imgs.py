@@ -151,7 +151,7 @@ def make_spline_img_3d(pos, Ndim, ls, smooth, oversample,
 
     # Set up particle pointer
     n = 0
-    step = 100
+    step = 1000
 
     # Initialise the image array
     img = {f: np.zeros((Ndim, Ndim), dtype=np.float64) for f in ls.keys()}
@@ -354,7 +354,10 @@ def make_image(reg, snap, width_mpc, width_arc, half_width, npix, oversample,
 
     # Get the main target position
     ind = np.argmax(gal_smass)
-    target = cops[ind, :]
+    target = np.array([3200 / (1 + z) / 2,
+                       3200 / (1 + z) / 2,
+                       3200 / (1 + z) / 2])
+    # target = cops[ind, :]
 
     # Center positions
     S_coords -= target
@@ -472,7 +475,7 @@ filters = ["JWST.NIRCAM." + f for f in ["F090W", "F150W", "F200W",
                                         "F277W", "F356W", "F444W"]]
 
 # Define the initial image size in Mpc
-width = 1.0
+width = 5.0
 
 # Get the conversion between arcseconds and pkpc at this redshift
 arcsec_per_kpc_proper = cosmo.arcsec_per_kpc_proper(z).value
