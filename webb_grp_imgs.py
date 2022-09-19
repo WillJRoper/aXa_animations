@@ -384,10 +384,20 @@ def make_image(reg, snap, width_mpc, width_arc, half_width, npix, oversample,
     imgrange = ((0, width_arc), (0, width_arc))
     imgextent = [0, width_arc, 0, width_arc]
 
+    # Redefine the z axis to reduce memory uses
+    max_sml = np.max(S_sml)
+    z_ax_pix = int(np.ceil(max_sml / arc_res)) + 2
+    max_sml = z_ax_pix * arc_res
+    S_coords[:, 2] = max_sml / 2
+
+    if rank == 0:
+        print("3D Image shape is (%d, %d, %d)"
+              % (npix, npix, z_ax_pix))
+
     # Define x and y positions of pixels
     X, Y, Z = np.meshgrid(np.linspace(imgrange[0][0], imgrange[0][1], npix),
                           np.linspace(imgrange[1][0], imgrange[1][1], npix),
-                          np.linspace(imgrange[1][0], imgrange[1][1], npix))
+                          np.linspace(0, max_sml, z_ax_pix))
 
     # Define pixel position array for the KDTree
     pix_pos = np.zeros((X.size, 3))
