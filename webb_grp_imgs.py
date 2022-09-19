@@ -186,6 +186,7 @@ def make_spline_img_3d(pos, Ndim, ls, smooth, oversample,
             elif tag == tags.EXIT:
 
                 closed_workers += 1
+                print("Finished", closed_workers, "of", num_workers)
 
     else:
 
