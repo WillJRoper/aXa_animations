@@ -562,7 +562,7 @@ if rank == 0:
         img[:, :, rgb] += fimg
 
     # Normalise image between 0 and 1
-    plow, phigh = 16, 99.9
+    plow, phigh = 16, 100
     norm = Normalize(vmin=np.percentile(img, plow),
                      vmax=np.percentile(img, phigh),
                      clip=True)
