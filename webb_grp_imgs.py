@@ -644,7 +644,7 @@ if rank == 0:
         hdf.close()
 
     # Normalise image between 0 and 1
-    plow, phigh = 64, 99.9999
+    plow, phigh = 75, 99.9999
     norm = Normalize(vmin=np.percentile(img, plow),
                      vmax=np.percentile(img, phigh),
                      clip=True)
