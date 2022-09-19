@@ -229,25 +229,17 @@ def make_spline_img_3d(pos, Ndim, ls, smooth, f, oversample,
                     # Where is this particle in the image?
                     i = int(np.floor(ipos[0] / arc_res))
                     j = int(np.floor(ipos[1] / arc_res))
-                    k = int(np.floor(2 * n_sml / 2))
+                    k = int(np.floor(ipos[2] / arc_res))
 
                     # Define kernel lower edges
-                    i_low = i - n_sml
-                    j_low = j - n_sml
-                    k_low = 0
-                    if i_low < 0:
-                        i_low = 0
-                    if j_low < 0:
-                        j_low = 0
+                    i_low = np.max((i - n_sml, 0))
+                    j_low = np.max((j - n_sml, 0))
+                    k_low = np.max((k - n_sml, 0))
 
                     # Define kernel upper edges
-                    i_high = i + n_sml
-                    j_high = j + n_sml
-                    k_high = 2 * n_sml
-                    if i_high > Ndim:
-                        i_low = Ndim
-                    if j_low > Ndim:
-                        j_low = Ndim
+                    i_high = np.min((i + n_sml, Ndim))
+                    j_high = np.min((j + n_sml, Ndim))
+                    k_high = np.min((k + n_sml, Ndim))
 
                     # Define kernel shape
                     k_shape = (i_high - i_low,
@@ -400,7 +392,6 @@ def make_image(reg, snap, width_mpc, width_arc, half_width, npix, oversample,
     max_sml = np.max(S_sml)
     z_ax_pix = int(np.ceil(max_sml / arc_res)) + 2
     max_sml = z_ax_pix * arc_res
-    S_coords[:, 2] = max_sml / 2
 
     if rank == 0:
         print("3D Image shape is (%d, %d, %d)"
