@@ -276,7 +276,7 @@ def make_spline_img_3d(pos, Ndim, ls, smooth, f, oversample,
                     kernel = w / sml ** 3
                     norm_kernel = kernel / np.sum(kernel)
                     summed_kernel = np.sum(norm_kernel, axis=-1)
-                    temp_img[i_low: i _high, j_low: j_high] = l * norm_kernel
+                    temp_img[i_low: i_high, j_low: j_high] = l * summed_kernel
 
                     # Get central pixel indices
                     # cent_ind = inds[np.argmin(dist)]
