@@ -143,7 +143,8 @@ def cubic_spline(q):
 
 
 def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
-                       fov_arcsec, cent, arc_res, spline_func=cubic_spline,
+                       fov_arcsec, cent, arc_res, zpix,
+                       spline_func=cubic_spline,
                        spline_cut_off=1):
 
     # Define MPI message tags
@@ -194,16 +195,20 @@ def make_spline_img_3d(pos, Ndim, tree, ls, smooth, f, oversample,
         # Initialise the temporary image array for each particle
         temp_img = np.zeros((Ndim, Ndim), dtype=np.float64)
 
-        # Define x and y positions of pixels
-        X, Y, Z = np.meshgrid(np.arange(0, Ndim, 1, dtype=np.int32),
-                              np.arange(0, Ndim, 1, dtype=np.int32),
-                              np.arange(0, Ndim, 1, dtype=np.int32))
+        # Define pixel positions in pixel coordinates
+        xs = np.linspace(0, Ndim, npix)
+        ys = np.linspace(0, Ndim, npix)
+        zs = np.linspace(0, Ndim, zpix)
 
-        # Define pixel position array for the KDTree
-        pix_pos = np.zeros((X.size, 3), dtype=np.int32)
-        pix_pos[:, 0] = X.ravel()
-        pix_pos[:, 1] = Y.ravel()
-        pix_pos[:, 2] = Z.ravel()
+        # Define pixel position array for indexing
+        pix_pos = np.zeros((xs.size * ys.size * zs.size, 3))
+        for x in xs:
+            for y in ys:
+                for z in zs:
+
+                    pix_pos[:, 0] = x
+                    pix_pos[:, 1] = y
+                    pix_pos[:, 2] = z
 
         # Handle oversample for long wavelength channel
         if f in ["F277W", "F356W", "F444W"]:
@@ -394,16 +399,20 @@ def make_image(reg, snap, width_mpc, width_arc, half_width, npix, oversample,
         print("3D Image shape is (%d, %d, %d)"
               % (npix, npix, z_ax_pix))
 
-    # Define x and y positions of pixels
-    X, Y, Z = np.meshgrid(np.linspace(imgrange[0][0], imgrange[0][1], npix),
-                          np.linspace(imgrange[1][0], imgrange[1][1], npix),
-                          np.linspace(0, max_sml, z_ax_pix))
+    # Define pixel positions in particle coordinates
+    xs = np.linspace(imgrange[0][0], imgrange[0][1], npix)
+    ys = np.linspace(imgrange[1][0], imgrange[1][1], npix)
+    zs = np.linspace(0, max_sml, z_ax_pix)
 
     # Define pixel position array for the KDTree
-    pix_pos = np.zeros((X.size, 3))
-    pix_pos[:, 0] = X.ravel()
-    pix_pos[:, 1] = Y.ravel()
-    pix_pos[:, 2] = Z.ravel()
+    pix_pos = np.zeros((xs.size * ys.size * zs.size, 3))
+    for x in xs:
+        for y in ys:
+            for z in zs:
+
+                pix_pos[:, 0] = x
+                pix_pos[:, 1] = y
+                pix_pos[:, 2] = z
 
     # Build KDTree
     tree = cKDTree(pix_pos)
@@ -420,7 +429,7 @@ def make_image(reg, snap, width_mpc, width_arc, half_width, npix, oversample,
         mono_imgs[f] = make_spline_img_3d(S_coords, npix, tree, fluxes[f],
                                           S_sml, fcode,
                                           oversample, width_arc,
-                                          target_arc, arc_res)
+                                          target_arc, arc_res, z_ax_pix)
 
         # Save the array
         np.save("data/Webb_reg-%s_snap-%s_rank%d_filter%s.npy"
