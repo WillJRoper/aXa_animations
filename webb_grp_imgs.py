@@ -515,69 +515,123 @@ if nranks > 1:
 
 if rank == 0:
 
+    # Are we using an existing file?
+    use_file = False
+    if len(sys.argv) > 1:
+        use_file = True
+
     # Initialise the image array
     img = np.zeros((npix, npix, 3), dtype=np.float64)
 
-    # Open file to write out results
-    hdf = h5py.File("data/Webb_reg-%s_snap-%s.npy"
-                    % (reg, snap), "w")
+    if use_file:
 
-    files = glob.glob("data/*.npy")
+        # Open file to write out results
+        hdf = h5py.File("data/Webb_reg-%s_snap-%s.npy"
+                        % (reg, snap), "r")
 
-    for f in filters:
+        for f in filters:
 
-        fimg = np.zeros((npix, npix), dtype=np.float64)
+            # Get filter code
+            fcode = f.split(".")[-1]
 
-        # Get filter code
-        fcode = f.split(".")[-1]
+            print("Combining filter %s" % f)
 
-        # Combine rank images together
-        for r, path in enumerate(files):
+            fimg = hdf[f]
 
-            if f not in path:
-                continue
+            # # Handle oversample for long wavelength channel
+            # if f in ["F277W", "F356W", "F444W"]:
+            #     osample = 2 * oversample
+            # else:
+            #     osample = oversample
 
-            print("Combinging image from file %s" % path)
+            # # Get PSF for this filter
+            # nc = webbpsf.NIRCam()
+            # nc.filter = fcode
+            # psf = nc.calc_psf(fov_arcsec=width_arc,
+            #                   oversample=osample)
 
-            rank_img = np.load(path)
-            fimg += rank_img
+            # # Convolve the PSF and include this particle in the image
+            # fimg = signal.fftconvolve(fimg, psf[0].data, mode="same")
 
-        hdf.create_dataset(f,
-                           shape=fimg.shape,
-                           dtype=fimg.dtype,
-                           data=fimg,
-                           compression="gzip")
+            # Get color for filter
+            if fcode in ["F356W", "F444W"]:
+                rgb = 0
+            elif fcode in ["F200W", "F277W"]:
+                rgb = 1
+            elif fcode in ["F090W", "F150W"]:
+                rgb = 2
+            else:
+                print("Failed to assign color for filter %s EXITING..." % fcode)
+                break
 
-        # # Handle oversample for long wavelength channel
-        # if f in ["F277W", "F356W", "F444W"]:
-        #     osample = 2 * oversample
-        # else:
-        #     osample = oversample
+            # Assign the image
+            img[:, :, rgb] += fimg
 
-        # # Get PSF for this filter
-        # nc = webbpsf.NIRCam()
-        # nc.filter = fcode
-        # psf = nc.calc_psf(fov_arcsec=width_arc,
-        #                   oversample=osample)
+        hdf.close()
 
-        # # Convolve the PSF and include this particle in the image
-        # fimg = signal.fftconvolve(fimg, psf[0].data, mode="same")
+    else:
 
-        # Get color for filter
-        if fcode in ["F356W", "F444W"]:
-            rgb = 0
-        elif fcode in ["F200W", "F277W"]:
-            rgb = 1
-        elif fcode in ["F090W", "F150W"]:
-            rgb = 2
-        else:
-            print("Failed to assign color for filter %s EXITING..." % fcode)
-            break
+        # Open file to write out results
+        hdf = h5py.File("data/Webb_reg-%s_snap-%s.npy"
+                        % (reg, snap), "w")
 
-        # Assign the image
-        img[:, :, rgb] += fimg
+        files = glob.glob("data/*.npy")
 
-    hdf.close()
+        for f in filters:
+
+            fimg = np.zeros((npix, npix), dtype=np.float64)
+
+            # Get filter code
+            fcode = f.split(".")[-1]
+
+            # Combine rank images together
+            for r, path in enumerate(files):
+
+                print("Combinging image from file %s" % path)
+
+                rank_hdf = h5py.File("data/Webb_reg-%s_snap-%s_rank%d.npy"
+                                     % (reg, snap, r), "w")
+
+                rank_img = rank_hdf[f][...]
+                fimg += rank_img
+                rank_hdf.close()
+
+                hdf.create_dataset(f,
+                                   shape=fimg.shape,
+                                   dtype=fimg.dtype,
+                                   data=fimg,
+                                   compression="gzip")
+
+            # # Handle oversample for long wavelength channel
+            # if f in ["F277W", "F356W", "F444W"]:
+            #     osample = 2 * oversample
+            # else:
+            #     osample = oversample
+
+            # # Get PSF for this filter
+            # nc = webbpsf.NIRCam()
+            # nc.filter = fcode
+            # psf = nc.calc_psf(fov_arcsec=width_arc,
+            #                   oversample=osample)
+
+            # # Convolve the PSF and include this particle in the image
+            # fimg = signal.fftconvolve(fimg, psf[0].data, mode="same")
+
+            # Get color for filter
+            if fcode in ["F356W", "F444W"]:
+                rgb = 0
+            elif fcode in ["F200W", "F277W"]:
+                rgb = 1
+            elif fcode in ["F090W", "F150W"]:
+                rgb = 2
+            else:
+                print("Failed to assign color for filter %s EXITING..." % fcode)
+                break
+
+            # Assign the image
+            img[:, :, rgb] += fimg
+
+        hdf.close()
 
     # Normalise image between 0 and 1
     plow, phigh = 32, 99.9999
