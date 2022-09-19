@@ -1,3 +1,4 @@
+import sys
 from synthobs.sed import models
 from mpi4py import MPI
 import mpi4py
