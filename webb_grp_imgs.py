@@ -187,8 +187,6 @@ def make_spline_img_3d(pos, Ndim, ls, smooth, oversample,
 
                 closed_workers += 1
 
-        print(f, "done")
-
     else:
 
         # Initialise the temporary image array for each particle
