@@ -519,7 +519,12 @@ if rank == 0:
     # Are we using an existing file?
     use_file = False
     if len(sys.argv) > 1:
-        use_file = True
+        use_file = bool(sys.argv[1])
+
+    # Apply the PSF?
+    use_psf = False
+    if len(sys.argv) > 2:
+        use_psf = bool(sys.argv[2])
 
     # Initialise the image array
     img = np.zeros((npix, npix, 3), dtype=np.float64)
@@ -539,20 +544,22 @@ if rank == 0:
 
             fimg = hdf[f]
 
-            # # Handle oversample for long wavelength channel
-            # if f in ["F277W", "F356W", "F444W"]:
-            #     osample = 2 * oversample
-            # else:
-            #     osample = oversample
+            if use_psf:
 
-            # # Get PSF for this filter
-            # nc = webbpsf.NIRCam()
-            # nc.filter = fcode
-            # psf = nc.calc_psf(fov_arcsec=width_arc,
-            #                   oversample=osample)
+                # Handle oversample for long wavelength channel
+                if fcode in ["F277W", "F356W", "F444W"]:
+                    osample = 2 * oversample
+                else:
+                    osample = oversample
 
-            # # Convolve the PSF and include this particle in the image
-            # fimg = signal.fftconvolve(fimg, psf[0].data, mode="same")
+                # Get PSF for this filter
+                nc = webbpsf.NIRCam()
+                nc.filter = fcode
+                psf = nc.calc_psf(fov_arcsec=width_arc,
+                                  oversample=osample)
+
+                # Convolve the PSF and include this particle in the image
+                fimg = signal.fftconvolve(fimg, psf[0].data, mode="same")
 
             # Get color for filter
             if fcode in ["F356W", "F444W"]:
@@ -603,20 +610,22 @@ if rank == 0:
                                    data=fimg,
                                    compression="gzip")
 
-            # # Handle oversample for long wavelength channel
-            # if f in ["F277W", "F356W", "F444W"]:
-            #     osample = 2 * oversample
-            # else:
-            #     osample = oversample
+            if use_psf:
 
-            # # Get PSF for this filter
-            # nc = webbpsf.NIRCam()
-            # nc.filter = fcode
-            # psf = nc.calc_psf(fov_arcsec=width_arc,
-            #                   oversample=osample)
+                # Handle oversample for long wavelength channel
+                if fcode in ["F277W", "F356W", "F444W"]:
+                    osample = 2 * oversample
+                else:
+                    osample = oversample
 
-            # # Convolve the PSF and include this particle in the image
-            # fimg = signal.fftconvolve(fimg, psf[0].data, mode="same")
+                # Get PSF for this filter
+                nc = webbpsf.NIRCam()
+                nc.filter = fcode
+                psf = nc.calc_psf(fov_arcsec=width_arc,
+                                  oversample=osample)
+
+                # Convolve the PSF and include this particle in the image
+                fimg = signal.fftconvolve(fimg, psf[0].data, mode="same")
 
             # Get color for filter
             if fcode in ["F356W", "F444W"]:
@@ -657,8 +666,11 @@ if rank == 0:
 
     plt.margins(0, 0)
 
-    fig.savefig('plots/Webb_reg-%s_snap-%s.png'
-                % (reg, snap),
+    if use_psf:
+        out_path = 'plots/Webb_reg-%s_snap-%s_PSF.png' % (reg, snap)
+    else:
+        out_path = 'plots/Webb_reg-%s_snap-%s.png' % (reg, snap)
+    fig.savefig(out_path,
                 bbox_inches='tight',
                 pad_inches=0)
 
