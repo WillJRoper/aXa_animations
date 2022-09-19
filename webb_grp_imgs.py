@@ -186,7 +186,7 @@ def make_spline_img_3d(pos, Ndim, ls, smooth, oversample,
             elif tag == tags.EXIT:
 
                 closed_workers += 1
-                print("Finished", closed_workers, "of", num_workers)
+                print("Finished workers:", closed_workers, "of", num_workers)
 
     else:
 
@@ -416,50 +416,50 @@ def make_image(reg, snap, width_mpc, width_arc, half_width, npix, oversample,
         if rank == 0:
             print("Completed Image for %s" % fcode)
 
-    # Set up RGB image
-    rgb_img = np.zeros((npix, npix, 3))
+    # # Set up RGB image
+    # rgb_img = np.zeros((npix, npix, 3))
 
-    # Populate RGB image
-    for f in filters:
+    # # Populate RGB image
+    # for f in filters:
 
-        # Get filter code
-        fcode = f.split(".")[-1]
+    #     # Get filter code
+    #     fcode = f.split(".")[-1]
 
-        # Get color for filter
-        if fcode in ["F356W", "F444W"]:
-            rgb = 0
-        elif fcode in ["F200W", "F277W"]:
-            rgb = 1
-        elif fcode in ["F090W", "F150W"]:
-            rgb = 2
-        else:
-            print("Failed to assign color for filter %s EXITING..." % fcode)
-            break
+    #     # Get color for filter
+    #     if fcode in ["F356W", "F444W"]:
+    #         rgb = 0
+    #     elif fcode in ["F200W", "F277W"]:
+    #         rgb = 1
+    #     elif fcode in ["F090W", "F150W"]:
+    #         rgb = 2
+    #     else:
+    #         print("Failed to assign color for filter %s EXITING..." % fcode)
+    #         break
 
-        # Assign the image
-        rgb_img[:, :, rgb] += mono_imgs[f]
+    #     # Assign the image
+    #     rgb_img[:, :, rgb] += mono_imgs[f]
 
-    if rank_plot:
+    # if rank_plot:
 
-        # Set up figure
-        dpi = rgb_img.shape[0]
-        fig = plt.figure(figsize=(1, 1), dpi=dpi)
-        ax = fig.add_subplot(111)
-        ax.grid(False)
+    #     # Set up figure
+    #     dpi = rgb_img.shape[0]
+    #     fig = plt.figure(figsize=(1, 1), dpi=dpi)
+    #     ax = fig.add_subplot(111)
+    #     ax.grid(False)
 
-        ax.imshow(rgb_img, extent=imgextent, origin='lower')
-        ax.tick_params(axis='both', left=False, top=False, right=False,
-                       bottom=False, labelleft=False,
-                       labeltop=False, labelright=False, labelbottom=False)
+    #     ax.imshow(rgb_img, extent=imgextent, origin='lower')
+    #     ax.tick_params(axis='both', left=False, top=False, right=False,
+    #                    bottom=False, labelleft=False,
+    #                    labeltop=False, labelright=False, labelbottom=False)
 
-        plt.margins(0, 0)
+    #     plt.margins(0, 0)
 
-        fig.savefig('plots/TempWebb_reg-%s_snap-%s_rank%d.png'
-                    % (reg, snap, rank),
-                    bbox_inches='tight',
-                    pad_inches=0)
+    #     fig.savefig('plots/TempWebb_reg-%s_snap-%s_rank%d.png'
+    #                 % (reg, snap, rank),
+    #                 bbox_inches='tight',
+    #                 pad_inches=0)
 
-        plt.close(fig)
+    #     plt.close(fig)
 
     comm.Barrier()
 
@@ -532,20 +532,20 @@ if rank == 0:
             rank_img = np.load(path)
             fimg += rank_img
 
-        # Handle oversample for long wavelength channel
-        if f in ["F277W", "F356W", "F444W"]:
-            osample = 2 * oversample
-        else:
-            osample = oversample
+        # # Handle oversample for long wavelength channel
+        # if f in ["F277W", "F356W", "F444W"]:
+        #     osample = 2 * oversample
+        # else:
+        #     osample = oversample
 
-        # Get PSF for this filter
-        nc = webbpsf.NIRCam()
-        nc.filter = fcode
-        psf = nc.calc_psf(fov_arcsec=width_arc,
-                          oversample=osample)
+        # # Get PSF for this filter
+        # nc = webbpsf.NIRCam()
+        # nc.filter = fcode
+        # psf = nc.calc_psf(fov_arcsec=width_arc,
+        #                   oversample=osample)
 
-        # Convolve the PSF and include this particle in the image
-        fimg = signal.fftconvolve(fimg, psf[0].data, mode="same")
+        # # Convolve the PSF and include this particle in the image
+        # fimg = signal.fftconvolve(fimg, psf[0].data, mode="same")
 
         # Get color for filter
         if fcode in ["F356W", "F444W"]:
