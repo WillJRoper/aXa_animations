@@ -520,7 +520,7 @@ if rank == 0:
 
     # Open file to write out results
     hdf = h5py.File("data/Webb_reg-%s_snap-%s.npy"
-                    % (reg, snap, rank), "w")
+                    % (reg, snap), "w")
 
     files = glob.glob("data/*.npy")
 
