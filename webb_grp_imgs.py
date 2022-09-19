@@ -403,18 +403,24 @@ def make_image(reg, snap, width_mpc, width_arc, half_width, npix, oversample,
                                    S_sml, oversample, width_arc,
                                    target_arc, arc_res)
 
+    # Open file to write out results
+    hdf = h5py.File("data/Webb_reg-%s_snap-%s_rank%d.npy"
+                    % (reg, snap, rank), "w")
+
     # Loop over filters saving images
     for f in filters:
 
         # Get filter code
         fcode = f.split(".")[-1]
 
-        # Save the array
-        np.save("data/Webb_reg-%s_snap-%s_rank%d_filter%s.npy"
-                % (reg, snap, rank, f), mono_imgs[f])
+        hdf.create_dataset(f, shape=mono_imgs[f].shape,
+                           dtype=mono_imgs[f].dtype, data=mono_imgs[f],
+                           compression="gzip")
 
         if rank == 0:
             print("Completed Image for %s" % fcode)
+
+    hdf.close()
 
     # # Set up RGB image
     # rgb_img = np.zeros((npix, npix, 3))
@@ -512,6 +518,10 @@ if rank == 0:
     # Initialise the image array
     img = np.zeros((npix, npix, 3), dtype=np.float64)
 
+    # Open file to write out results
+    hdf = h5py.File("data/Webb_reg-%s_snap-%s.npy"
+                    % (reg, snap, rank), "w")
+
     files = glob.glob("data/*.npy")
 
     for f in filters:
@@ -531,6 +541,12 @@ if rank == 0:
 
             rank_img = np.load(path)
             fimg += rank_img
+
+        hdf.create_dataset(f,
+                           shape=fimg.shape,
+                           dtype=fimg.dtype,
+                           data=fimg,
+                           compression="gzip")
 
         # # Handle oversample for long wavelength channel
         # if f in ["F277W", "F356W", "F444W"]:
@@ -561,8 +577,10 @@ if rank == 0:
         # Assign the image
         img[:, :, rgb] += fimg
 
+    hdf.close()
+
     # Normalise image between 0 and 1
-    plow, phigh = 16, 100
+    plow, phigh = 32, 99.9999
     norm = Normalize(vmin=np.percentile(img, plow),
                      vmax=np.percentile(img, phigh),
                      clip=True)
