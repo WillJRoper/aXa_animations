@@ -518,13 +518,13 @@ if rank == 0:
 
     # Are we using an existing file?
     use_file = False
-    if len(sys.argv) > 1:
-        use_file = bool(sys.argv[1])
+    if len(sys.argv) > 3:
+        use_file = bool(sys.argv[3])
 
     # Apply the PSF?
     use_psf = False
-    if len(sys.argv) > 2:
-        use_psf = bool(sys.argv[2])
+    if len(sys.argv) > 4:
+        use_psf = bool(sys.argv[4])
 
     # Initialise the image array
     img = np.zeros((npix, npix, 3), dtype=np.float64)
@@ -644,9 +644,9 @@ if rank == 0:
         hdf.close()
 
     # Normalise image between 0 and 1
-    plow, phigh = 50, 99.999
+    plow, phigh = float(sys.argv[1]), float(sys.argv[2])
     norm = Normalize(vmin=np.percentile(img[img > 0], plow),
-                     vmax=np.percentile(img, phigh),
+                     vmax=np.percentile(img[img > 0], phigh),
                      clip=True)
     print(img[img > 0].min(), img.max(), np.percentile(img[img > 0], plow),
           np.percentile(img[img > 0], phigh))
