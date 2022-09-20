@@ -644,12 +644,10 @@ if rank == 0:
         hdf.close()
 
     # Normalise image between 0 and 1
-    plow, phigh = float(sys.argv[1]), float(sys.argv[2])
-    norm = Normalize(vmin=np.percentile(img[img > 0], plow),
-                     vmax=np.percentile(img[img > 0], phigh),
-                     clip=True)
-    print(img[img > 0].min(), img.max(), np.percentile(img[img > 0], plow),
-          np.percentile(img[img > 0], phigh))
+    vmin, vmax = float(sys.argv[1]), float(sys.argv[2])
+    norm = Normalize(vmin=vmin, vmax=vmax, clip=True)
+    print(img[img > 0].min(), img.max(), np.percentile(img[img > 0], 50),
+          np.percentile(img[img > 0], 99.9))
     img = norm(img).data
     print(img.min(), img.max())
 
