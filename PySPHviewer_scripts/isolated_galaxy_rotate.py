@@ -1,12 +1,11 @@
 import matplotlib as ml
-
+import h5py
 ml.use('Agg')
 import numpy as np
 from sphviewer.tools import camera_tools
 import matplotlib.pyplot as plt
 from astropy.cosmology import Planck13 as cosmo
 import sys
-from swiftsimio import load
 from images import getimage
 import cmasher as cmr
 import os
@@ -19,11 +18,10 @@ def single_frame(num, nframes, res):
 
     snap = "%05d" % num
 
-    data = load(path)
+    hdf = h5py.File(path, "r")
 
-    meta = data.metadata
-    boxsize = meta.boxsize[0]
-    z = meta.redshift
+    boxsize = hdf["Header"].attrs["Boxsize"][0]
+    z =  hdf["Header"].attrs["Redshift"]
 
     print("Boxsize:", boxsize)
 
@@ -52,21 +50,25 @@ def single_frame(num, nframes, res):
     # Define the camera trajectory
     cam_data = camera_tools.get_camera_trajectory(targets, anchors)
 
-    poss = data.gas.coordinates.value
-    masses = data.gas.masses.value * 10 ** 10
-    dm_masses = data.dark_matter.masses.value * 10 ** 10
+    poss = hdf["PartType0/Coordinates"][:]
+    masses = hdf["PartType0/Masses"][:] * 10 ** 10
+    dm_masses = hdf["PartType1/Masses"][:] * 10 ** 10
 
     poss -= cent
     poss[np.where(poss > boxsize.value / 2)] -= boxsize.value
     poss[np.where(poss < - boxsize.value / 2)] += boxsize.value
 
-    hsmls = data.gas.smoothing_lengths.value
+    hsmls = hdf["PartType0/SmoothingLengths"][:]
+
+    hdf.close()
+
+    print(poss.shape[0] ** (1/3), "particles")
 
     # Fix broken properties
     if dm_masses.max() == 0:
         return
 
-    mean_den = np.sum(dm_masses) / boxsize ** 3
+    mean_den = cosmo.Ob(0) * cosmo.critical_density(0)
 
     vmax, vmin = np.log10(100 * mean_den), 7
 
