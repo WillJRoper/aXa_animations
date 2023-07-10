@@ -51,22 +51,17 @@ def single_frame(num, nframes, res):
     cam_data = camera_tools.get_camera_trajectory(targets, anchors)
 
     poss = hdf["PartType0/Coordinates"][:]
+    print(hdf["PartType0"].keys())
     masses = hdf["PartType0/Masses"][:] * 10 ** 10
-    dm_masses = hdf["PartType1/Masses"][:] * 10 ** 10
+    hsmls = hdf["PartType0/SmoothingLengths"][:]
 
     poss -= cent
     poss[np.where(poss > boxsize.value / 2)] -= boxsize.value
     poss[np.where(poss < - boxsize.value / 2)] += boxsize.value
 
-    hsmls = hdf["PartType0/SmoothingLengths"][:]
-
     hdf.close()
 
     print(poss.shape[0] ** (1/3), "particles")
-
-    # Fix broken properties
-    if dm_masses.max() == 0:
-        return
 
     mean_den = cosmo.Ob(0) * cosmo.critical_density(0)
 
