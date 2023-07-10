@@ -64,7 +64,7 @@ def single_frame(num, nframes, res):
 
     mean_den = cosmo.Ob(0) * cosmo.critical_density(0)
 
-    vmax, vmin = 8.5, 0
+    vmax, vmin = 8., 0
 
     print("Norm:", vmin, vmax)
 
