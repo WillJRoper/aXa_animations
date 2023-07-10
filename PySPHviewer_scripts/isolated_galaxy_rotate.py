@@ -60,11 +60,17 @@ def single_frame(num, nframes, res):
 
     hdf.close()
 
+    rs = np.sqrt(poss[:, 0] ** 2 + poss[:, 1] ** 2 + poss[:, 2] ** 2)
+    okinds = rs < 20
+    poss = poss[okinds, :]
+    masses = masses[okinds]
+    hsmls = hsmls[okinds]
+
     print(poss.shape[0] ** (1/3), "particles")
 
     mean_den = cosmo.Ob(0) * cosmo.critical_density(0)
 
-    vmax, vmin = 6.5, 0.5
+    vmax, vmin = 6.5, 1
 
     print("Norm:", vmin, vmax)
 
@@ -127,6 +133,6 @@ if int(sys.argv[2]) > 0:
             'plots/COLIBRE_Galaxy_frame' + snap + '.png'):
         print("File exists")
     else:
-        single_frame(int(sys.argv[1]), nframes=1800, res=res)
+        single_frame(int(sys.argv[1]), nframes=900, res=res)
 else:
-    single_frame(int(sys.argv[1]), nframes=1800, res=res)
+    single_frame(int(sys.argv[1]), nframes=900, res=res)
