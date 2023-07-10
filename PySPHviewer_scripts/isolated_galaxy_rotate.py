@@ -123,14 +123,14 @@ def single_frame(num, nframes, res):
     plt.close(fig)
 
 
+res = (4320, 7680)
+    
 if int(sys.argv[2]) > 0:
     snap = "%05d" % int(sys.argv[1])
     if os.path.isfile(
             'plots/COLIBRE_Galaxy_frame' + snap + '.png'):
         print("File exists")
     else:
-        res = (4320, 7680)
-        single_frame(int(sys.argv[1]), nframes=1380, res=res)
+        single_frame(int(sys.argv[1]), nframes=1800, res=res)
 else:
-    res = (2160, 3840)
-    single_frame(int(sys.argv[1]), nframes=1380, res=res)
+    single_frame(int(sys.argv[1]), nframes=1800, res=res)
