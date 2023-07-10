@@ -40,7 +40,7 @@ def single_frame(num, nframes, res):
                              'same']
     anchors['r'] = [30, 'same', 'same', 'same', 'same', 'same',
                     'same', 'same']
-    anchors['t'] = [5, 'same', 'same', 'same', 'same', 'same', 'same', 'same']
+    anchors['t'] = [-35, 'same', 'same', 'same', 'same', 'same', 'same', 'same']
     anchors['p'] = [0, 'pass', 'pass', 'pass', 'pass', 'pass', 'pass', -360]
     anchors['zoom'] = [1., 'same', 'same', 'same', 'same', 'same', 'same',
                        'same']
