@@ -20,7 +20,7 @@ def single_frame(num, nframes, res):
 
     hdf = h5py.File(path, "r")
 
-    boxsize = hdf["Header"].attrs["Boxsize"][0]
+    boxsize = hdf["Header"].attrs["BoxSize"][0]
     z =  hdf["Header"].attrs["Redshift"]
 
     print("Boxsize:", boxsize)
