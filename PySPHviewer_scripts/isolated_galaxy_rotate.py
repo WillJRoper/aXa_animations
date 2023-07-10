@@ -55,8 +55,8 @@ def single_frame(num, nframes, res):
     hsmls = hdf["PartType0/SmoothingLengths"][:]
 
     poss -= cent
-    poss[np.where(poss > boxsize.value / 2)] -= boxsize.value
-    poss[np.where(poss < - boxsize.value / 2)] += boxsize.value
+    poss[np.where(poss > boxsize / 2)] -= boxsize
+    poss[np.where(poss < - boxsize / 2)] += boxsize
 
     hdf.close()
 
