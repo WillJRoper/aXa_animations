@@ -51,8 +51,7 @@ def single_frame(num, nframes, res):
     cam_data = camera_tools.get_camera_trajectory(targets, anchors)
 
     poss = hdf["PartType0/Coordinates"][:]
-    print(hdf["PartType0"].keys())
-    masses = hdf["PartType0/Masses"][:] * 10 ** 10
+    masses = hdf["PartType0/Densities"][:]
     hsmls = hdf["PartType0/SmoothingLengths"][:]
 
     poss -= cent
