@@ -38,10 +38,10 @@ def single_frame(num, nframes, res):
     anchors['id_frames'] = np.linspace(0, nframes, 8, dtype=int)
     anchors['id_targets'] = [0, 'same', 'same', 'same', 'same', 'same', 'same',
                              'same']
-    anchors['r'] = [30, 'same', 'same', 'same', 'pass', 'pass',
-                    'pass', 1]
-    anchors['t'] = [-75, 'same', 'same', 'same', 'same', 'same', 'same', 'same']
-    anchors['p'] = [0, 'pass', 'pass', -360, 'same', 'same', 'same', 'same']
+    anchors['r'] = [30, 'same', 'same', 'same', 'same', 'same',
+                    'same', 'same']
+    anchors['t'] = [-55, 'same', 'same', 'same', 'same', 'same', 'same', 'same']
+    anchors['p'] = [0, 'pass', 'pass', 'pass', 'pass', 'pass', 'pass', -360]
     anchors['zoom'] = [1., 'same', 'same', 'same', 'same', 'same', 'same',
                        'same']
     anchors['extent'] = [10, 'same', 'same', 'same', 'same', 'same', 'same',
@@ -133,6 +133,6 @@ if int(sys.argv[2]) > 0:
             'plots/COLIBRE_Galaxy_frame' + snap + '.png'):
         print("File exists")
     else:
-        single_frame(int(sys.argv[1]), nframes=900, res=res)
+        single_frame(int(sys.argv[1]), nframes=360, res=res)
 else:
-    single_frame(int(sys.argv[1]), nframes=900, res=res)
+    single_frame(int(sys.argv[1]), nframes=360, res=res)
